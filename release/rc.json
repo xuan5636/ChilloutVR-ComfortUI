@@ -1,0 +1,34 @@
+{
+  "_id": -1,
+  "name": "Comfort UI",
+  "modversion": "0.2.11",
+  "gameversion": "2026r182-hf4 (public-nightly)",
+  "loaderversion": "0.8.0-ci.2548 (Mono)",
+  "modtype": "Mod",
+  "author": "Local UI Workshop",
+  "description": "ChilloutVR 非官方界面模组（0.2.11 公开测试版）。\n\n柔和深色与自选配色；统一主菜单、快捷菜单、设置、详情、创建房间、登录、虚拟键盘和 HUD 的风格；独立麦克风按钮。支持简体中文、English、日本語、한국어、Español，语言使用单行滑块选择。\n\n统一设置开关、选项、滑条及数字输入；三种动画形式、三档速度，支持关闭动效。相机常用功能与滤镜/构图分组。\n\n可选 Google/MyMemory 内容翻译：详情名称和简介、玩家简介可切换译文/原文；默认 F8 开启持续气泡翻译，再按关闭并还原原文，支持改键。翻译栏目支持系统代理、直连、手动 HTTP 代理、连接测试和缓存。在线翻译会将选中/可见正文发送给所选服务，气泡翻译每次启动默认关闭。\n\n[EXE 安装程序](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.2.11/ComfortUI-Setup-0.2.11.exe) · [安装说明](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/main/docs/INSTALLATION.zh-CN.md) · [验证范围](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/main/docs/VALIDATION.md)\n\n开发目标为 Windows / Mono；其他游戏分支或加载器版本未认证。0.2.11 已通过本地构建与隔离检查，完整真实 PC/VR 及长期运行仍待验证。",
+  "searchtags": [
+    "UI",
+    "menu",
+    "Comfort UI",
+    "localization",
+    "Chinese",
+    "Japanese",
+    "Korean",
+    "Spanish",
+    "translation",
+    "camera",
+    "accessibility",
+    "界面",
+    "汉化"
+  ],
+  "requirements": [
+    "[ChilloutVR](https://store.steampowered.com/app/661130/ChilloutVR/) — Windows, 2026r182-hf4 public-nightly (development target)",
+    "[MelonLoader](https://github.com/LavaGang/MelonLoader/releases) — Mono, 0.8.0-ci.2548 (development target)",
+    "[安装说明](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/main/docs/INSTALLATION.zh-CN.md) — .NET Framework 4.8; Google/MyMemory access is optional for online translation"
+  ],
+  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.2.11/CVRComfortUI.dll",
+  "sourcelink": "https://github.com/xuan5636/ChilloutVR-ComfortUI",
+  "changelog": "首次公开测试发布 0.2.11：五语言单行滑块；统一原版设置控件；补齐首页、快捷菜单、详情及创建页面动效；减少重复刷新和面板重建；保留 0.2.10 F8 持续翻译及 Cohtml 页面生命周期崩溃保护。详细记录：https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/main/CHANGELOG.md",
+  "embedcolor": "#C1CBDC"
+}

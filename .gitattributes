@@ -1,0 +1,7 @@
+* text=auto
+assets/* -text
+src/*.cs -text
+installer/Setup.cs -text
+installer/app.manifest -text
+*.png binary
+*.zip binary

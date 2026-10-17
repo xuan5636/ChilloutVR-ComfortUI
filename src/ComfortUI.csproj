@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>CVRComfortUI</AssemblyName>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GameDir Condition="'$(GameDir)' == ''">$(CHILLOUTVR_DIR)</GameDir>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
+    <Reference Include="MelonLoader"><HintPath>$(GameDir)\MelonLoader\net35\MelonLoader.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(GameDir)\MelonLoader\net35\0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\Newtonsoft.Json.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UIModule"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\UnityEngine.UIModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.TextMeshPro"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\Unity.TextMeshPro.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Cohtml.Runtime"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\Cohtml.Runtime.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="cohtml.Net"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\cohtml.Net.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Assembly-CSharp"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <EmbeddedResource Include="..\assets\comfort.js" LogicalName="ComfortUI.comfort.js" />
+    <EmbeddedResource Include="..\assets\comfort.css" LogicalName="ComfortUI.comfort.css" />
+    <EmbeddedResource Include="..\assets\settings-zh.json" LogicalName="ComfortUI.settings-zh.json" />
+    <EmbeddedResource Include="..\assets\content-tools.js" LogicalName="ComfortUI.content-tools.js" />
+    <EmbeddedResource Include="..\assets\camera-zh.json" LogicalName="ComfortUI.camera-zh.json" />
+    <EmbeddedResource Include="..\assets\locales.json" LogicalName="ComfortUI.locales.json" />
+  </ItemGroup>
+  <Target Name="ValidateGameDir" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(GameDir)\ChilloutVR.exe')" Text="Set GameDir to your own installed ChilloutVR directory." />
+    <Error Condition="!Exists('$(GameDir)\MelonLoader\net35\MelonLoader.dll')" Text="Mono MelonLoader is required to build this mod." />
+  </Target>
+</Project>

@@ -1,0 +1,50 @@
+using System;
+using System.Reflection;
+using System.Threading;
+using ComfortUI;
+using ABI_RC.Systems.ChatBox;
+class ChatModeTests0210
+{
+    static int passed;
+    static void Check(bool value, string text) { if (!value) throw new Exception(text); Console.WriteLine("PASS " + text); passed++; }
+    static void Tick(ComfortMod.Preferences p, ContentTranslator s, bool typing=false) { UnityEngine.Time.realtimeSinceStartup += .5f; ChatTranslation.Tick(p,s,typing); }
+    static void Invoke(string name, object value=null) { typeof(ChatTranslation).GetMethod(name, BindingFlags.NonPublic|BindingFlags.Static).Invoke(null, value==null?null:new[]{value}); }
+    static void Wait(Func<bool> condition) { for (int i=0;i<200&&!condition();i++)Thread.Sleep(5); if(!condition())throw new Exception("Worker did not deliver"); }
+    static int Requests(ContentTranslator service) { lock(service)return service.Pending.Count; }
+    static void Drain(ComfortMod.Preferences p, ContentTranslator service, Func<bool> condition) { for(int i=0;i<100&&!condition();i++){Thread.Sleep(5);Tick(p,service);}if(!condition())throw new Exception("Main-thread delivery missing"); }
+    static void Toggle(ComfortMod.Preferences p,ContentTranslator service) { UnityEngine.Input.Pressed=true; Tick(p,service); }
+    static ChatBoxBubbleBehavior Bubble(string id,string text,bool mine=false,float x=.5f) { var b=new ChatBoxBubbleBehavior();b.textBubbleOutputTMP.text=text;b.Player.IsLocalPlayer=mine;b.textBubbleOutputTMP.transform.position=new UnityEngine.Vector3(x,.5f,1);ChatBoxBubbleBehavior.ChatBoxes[id]=b;return b; }
+    static void Clean(ComfortMod.Preferences p,ContentTranslator service)
+    {
+        if(ChatTranslation.IsEnabled){ChatTranslation.Trigger();Tick(p,service);}Invoke("Reset");ChatBoxBubbleBehavior.ChatBoxes.Clear();UnityEngine.Input.Pressed=false;UnityEngine.Application.isFocused=true;Invoke("KeyboardClosed");ABI_RC.Core.InteractionSystem.ViewManager.Instance=null;ABI_RC.Core.Player.PlayerSetup.Instance=null;UnityEngine.Camera.main=new UnityEngine.Camera();Thread.Sleep(15);Tick(p,service);
+    }
+    static int Main(string[] args)
+    {
+        try
+        {
+            ChatTranslation.Install(new HarmonyLib.Harmony());
+            var p=new ComfortMod.Preferences();var s=new ContentTranslator();var a=Bubble("a","hello");Bubble("me","My message",true);var off=Bubble("off","Out of view",false,2);
+            Tick(p,s);Tick(p,s);Check(!ChatTranslation.IsEnabled&&Requests(s)==0,"Translation starts off and idle ticks never upload chat");
+            Toggle(p,s);Wait(()=>Requests(s)==1);Check(ChatTranslation.IsEnabled&&s.Texts[0]=="hello"&&Requests(s)==1,"One F8 enables continuous translation and selects only visible other-player bubbles");
+            var stopwatch=System.Diagnostics.Stopwatch.StartNew();for(int i=0;i<20;i++)Tick(p,s);stopwatch.Stop();Check(Requests(s)==1&&stopwatch.ElapsedMilliseconds<250,"An unresolved provider request never blocks the main update or starts duplicate work");
+            var originalFont=a.textBubbleOutputTMP.font;s.Pending[0].SetResult(new[]{"你好"});Drain(p,s,()=>a.textBubbleOutputTMP.text=="你好");Check(!a.textBubbleOutputTMP.richText&&ChatTranslation.IsEnabled,"Translated bubble is plain local text and translation mode remains on");
+            for(int i=0;i<5;i++)Tick(p,s);Check(Requests(s)==1,"Repeated scans do not translate an already translated bubble");
+            Invoke("BeforeMessage",a);a.textBubbleOutputTMP.text="new message";Tick(p,s);Wait(()=>Requests(s)==2);Check(s.Texts[1]=="new message","A new native message is translated automatically without another F8");s.Pending[1].SetResult(new[]{"新消息"});Drain(p,s,()=>a.textBubbleOutputTMP.text=="新消息");
+            off.textBubbleOutputTMP.transform.position=new UnityEngine.Vector3(.5f,.5f,1);Tick(p,s);Wait(()=>Requests(s)==3);Check(s.Texts[2]=="Out of view","A bubble entering view is picked up while translation is on");s.Pending[2].SetResult(new[]{"进入视野"});Drain(p,s,()=>off.textBubbleOutputTMP.text=="进入视野");
+            Toggle(p,s);Check(!ChatTranslation.IsEnabled&&a.textBubbleOutputTMP.text=="new message"&&a.textBubbleOutputTMP.richText&&a.textBubbleOutputTMP.font==originalFont&&off.textBubbleOutputTMP.text=="Out of view","Second F8 turns translation off and restores exact current originals, fonts and rich-text state");
+            var b=Bubble("b","arrived after off");for(int i=0;i<5;i++)Tick(p,s);Check(Requests(s)==3&&b.textBubbleOutputTMP.text=="arrived after off","New messages after switching off are not sent or replaced");
+            Clean(p,s);s=new ContentTranslator();Toggle(p,s);Tick(p,s);Check(ChatTranslation.IsEnabled&&Requests(s)==0,"Mode can be enabled with no bubbles and stays ready without network requests");a=Bubble("a","later");Tick(p,s);Wait(()=>Requests(s)==1);Check(s.Texts[0]=="later","First future message translates automatically after enabling an empty view");Toggle(p,s);Wait(()=>s.Pending[0].Task.IsCanceled);Tick(p,s);Check(!ChatTranslation.IsEnabled&&a.textBubbleOutputTMP.text=="later","Turning off cancels an in-flight request and keeps the original");
+            Clean(p,s);s=new ContentTranslator();a=Bubble("a","old");Toggle(p,s);Wait(()=>Requests(s)==1);Invoke("BeforeMessage",a);a.textBubbleOutputTMP.text="replacement";s.Pending[0].SetResult(new[]{"stale translation"});Drain(p,s,()=>Requests(s)==2);Check(a.textBubbleOutputTMP.text=="replacement"&&s.Texts[1]=="replacement","A late response cannot replace a newer message; that newer message is queued automatically");
+            var jp=new ComfortMod.Preferences{language="ja"};Tick(jp,s);Wait(()=>s.Pending[1].Task.IsCanceled);Drain(jp,s,()=>Requests(s)==3);Check(ChatTranslation.IsEnabled&&a.textBubbleOutputTMP.text=="replacement","Changing interface language cancels old results and keeps continuous mode on for the new target");
+            var disabled=new ComfortMod.Preferences{language="ja",chatTranslation=false};Tick(disabled,s);Wait(()=>s.Pending[2].Task.IsCanceled);Check(!ChatTranslation.IsEnabled&&a.textBubbleOutputTMP.text=="replacement","Disabling chat translation in settings stops continuous mode and pending work");ChatTranslation.Trigger();Tick(disabled,s);Check(!ChatTranslation.IsEnabled&&Requests(s)==3&&ComfortMod.Instance.Notices.Contains("disabled"),"Shortcut cannot override a disabled feature setting");
+            Clean(p,s);s=new ContentTranslator();a=Bubble("a","blocked");UnityEngine.Input.Pressed=true;Tick(p,s,true);UnityEngine.Input.Pressed=false;Check(!ChatTranslation.IsEnabled&&Requests(s)==0,"Typing suppresses F8");Invoke("KeyboardShown");UnityEngine.Input.Pressed=true;Tick(p,s);UnityEngine.Input.Pressed=false;Invoke("KeyboardClosed");Check(!ChatTranslation.IsEnabled&&Requests(s)==0,"Native virtual keyboard suppresses F8");UnityEngine.Application.isFocused=false;UnityEngine.Input.Pressed=true;Tick(p,s);UnityEngine.Input.Pressed=false;UnityEngine.Application.isFocused=true;Check(!ChatTranslation.IsEnabled&&Requests(s)==0,"Unfocused game does not toggle mode");
+            ABI_RC.Core.InteractionSystem.ViewManager.Instance=new ABI_RC.Core.InteractionSystem.ViewManager{_inputField=new UnityEngine.UI.InputField{isFocused=true}};UnityEngine.Input.Pressed=true;Tick(p,s);UnityEngine.Input.Pressed=false;Check(!ChatTranslation.IsEnabled&&Requests(s)==0,"Focused legacy text field suppresses F8");ABI_RC.Core.InteractionSystem.ViewManager.Instance=null;
+            Toggle(p,s);Wait(()=>Requests(s)==1);s.Pending[0].SetException(new ContentTranslator.Failure("network"));Drain(p,s,()=>!ChatTranslation.IsEnabled);for(int i=0;i<20;i++)Tick(p,s);Check(Requests(s)==1&&a.textBubbleOutputTMP.text=="blocked"&&ComfortMod.Instance.Notices.Contains("network"),"A network error turns mode off, restores originals and does not retry on each scan");
+            Clean(p,s);s=new ContentTranslator();a=Bubble("a","camera");var active=new UnityEngine.Camera();ABI_RC.Core.Player.PlayerSetup.Instance=new ABI_RC.Core.Player.PlayerSetup{activeCam=active};var mainCalls=UnityEngine.Camera.main.Calls;ChatTranslation.Trigger();Tick(p,s);Wait(()=>Requests(s)==1);Check(active.Calls>0&&UnityEngine.Camera.main.Calls==mainCalls,"In-menu action uses the player's active PC/VR camera");ChatTranslation.Trigger();Tick(p,s);Thread.Sleep(15);Tick(p,s);ABI_RC.Core.Player.PlayerSetup.Instance.activeCam=null;ChatTranslation.Trigger();Tick(p,s);for(int i=0;i<4;i++)Tick(p,s);Check(ChatTranslation.IsEnabled&&Requests(s)==1,"No active player camera means no text is uploaded while mode stays ready");
+            Clean(p,s);s=new ContentTranslator();a=Bubble("a","failure");Toggle(p,s);Wait(()=>Requests(s)==1);var cancellation=(System.Threading.CancellationTokenSource)typeof(ChatTranslation).GetField("cancellation",BindingFlags.NonPublic|BindingFlags.Static).GetValue(null);cancellation.Cancel();Drain(p,s,()=>!ChatTranslation.IsEnabled);Check(a.textBubbleOutputTMP.text=="failure"&&ComfortMod.Instance.Notices.Contains("timeout"),"Expired batch cannot leave untranslatable entries stuck in active mode");
+            NativeLocalization.Install(new HarmonyLib.Harmony(),System.IO.File.ReadAllText(args[0]),()=>"zh");Check(NativeLocalization.Text("You are currently not Connected to our Realtime API Network","zh").Contains("实时 API"),"Native API error remains locally translated");Check(NativeLocalization.Text("Name disconnected.","zh")=="Name 已离开。","System templates preserve player names");
+            Console.WriteLine("TOTAL "+passed+" checks; Unity/Harmony stand-ins, not live game or VR validation");return 0;
+        }
+        catch(Exception ex){Console.Error.WriteLine(ex);return 1;}
+    }
+}
