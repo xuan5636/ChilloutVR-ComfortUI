@@ -1,3 +1,9 @@
+# 0.2.12 validation scope
+
+2026-10-18. Public preview; real-client validation remains incomplete. 51 isolated UI checks passed: frame-sampled segments 18, language 8, native controls 7, state reuse 3, translation settings 7, hidden-panel/numeric-editor regression 8. Main and quick native HTML use a mock bridge on loopback only.
+
+Verified intermediate transform positions, final alignment, three speeds, rapid reversal, motion Off including mid-flight, one-save callbacks, keyboard/drag/disabled controls, changing option lists, proxy drafts/focus and an idle frame scheduler. Final build and six embedded assets/installer payload checked. Real-client Cohtml/PC/VR comfort and long-session performance remain unverified. The current public test.ps1 also passed all 66 managed mock checks: lifetime 12, chat mode 26, HTTP logic 10, camera policy 18. Historical UI/performance/installer results below belong to 0.2.11.
+
 # 0.2.11 validation scope
 
 Prepared 2026-10-17. This is a public preview, not a claim of complete real-client compatibility.

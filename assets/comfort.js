@@ -1,4 +1,4 @@
-/* Comfort UI 0.2.11. System labels are local; optional content translation runs only on request. */
+/* Comfort UI 0.2.12. System labels are local; optional content translation runs only on request. */
 (function () {
     'use strict';
     var host = window.__comfortHost || {};
@@ -14,6 +14,7 @@
     var styleTemplate = window.__comfortStyles || '', colourValues, diagnosticTimer, reportCount = 0;
     var nativeHome, dashboard, homeMoves=[], homeGrids=[], homeActive=false, compatibilityReady = false, staticTexts=[], paletteOpen=false, refreshTimer, layoutFailures=0;
     var customPart = 'accent', colourStep = 8;
+    var segmentStates=new WeakMap(), segmentMotions=[], segmentFrame=0;
     var hudTimers=[], started=false, microphone, microphoneMove, transitionPickers=[], settingEventsReady=false,quickLabelTimer;
     var palettes = {
         graphite:{background:'#282c33',panel:'#343a43',accent:'#c1cbdc'},
@@ -48,7 +49,7 @@
             reset: '恢复本模组默认设置', close: '返回常用', applied: '已应用', saved: '已保存到本机', saving: '正在保存…',
             saveFailed: '已应用，但未能保存；重启后可能恢复。',
             unavailable: '当前页面尚未就绪，请稍后再试。', nativeError: '游戏页面暂时无法打开，请使用原有菜单入口。',
-            hint: 'PC · VR', edition: '简洁柔和 · 试用版 0.2.11',
+            hint: 'PC · VR', edition: '简洁柔和 · 试用版 0.2.12',
             notifications: '通知与其他操作', previewAction: '预览中已打开：',
             previewNote: '界面预览中的示例操作', chinese: '简体中文', english: 'English'
         },
@@ -77,7 +78,7 @@
             reset: 'Reset mod preferences', close: 'Back to quick access', applied: 'Applied', saved: 'Saved on this PC', saving: 'Saving…',
             saveFailed: 'Applied, but could not save. Changes may reset after restart.',
             unavailable: 'This page is not ready yet. Please try again shortly.', nativeError: 'Unable to open the game page. Please use its original menu entry.',
-            hint: 'PC · VR', edition: 'Soft minimal · Preview 0.2.11',
+            hint: 'PC · VR', edition: 'Soft minimal · Preview 0.2.12',
             notifications: 'Notifications and more', previewAction: 'Preview opened: ',
             previewNote: 'Sample action in the interface preview', chinese: '简体中文', english: 'English'
         }
@@ -171,6 +172,7 @@
         html.setAttribute('data-comfort-animation',prefs.motionStyle);
         html.setAttribute('data-comfort-speed',prefs.motionSpeed);
         html.lang = prefs.language === 'zh' ? 'zh-CN' : prefs.language;
+        if(prefs.reducedMotion || !shown)finishSegmentMotions();
         applyPalette();
     }
     function rgb(hex) { return [parseInt(hex.substr(1,2),16),parseInt(hex.substr(3,2),16),parseInt(hex.substr(5,2),16)]; }
@@ -289,15 +291,82 @@
         }).join('');
         return '<div class="cu-setting" data-setting="'+pref+'"><div class="cu-setting-copy"><div class="cu-setting-title">' + t(key) + '</div><div class="cu-setting-help">' + t(help) + '</div></div><div class="cu-choices" role="group" aria-label="' + t(key) + '">' + options + '</div></div>';
     }
+    // Keep one thumb alive across renders. Only active controls use a shared frame;
+    // no layout reads or polling are needed to slide, retarget or settle it.
+    function segmentTime(){return window.performance && typeof performance.now==='function'?performance.now():Date.now();}
+    function paintSegment(record,position){
+        record.position=position;
+        record.thumb.style.transform='translateX('+(position*100).toFixed(4)+'%)';
+    }
+    function sampleSegment(record,time){
+        var progress=Math.max(0,Math.min(1,(time-record.start)/record.duration));
+        paintSegment(record,record.from+(record.target-record.from)*(1-Math.pow(1-progress,3)));
+        return progress===1;
+    }
+    function stopSegment(record){
+        var index=segmentMotions.indexOf(record);
+        if(index!==-1)segmentMotions.splice(index,1);
+        record.running=false;
+        if(!segmentMotions.length && segmentFrame){window.cancelAnimationFrame(segmentFrame);segmentFrame=0;}
+    }
+    function stepSegments(){
+        segmentFrame=0;
+        var time=segmentTime();
+        for(var i=segmentMotions.length-1;i>=0;i--){
+            var record=segmentMotions[i];
+            if(!document.documentElement.contains(record.bar) || !record.bar.contains(record.thumb))stopSegment(record);
+            else if(sampleSegment(record,time))stopSegment(record);
+        }
+        if(segmentMotions.length)segmentFrame=window.requestAnimationFrame(stepSegments);
+    }
+    function finishSegmentMotions(){
+        if(segmentFrame)window.cancelAnimationFrame(segmentFrame);
+        segmentFrame=0;
+        for(var i=0;i<segmentMotions.length;i++){paintSegment(segmentMotions[i],segmentMotions[i].target);segmentMotions[i].running=false;}
+        segmentMotions.length=0;
+    }
+    function syncSegmentedBar(bar,count,index){
+        if(!bar)return;
+        var record=segmentStates.get(bar);
+        if(count<2 || index<0){
+            if(record){stopSegment(record);if(record.thumb.parentNode)record.thumb.parentNode.removeChild(record.thumb);segmentStates.delete(bar);}
+            bar.classList.remove('cu-segmented');return;
+        }
+        if(!record || !bar.contains(record.thumb) || record.count!==count){
+            if(record){stopSegment(record);if(record.thumb.parentNode)record.thumb.parentNode.removeChild(record.thumb);}
+            var thumb=document.createElement('span');thumb.className='cu-segment-thumb'+(bar.classList.contains('cu-language-slider')?' cu-language-thumb':'');
+            thumb.setAttribute('aria-hidden','true');thumb.innerHTML='<span></span>';thumb.style.width=(100/count)+'%';
+            bar.insertBefore(thumb,bar.firstChild);bar.classList.add('cu-segmented');
+            record={bar:bar,thumb:thumb,count:count,target:index,position:index,running:false};segmentStates.set(bar,record);paintSegment(record,index);return;
+        }
+        if(record.target===index)return;
+        record.target=index;
+        if(prefs.reducedMotion || !shown || typeof window.requestAnimationFrame!=='function'){
+            stopSegment(record);paintSegment(record,index);return;
+        }
+        record.from=record.position;record.start=segmentTime();record.duration=prefs.motionSpeed==='fast'?160:prefs.motionSpeed==='gentle'?320:220;
+        if(!record.running){record.running=true;segmentMotions.push(record);}
+        if(!segmentFrame)segmentFrame=window.requestAnimationFrame(stepSegments);
+    }
+    function syncOwnSegments(container){
+        var rows=container.querySelectorAll('.cu-setting[data-setting]');
+        for(var r=0;r<rows.length;r++){
+            var pref=rows[r].getAttribute('data-setting');if(pref==='language')continue;
+            var bar=rows[r].querySelector('.cu-choices'),buttons=bar.querySelectorAll('[data-pref]'),index=-1;
+            for(var i=0;i<buttons.length;i++){
+                var selected=String(prefs[pref])===buttons[i].getAttribute('data-value');
+                buttons[i].classList.toggle('cu-selected',selected);buttons[i].setAttribute('aria-pressed',selected?'true':'false');if(selected)index=i;
+            }
+            syncSegmentedBar(bar,buttons.length,index);
+        }
+    }
     function updateLanguageSlider() {
         var row=root.querySelector('[data-setting="language"]'), bar=row.querySelector('.cu-choices');
         row.querySelector('.cu-setting-title').textContent=t('language');
         row.querySelector('.cu-setting-help').textContent=t('languageHelp');
         bar.classList.add('cu-language-slider');bar.setAttribute('aria-label',t('language'));
-        var thumb=bar.querySelector('.cu-language-thumb');
-        if(!thumb){thumb=document.createElement('span');thumb.className='cu-language-thumb';thumb.setAttribute('aria-hidden','true');thumb.innerHTML='<span></span>';bar.insertBefore(thumb,bar.firstChild);}
         var selected=languageCodes.indexOf(prefs.language);
-        thumb.style.left=(selected*20)+'%';
+        syncSegmentedBar(bar,languageCodes.length,selected);
         var buttons=bar.querySelectorAll('[data-pref="language"]');
         for(var i=0;i<buttons.length;i++){
             buttons[i].classList.toggle('cu-selected',i===selected);buttons[i].setAttribute('aria-pressed',i===selected?'true':'false');buttons[i].setAttribute('tabindex',i===selected?'0':'-1');
@@ -324,14 +393,14 @@
             if(Math.abs(event.clientX-drag.start)>8)drag.moved=true;
             if(!drag.moved)return;
             var index=Math.max(0,Math.min(4,Math.floor((event.clientX-drag.left)*5/drag.width)));
-            if(index!==drag.index){drag.index=index;thumb.style.left=(index*20)+'%';}
+            if(index!==drag.index){drag.index=index;syncSegmentedBar(bar,languageCodes.length,index);}
         });
         window.addEventListener('mouseup',function(){
             if(!drag)return;
             var finished=drag;drag=null;
-            if(finished.moved){bar.__skipClick=true;select(finished.index);thumb.style.left=(languageCodes.indexOf(prefs.language)*20)+'%';setTimeout(function(){bar.__skipClick=false;},0);}
+            if(finished.moved){bar.__skipClick=true;select(finished.index);syncSegmentedBar(bar,languageCodes.length,languageCodes.indexOf(prefs.language));setTimeout(function(){bar.__skipClick=false;},0);}
         });
-        window.addEventListener('blur',function(){drag=null;thumb.style.left=(languageCodes.indexOf(prefs.language)*20)+'%';});
+        window.addEventListener('blur',function(){drag=null;syncSegmentedBar(bar,languageCodes.length,languageCodes.indexOf(prefs.language));});
     }
     function colourEditor() {
         var current=palettes[prefs.palette] || prefs;
@@ -354,7 +423,7 @@
         languageHelp:'主菜单、快捷菜单、登录与键盘共用此设置。',
         motionHelp:'短暂淡入和平滑高亮；关闭后立即切换，HUD 提示仍会正常收起。',
         reduced:'关闭动效',full:'舒适动效',original:'显示原版界面',resume:'返回新版界面',
-        edition:'Comfort UI 0.2.11',paletteOpen:'调整菜单配色',paletteClose:'收起配色选项',
+        edition:'Comfort UI 0.2.12',paletteOpen:'调整菜单配色',paletteClose:'收起配色选项',
         mainTitle:'你的空间',quickTitle:'快捷操作',mainIntro:'个人信息、动态和游玩操作，清晰分区。',
         reset:'恢复界面默认设置',originalHelp:'临时切回原版；屏幕上会保留返回新版的按钮。',
         textHelp:'调整系统菜单文字；列表和设置可滚动。',saved:'已保存',
@@ -365,7 +434,7 @@
         languageHelp:'Shared by menus, login and keyboard.',
         motionHelp:'Brief fades and smooth highlights. Off switches instantly; HUD notices still dismiss.',
         reduced:'Off',full:'Comfort motion',original:'Show original UI',resume:'Return to Comfort UI',
-        edition:'Comfort UI 0.2.11',paletteOpen:'Adjust menu colours',paletteClose:'Hide colour options',
+        edition:'Comfort UI 0.2.12',paletteOpen:'Adjust menu colours',paletteClose:'Hide colour options',
         mainTitle:'Your space',quickTitle:'Quick actions',mainIntro:'Your profile, activity and play controls, clearly arranged.',
         reset:'Reset interface preferences',originalHelp:'The return button stays available while the original UI is shown.',
         textHelp:'Adjust system labels. Lists and settings remain scrollable.',saved:'Saved',
@@ -578,16 +647,20 @@
                 if(button.textContent!==text)button.textContent=text;
                 button.setAttribute('aria-pressed',selected?'true':'false');button.disabled=nativeControlDisabled(node);
             }
+            syncSegmentedBar(node,record.buttons.length,checked?0:1);
         }else if(record.kind==='dropdown'){
             var choices=node.querySelectorAll('.listValue'),count=choices.length,characters=0;
             for(var n=0;n<count;n++)characters+=choices[n].textContent.length;
             var segmented=count>=2 && count<=4 && characters<=76 && node.getAttribute('data-type')!=='subcategory';
             node.classList.toggle('cu-native-segments',segmented);
             var setting=nativeSetting(name),value=setting && setting.value();
+            var selectedIndex=-1;
             for(var j=0;j<count;j++){
                 var selected=String(choices[j].getAttribute('data-key'))===String(value);
+                if(selected)selectedIndex=j;
                 choices[j].classList.toggle('cu-native-selected',selected);choices[j].setAttribute('role','button');choices[j].setAttribute('tabindex','0');choices[j].setAttribute('aria-pressed',selected?'true':'false');
             }
+            syncSegmentedBar(node.querySelector('.valueList'),segmented?count:0,selectedIndex);
         }
     }
     function decorateNativeSettings(scope){
@@ -954,11 +1027,12 @@
                 '<div class="cu-restore-row"><p>'+t('originalHelp')+'</p>'+button('original',t('original'),'cu-original')+'</div>';
             bindOwn(root);
             }
-            var choices=root.querySelectorAll('.cu-appearance-options [data-pref]');
+            var choices=root.querySelectorAll('.cu-palettes [data-pref]');
             for(var c=0;c<choices.length;c++){
                 var selected=String(prefs[choices[c].getAttribute('data-pref')])===choices[c].getAttribute('data-value');
                 choices[c].classList.toggle('cu-selected',selected);choices[c].setAttribute('aria-pressed',selected?'true':'false');
             }
+            syncOwnSegments(root);
             bindOwn(root.querySelector('[data-setting="language"]'));updateSaveState();
             var restore=pref?root.querySelector('[data-pref="'+pref+'"][data-value="'+value+'"]'):action?root.querySelector('[data-action="'+action+'"]'):null;
             // The language row and scroll containers survive. Refocusing the same live
@@ -999,20 +1073,24 @@
         }else parent=document.getElementById('CVRUI-QMUI-SettingsPage-Content');
         if(!parent)return;
         if(!translationPanel){translationPanel=document.createElement('section');translationPanel.id='comfort-translation';translationPanel.className='cu-only';translationPanel.setAttribute('data-context',context);parent.appendChild(translationPanel);}
-        var translationRenderKey=[prefs.language,prefs.translationProvider,prefs.detailTranslation,prefs.chatTranslation,prefs.proxyMode,prefs.proxyAddress].join('|');
+        var translationRenderKey=prefs.language;
         if(translationPanel.__comfortKey!==translationRenderKey){translationPanel.__comfortKey=translationRenderKey;
         translationPanel.innerHTML='<div class="cu-panel-heading"><h2>'+t('translationTitle')+'</h2><p>'+t('translationIntro')+'</p></div>'+
             settingRow('translationProvider','translationProviderHelp','translationProvider',[['google','google'],['mymemory','mymemory']])+
             settingRow('detailTranslation','detailTranslationHelp','detailTranslation',[[true,'on'],[false,'off']])+
             settingRow('chatTranslation','chatTranslationHelp','chatTranslation',[[true,'on'],[false,'off']])+
             settingRow('proxyMode','proxyHelp','proxyMode',[['system','proxySystem'],['direct','proxyDirect'],['manual','proxyManual']])+
-            (prefs.proxyMode==='manual'?'<div class="cu-translation-address"><label for="comfort-proxy-address">'+t('proxyAddress')+'</label><p>'+t('proxyAddressHelp')+'</p><input id="comfort-proxy-address" type="text" value="'+escapeAttribute(prefs.proxyAddress)+'" data-max-length="256" data-input-title="'+escapeAttribute(t('proxyAddress'))+'" data-placeholder="http://127.0.0.1:7890" data-success-text="OK" /><div>'+button('translation-proxy',t('applyProxy'),'cu-original')+'</div></div>':'')+
+            '<div class="cu-translation-address"><label for="comfort-proxy-address">'+t('proxyAddress')+'</label><p>'+t('proxyAddressHelp')+'</p><input id="comfort-proxy-address" type="text" value="'+escapeAttribute(prefs.proxyAddress)+'" data-max-length="256" data-input-title="'+escapeAttribute(t('proxyAddress'))+'" data-placeholder="http://127.0.0.1:7890" data-success-text="OK" /><div>'+button('translation-proxy',t('applyProxy'),'cu-original')+'</div></div>'+
             '<div class="cu-translation-actions">'+button('translation-test',t('testTranslation'),'cu-original')+button('translation-cache',t('clearTranslationCache'),'cu-original')+button('translation-chat',t('chatNow'),'cu-original')+'</div><p class="cu-setting-help">'+t('testHelp')+'</p><p class="cu-setting-help">'+t('translationPrivacy')+'</p>';
         bindOwn(translationPanel);
         updateChatState(chatMode);
         var input=document.getElementById('comfort-proxy-address');
         if(input && context==='main')input.addEventListener('click',function(){if(typeof displayKeyboard==='function')displayKeyboard(input)});
         }
+        syncOwnSegments(translationPanel);
+        var address=translationPanel.querySelector('.cu-translation-address'),proxyInput=document.getElementById('comfort-proxy-address');
+        address.style.display=prefs.proxyMode==='manual'?'':'none';
+        if(translationPanel.__comfortProxy!==prefs.proxyAddress){translationPanel.__comfortProxy=prefs.proxyAddress;proxyInput.value=prefs.proxyAddress;}
         var controls=context==='main'?document.getElementById('settings-input'):parent;
         if(controls){
             if(!shortcutPanel){shortcutPanel=document.createElement('section');shortcutPanel.id='comfort-keybinding';shortcutPanel.className='cu-only';shortcutPanel.setAttribute('data-context',context);controls.insertBefore(shortcutPanel,controls.firstChild);}
@@ -1269,7 +1347,7 @@
                 }
             }
             compatibilityReady=valid;
-            report('layout',{version:'0.2.11',width:Math.round(bounds.width),height:Math.round(bounds.height),background:style.backgroundColor,font:style.fontFamily,home:homeActive,hit:hit,valid:!!valid});
+            report('layout',{version:'0.2.12',width:Math.round(bounds.width),height:Math.round(bounds.height),background:style.backgroundColor,font:style.fontFamily,home:homeActive,hit:hit,valid:!!valid});
             if(!valid && ++layoutFailures>=2) {
                 restoreHome();restoreMicrophone();shown=false;setAttributes();render();openNativeHome();
                 report('compatibility-fallback','Original UI restored; return control retained.');
@@ -1337,12 +1415,13 @@
         if(context!=='hud')observer.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
         window.addEventListener('storage',function(e){if(e.key===KEY&&e.newValue)try{setPreferences(JSON.parse(e.newValue),true);}catch(ignored){}});
         window.addEventListener('beforeunload',function(){observer.disconnect();clearTimeout(refreshTimer);clearTimeout(quickLabelTimer);clearTimeout(diagnosticTimer);clearTimeout(currentToast);});
-        report('ready',{version:'0.2.11',settings:!!root,dashboard:!!dashboard});
+        document.addEventListener('visibilitychange',function(){if(document.hidden)finishSegmentMotions();});
+        report('ready',{version:'0.2.12',settings:!!root,dashboard:!!dashboard});
     }
     try{var stored=localStorage.getItem(KEY);if(stored)prefs=validate(JSON.parse(stored));}catch(ignored){}
     if(host.preferences)prefs=validate(host.preferences);
     window.ComfortUI={
-        version:'0.2.11',translationNotice:function(code,enabled){if(typeof enabled==='boolean')updateChatState(enabled);toast(t(code));},chatState:updateChatState,updatePreferences:setPreferences,getPreferences:function(){return copy(prefs);},
+        version:'0.2.12',translationNotice:function(code,enabled){if(typeof enabled==='boolean')updateChatState(enabled);toast(t(code));},chatState:updateChatState,updatePreferences:setPreferences,getPreferences:function(){return copy(prefs);},
         preferenceFailed:function(){saveStatus='saveFailed';render();},
         showPreviewNotice:toast,setMode:setMode,
         openSettings:openSettings,systemText:systemText,detailPrefix:detailPrefix,splitDetailHeading:splitDetailHeading

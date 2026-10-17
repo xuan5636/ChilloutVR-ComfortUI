@@ -31,7 +31,7 @@ namespace ComfortUI
         {
             client.Timeout = TimeSpan.FromSeconds(15);
             client.MaxResponseContentBufferSize = 128 * 1024;
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("ComfortUI/0.2.11");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("ComfortUI/0.2.12");
             return client;
         }
         internal sealed class Options

@@ -1,4 +1,4 @@
-/* Comfort UI 0.2.11. Native data, controls and hit surfaces; no mixed-unit calc or backdrop filters. */
+/* Comfort UI 0.2.12. Native data, controls and hit surfaces; no mixed-unit calc or backdrop filters. */
 :root { --cu-bg:#282c33;--cu-panel:#343a43;--cu-hover:#424953;--cu-line:#616874;--cu-text:#fafbfc;--cu-muted:#c1c6cc;--cu-panel-text:#fafbfc;--cu-panel-muted:#c8ccd2;--cu-accent:#c1cbdc;--cu-ink:#12161b;--cu-icon-bg:#454f60;--cu-icon-colour:#c1cbdc;--cu-native-accent:#657082;--cu-danger:#634c52;--cu-danger-text:#fafbfc;--cu-positive:#4b625e;--cu-positive-text:#fafbfc; }
 html[data-comfort-enabled="true"] {
  --menu-primary:var(--cu-panel) !important;--menu-primary-darker:var(--cu-bg) !important;--menu-primary-rgba:var(--cu-panel) !important;
@@ -1527,3 +1527,25 @@ html[data-comfort-enabled="true"][data-comfort-context="main"][lang="es"] .wrapp
 #comfort-keybinding .cu-setting { flex-direction:column;align-items:stretch; }
 #comfort-keybinding .cu-choices { align-items:center;flex-wrap:wrap; }
 #comfort-keybinding strong { font-size:40px;padding:18px; }
+
+/* One persistent highlight per segmented control. Movement only writes transform. */
+html[data-comfort-enabled="true"] .cu-segmented { position:relative;padding:0 !important;box-sizing:border-box; }
+html[data-comfort-enabled="true"] .cu-segmented > .cu-segment-thumb { display:block;position:absolute;z-index:0;left:0;top:0;bottom:0;margin:0;padding:5px;box-sizing:border-box;pointer-events:none;transition:none !important; }
+html[data-comfort-enabled="true"] .cu-segmented > .cu-segment-thumb > span { display:block;width:100%;height:100%;border-radius:10px;background-color:var(--cu-accent);pointer-events:none; }
+html[data-comfort-enabled="false"] .cu-segment-thumb { display:none !important; }
+html[data-comfort-enabled="true"] #comfort-ui .cu-choices.cu-segmented,
+html[data-comfort-enabled="true"] #comfort-translation .cu-choices.cu-segmented { flex-wrap:nowrap;width:620px;max-width:60%;overflow:hidden; }
+html[data-comfort-enabled="true"] #comfort-ui .cu-choices.cu-segmented > .cu-choice,
+html[data-comfort-enabled="true"] #comfort-translation .cu-choices.cu-segmented > .cu-choice { position:relative;z-index:1;flex:1 1 0;min-width:0;width:auto;box-sizing:border-box;margin:0;white-space:normal;overflow-wrap:break-word; }
+html[data-comfort-enabled="true"] #comfort-ui .cu-choices.cu-segmented > .cu-selected,
+html[data-comfort-enabled="true"] #comfort-translation .cu-choices.cu-segmented > .cu-selected { background-color:transparent; }
+html[data-comfort-enabled="true"] #comfort-ui .cu-setting[data-setting="language"] .cu-choices.cu-segmented,
+html[data-comfort-enabled="true"] #comfort-ui[data-context="quick"] .cu-choices.cu-segmented,
+html[data-comfort-enabled="true"] #comfort-translation .cu-choices.cu-segmented { width:100%;max-width:100%; }
+html[data-comfort-enabled="true"] #comfort-ui .cu-setting[data-setting="language"] .cu-choice { white-space:nowrap; }
+html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-native-toggle.cu-segmented > .cu-native-toggle-option,
+html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-native-segments > .valueList.cu-segmented > .listValue { position:relative;z-index:1;flex:1 1 0;margin:0; }
+html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-native-toggle.cu-segmented > .cu-native-toggle-option[aria-pressed="true"],
+html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-native-segments > .valueList.cu-segmented > .cu-native-selected { background-color:transparent; }
+html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-native-segments { padding:0; }
+html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-native-segments > .valueList.cu-segmented { min-height:90px; }
