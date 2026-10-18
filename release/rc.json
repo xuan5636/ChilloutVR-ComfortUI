@@ -1,12 +1,12 @@
 {
   "_id": -1,
   "name": "Comfort UI",
-  "modversion": "0.3.5",
+  "modversion": "0.3.6",
   "gameversion": "2026r182-hf4 (public-nightly)",
   "loaderversion": "0.8.0-ci.2548 (Mono)",
   "modtype": "Mod",
   "author": "Local UI Workshop",
-  "description": "Comfort UI 0.3.5：玩家名牌增加跟随各自游戏内有效名牌颜色的轻薄圆角描边，保留柔和底色、头像、清晰文字与说话提示。原生资料刷新时同步，关闭统一名牌样式可恢复原版。保留五语言、菜单动效、麦克风反馈、Bing与轻量CPU/Vulkan本地翻译。\n\n207项托管检查通过；网页仅更新版本字样，沿用0.3.4的172项隔离UI验证。真实Unity/在线PC/VR名牌效果待确认。\n\nUnofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
+  "description": "Comfort UI 0.3.6：修正0.3.5误用身份/等级颜色的问题。名牌轻薄圆角描边现在读取玩家在My Profile自选并由游戏同步的主色，原生颜色变更后跟随更新。保留柔和底色、清晰姓名、头像与说话提示，以及五语言、菜单动效和可选翻译。\n\n215项托管检查通过；网页仅更新版本字样，沿用0.3.4的172项隔离UI历史验证。真实在线PC/VR取色与视觉效果待确认。\n\nUnofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
   "searchtags": [
     "UI",
     "menu",
@@ -27,8 +27,8 @@
     "[MelonLoader](https://github.com/LavaGang/MelonLoader/releases) — Mono, 0.8.0-ci.2548 (development target)",
     "Windows x64 and .NET Framework 4.8; local model download is optional. See repository installation and translation documentation."
   ],
-  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.5/CVRComfortUI.dll",
+  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.6/CVRComfortUI.dll",
   "sourcelink": "https://github.com/xuan5636/ChilloutVR-ComfortUI",
-  "changelog": "0.3.5：玩家颜色圆角名牌细边框；颜色刷新同步、独立取色、原版恢复与组件清理。",
+  "changelog": "0.3.6：名牌边框改用玩家自选主色，修正身份色混淆；原生颜色通知、主线程刷新与缓存恢复。",
   "embedcolor": "#C1CBDC"
 }

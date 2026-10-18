@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using ABI_RC.Core.Player;
+using ABI_RC.Systems.PlayerColors;
 using HarmonyLib;
 using TMPro;
 using UnityEngine;
@@ -22,6 +24,7 @@ namespace ComfortUI
         private static Sprite card;
         private static Texture2D texture;
         private static int warnings;
+        private static int playerColoursChanged;
 
         internal static void Install(HarmonyLib.Harmony harmony, Func<ComfortMod.Preferences> source)
         {
@@ -29,8 +32,12 @@ namespace ComfortUI
             harmony.Patch(RefreshNative, postfix: new HarmonyMethod(typeof(NameplateUI), nameof(AfterSettings)));
             harmony.Patch(AccessTools.Method(typeof(PlayerNameplate), "UpdateNamePlateState"), prefix: new HarmonyMethod(typeof(NameplateUI), nameof(BeforeState)), postfix: new HarmonyMethod(typeof(NameplateUI), nameof(AfterState)));
             harmony.Patch(AccessTools.Method(typeof(PlayerNameplate), "OnDestroy"), prefix: new HarmonyMethod(typeof(NameplateUI), nameof(BeforeDestroy)));
+            PlayerColorsManager.OnRemotePlayerColorChanged += OnPlayerColoursChanged;
             installed = true;
         }
+
+        // Network notifications only mark work; Unity components are updated by Tick on the main thread.
+        private static void OnPlayerColoursChanged(string playerId, PlayerColors colours) { Interlocked.Exchange(ref playerColoursChanged, 1); }
 
         private static bool Eligible(PlayerNameplate plate)
         {
@@ -38,14 +45,15 @@ namespace ComfortUI
         }
 
         internal static void AfterSettings(PlayerNameplate __instance) { Apply(__instance, true); }
-        private static void Apply(PlayerNameplate __instance, bool nativeRefresh)
+        private static void Apply(PlayerNameplate __instance, bool nativeRefresh, bool colourOnly = false)
         {
             if (!Eligible(__instance) || failed.Contains(__instance)) return;
             Session state = null;
             try
             {
-                if (!sessions.TryGetValue(__instance, out state)) sessions.Add(__instance, state = new Session(__instance));
-                state.Layout(current, nativeRefresh);
+                if (!sessions.TryGetValue(__instance, out state)) { sessions.Add(__instance, state = new Session(__instance)); state.Layout(current, nativeRefresh); }
+                else if (colourOnly) state.RefreshTrim();
+                else state.Layout(current, nativeRefresh);
             }
             catch (Exception ex)
             {
@@ -72,13 +80,14 @@ namespace ComfortUI
         internal static void Tick(ComfortMod.Preferences value)
         {
             if (!installed) return;
+            var coloursChanged = Interlocked.Exchange(ref playerColoursChanged, 0) != 0;
             var changed = !ReferenceEquals(value, current); current = value;
             if (changed && (!value.theme || !value.nameplateTheme)) RestoreSessions();
-            if (!value.theme || !value.nameplateTheme || (!changed && Time.realtimeSinceStartup < nextScan)) return;
+            if (!value.theme || !value.nameplateTheme || (!changed && !coloursChanged && Time.realtimeSinceStartup < nextScan)) return;
             nextScan = Time.realtimeSinceStartup + 1f;
             // The game's own live collection excludes unloaded players and inactive scene prefabs.
             foreach (var plate in PlayerNameplate.PlayerNameplates)
-                if (Eligible(plate) && (changed || !sessions.ContainsKey(plate))) Apply(plate, false);
+                if (Eligible(plate)) Apply(plate, false, !changed);
             var dead = new List<PlayerNameplate>();
             foreach (var pair in sessions) if (pair.Key == null) { pair.Value.Release(); dead.Add(pair.Key); }
             foreach (var plate in dead) sessions.Remove(plate);
@@ -103,6 +112,8 @@ namespace ComfortUI
 
         internal static void Reset()
         {
+            PlayerColorsManager.OnRemotePlayerColorChanged -= OnPlayerColoursChanged;
+            Interlocked.Exchange(ref playerColoursChanged, 0);
             installed = false; RestoreSessions(); current = null;
             if (card != null) Object.Destroy(card);
             if (texture != null) Object.Destroy(texture);
@@ -143,14 +154,12 @@ namespace ComfortUI
             private readonly Image speaking;
             private readonly Outline trim;
             private readonly bool ownsTrim;
-            private readonly Color originalPlayerColour;
             private Color background, accent, foreground, staffColour;
             private bool? active;
 
             internal Session(PlayerNameplate plate)
             {
                 Plate = plate;
-                originalPlayerColour = plate.nameplateBackground.color;
                 staffColour = plate.staffplateBackground != null ? plate.staffplateBackground.color : Color.white;
                 SaveImage(plate.nameplateBackground); SaveImage(plate.staffplateBackground); SaveImage(plate.friendsIndicator);
                 SaveText(plate.usrNameText); SaveText(plate.rankText); SaveText(plate.staffText);
@@ -267,13 +276,16 @@ namespace ComfortUI
                 if (speaking != null) { speaking.color = accent; speaking.enabled = value; }
                 if (nativeRepainted) RefreshTrim();
             }
-            private void RefreshTrim()
+            internal void RefreshTrim()
             {
                 if (trim == null) return;
-                // Use this player's effective native colour, including server updates.
-                // UserColor is only a global fallback and must not tint every player alike.
-                var descriptor = Plate.PlayerDescriptor;
-                var colour = descriptor != null ? descriptor.GetRankColor() : originalPlayerColour;
+                // My Profile colours are separate from descriptor rank/role colours.
+                // The game supplies the remote player's cached, network-synchronized selection.
+                var colour = accent;
+                var playerId = Plate.Player.PlayerId;
+                if (!string.IsNullOrEmpty(playerId))
+                    try { colour = PlayerColorsManager.GetPlayerColors(playerId).PrimaryColor; }
+                    catch { /* The player cache may be unavailable during joining or teardown. Tick retries. */ }
                 if (!Finite(colour.r) || !Finite(colour.g) || !Finite(colour.b)) colour = accent;
                 colour = new Color(Mathf.Clamp01(colour.r), Mathf.Clamp01(colour.g), Mathf.Clamp01(colour.b), .65f);
                 if (!trim.effectColor.Equals(colour)) trim.effectColor = colour;

@@ -1,10 +1,10 @@
-# Comfort UI 0.3.5 安装说明
+# Comfort UI 0.3.6 安装说明
 
 适用开发目标：Windows、ChilloutVR 2026r182-hf4 public-nightly、Mono MelonLoader 0.8.0-ci.2548、.NET Framework 4.8。其他分支和加载器版本需要自行验证。
 
 ## EXE 安装
 
-从 [GitHub Release](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.3.5) 下载 `ComfortUI-Setup-0.3.5.exe`。正常退出游戏后运行，自动查找或手动选择包含 `ChilloutVR.exe` 的文件夹，再选择「安装 / 更新模组」。
+从 [GitHub Release](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.3.6) 下载 `ComfortUI-Setup-0.3.6.exe`。正常退出游戏后运行，自动查找或手动选择包含 `ChilloutVR.exe` 的文件夹，再选择「安装 / 更新模组」。
 
 缺少加载器时可选择加载器引导：程序下载并校验官方 MelonLoader 安装器，用户在官方界面选择 `ChilloutVR.exe` 并安装适合该游戏的 Mono 加载器，完成后返回本程序安装模组。程序不会替你结束或启动游戏，也不自动替换已存在的加载器。
 
@@ -39,3 +39,7 @@ Release 提供 `SHA256SUMS.txt`。PowerShell 可用 `Get-FileHash -Algorithm SHA
 ## 0.3.5 名牌颜色描边
 
 默认统一名牌样式会在圆角面板四周显示该玩家的原生有效名牌颜色细边框；各玩家分别取色。原生资料刷新会同步颜色。设置 → 界面与显示中关闭名牌统一样式可恢复原版。请在在线房间确认不同玩家/距离、说话状态、深浅场景及PC/VR中的效果。
+
+## 0.3.6 玩家自选颜色
+
+名牌边框读取每位玩家在游戏「My Profile」中选择的主色，由游戏原生机制同步给其他玩家；这与身份/等级配色不同。对方更换颜色后会跟随更新。0.3.5曾取成身份/等级色，已在本版修正；不需另选一次颜色或让对方安装本模组。

@@ -41,10 +41,18 @@ namespace TMPro {
 }
 namespace ABI_RC.Core.Player {
  public class PlayerDescriptor { public UnityEngine.Color Colour=new UnityEngine.Color(.8f,.3f,.2f,.7f); public UnityEngine.Color GetRankColor(){return Colour;} }
- public class PlayerBase {public bool IsLocalPlayer,Mic;public bool IsMicActive(){return Mic;}}
+ public class PlayerBase {public string PlayerId=Guid.NewGuid().ToString("N");public bool IsLocalPlayer,Mic;public bool IsMicActive(){return Mic;}}
  public class PlayerNameplate:UnityEngine.Object {
   public static readonly HashSet<PlayerNameplate> PlayerNameplates=new HashSet<PlayerNameplate>();public PlayerBase Player=new PlayerBase();public PlayerDescriptor PlayerDescriptor=new PlayerDescriptor();public TMPro.TMP_Text usrNameText,rankText,staffText;public UnityEngine.UI.Image nameplateBackground,staffplateBackground,friendsIndicator;public UnityEngine.UI.RawImage playerImage;public int NativeRefreshes;public UnityEngine.Sprite NativeSprite=new UnityEngine.Sprite();public UnityEngine.Color NativeColour=new UnityEngine.Color(.8f,.3f,.2f,.7f);
   public void UpdateNamePlateSettings(){NativeRefreshes++;nameplateBackground.sprite=NativeSprite;nameplateBackground.color=NativeColour;staffplateBackground.color=NativeColour;bool dirty;ComfortUI.NameplateUI.BeforeState(true,out dirty);ComfortUI.NameplateUI.AfterState(this,Player.Mic,dirty);ComfortUI.NameplateUI.AfterSettings(this);}public void UpdateNamePlateState(){}public void OnDestroy(){}
+ }
+}
+namespace ABI_RC.Systems.PlayerColors {
+ public struct PlayerColors {public UnityEngine.Color PrimaryColor,SecondaryColor;}
+ public static class PlayerColorsManager {
+  public static Action<string,PlayerColors> OnRemotePlayerColorChanged;public static readonly Dictionary<string,PlayerColors> Values=new Dictionary<string,PlayerColors>();public static bool Available=true;public static int Reads;
+  public static PlayerColors GetPlayerColors(string id){Reads++;if(!Available)throw new InvalidOperationException("Player cache not ready");PlayerColors value;return Values.TryGetValue(id,out value)?value:new PlayerColors{PrimaryColor=UnityEngine.Color.white};}
+  public static void Set(string id,UnityEngine.Color primary,bool notify=false){var value=new PlayerColors{PrimaryColor=primary,SecondaryColor=new UnityEngine.Color(.05f,.15f,.25f)};Values[id]=value;if(notify&&OnRemotePlayerColorChanged!=null)OnRemotePlayerColorChanged(id,value);}
  }
 }
 namespace ComfortUI {
