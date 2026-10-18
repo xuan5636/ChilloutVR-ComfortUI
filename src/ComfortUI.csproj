@@ -11,6 +11,8 @@
   <ItemGroup>
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Security" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="MelonLoader"><HintPath>$(GameDir)\MelonLoader\net35\MelonLoader.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="0Harmony"><HintPath>$(GameDir)\MelonLoader\net35\0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Newtonsoft.Json"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\Newtonsoft.Json.dll</HintPath><Private>false</Private></Reference>

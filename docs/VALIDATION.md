@@ -1,3 +1,17 @@
+# 0.3.1 validation scope
+
+Known real-client report after installation: the microphone status card can show its label without the icon. This version is published unchanged at the user's request before preparing the next hotfix.
+
+2026-10-18. Installed locally with matching package/DLL hashes, unchanged preferences and five protected files, and an exact backup of 0.3.0. The tested model/CPU/Vulkan archives were also copied to the local cache with SHA256 verification. Publication retains these verified binaries; existing GitHub 0.3.0 assets remain unchanged. Installation does not establish an in-game rendering or model-download pass.
+
+140 managed checks: lifetime12, chat39, provider/DPAPI24, camera18, nameplate/startup37, local preparation10. Includes native source CanvasScaler reference pixels/unit100, a physical-corner regression, compact/bounded name layouts and restore. The nameplate suite uses stand-ins, not Unity/GPU rendering. Corrupt downloads, cancellation, cache reuse and archive traversal are exercised without online requests.
+
+102 isolated UI checks: providers17, selectors16, segmented motion18, state reuse3, original HUD22, additional HUD synchronization/motion/messages26. Tests run actual read-only native HTML in muted headless Edge with a mocked bridge and loopback-only requests. The old 0.3.0 mic fails the direct-native-DOM update regression; the new code follows native state, keeps actual image source and text consistent, animates intermediate frames, retargets and honors motion Off. Notification cases cover five languages, native renderer bypass, original queue/HTML and visibility. Local prepare/cancel/progress, CPU/GPU selection and migration from Libre are checked through actual pointer events.
+
+Live synthetic probes in an independent Windows .NET Framework process: Bing five language targets returned HTTP200 via the local manual proxy. The pinned small Qwen model and CPU/Vulkan runtimes downloaded with matching SHA256; five synthetic samples on CPU and five on Vulkan returned text. CPU warm samples took about0.4–0.7s, Vulkan0.08–0.13s, first startup2s/10s on this RTX3060 system. This is not a quality benchmark: a Korean sample mistranslated a phrase. Killing only the isolated parent confirmed the owned inference server was removed by its Windows job. The user's game was never terminated or driven by these tests.
+
+Unverified: actual game-Mono downloading and HTTP, 0.3.1 Cohtml image rendering/animation, PC/VR/mirror nameplates, accessibility at distance, other computers' first download/startup and long-session performance. Google was not retested; its prior public429 issue remains. No paid AI account or real player chat was used. Six embedded resources, installer payload/version/hash and archives are checked when packaging; see the local verification receipt.
+
 # 0.3.0 validation scope
 
 2026-10-18. Public preview; installed locally with preferences and five protected files preserved and the prior DLL backed up. Publication retains the same verified DLL and EXE. 127 managed checks pass: lifetime 12, chat 39, HTTP/Windows key storage 24, camera 18, native-nameplate/first-run language 34. The last suite uses native stand-ins and also queries the real Windows UI-language API. It covers supported locale variants and English fallback, saved-language precedence, hook resolution, original font/atlas/billboard-material preservation, portrait/friend visibility, safe synthesized bold, contrast, restore/unload and no redundant Canvas colour writes during 120 stable state updates.

@@ -34,14 +34,17 @@ partial class TranslationTests029
         }
         Pass("Quota responses start a 60-second route-specific cooldown; clearing cache or testing cannot hammer the service");
         h = new Handler { Send = async (r,t) => {
-            Assert(r.Method==HttpMethod.Post && r.RequestUri.Host=="api.cognitive.microsofttranslator.com","Microsoft endpoint");
-            Assert(r.RequestUri.Query.Contains("to=zh-Hans") && r.RequestUri.Query.Contains("from=en"),"Microsoft language mapping");
-            Assert(r.Headers.GetValues("Ocp-Apim-Subscription-Key").Single()=="test-ms-key" && r.Headers.GetValues("Ocp-Apim-Subscription-Region").Single()=="eastasia","Microsoft headers");
-            Assert((string)JArray.Parse(await r.Content.ReadAsStringAsync())[0]["Text"]=="Hello","Microsoft JSON body");
+            Assert(r.RequestUri.Host=="www.bing.com"&&!r.Headers.Contains("Ocp-Apim-Subscription-Key")&&r.Headers.Authorization==null,"Bing must never receive old Azure credentials");
+            if(r.Method==HttpMethod.Get)return JsonResponse("IG:\"ABC123\";var params_AbusePreventionHelper = [123456789,\"session-only\",3600000];");
+            var form=await r.Content.ReadAsStringAsync();Assert(form.Contains("fromLang=en")&&form.Contains("to=zh-Hans")&&form.Contains("text=Hello")&&form.Contains("token=session-only"),"Bing source, target and session form");
             return JsonResponse("[{\"translations\":[{\"text\":\"你好\",\"to\":\"zh-Hans\"}]}]");
         }};
-        using(var s=new ContentTranslator(h)) Assert((await s.Translate(new[]{"Hello"},"zh",CancellationToken.None,new ContentTranslator.Options{Provider="microsoft",MicrosoftKey="test-ms-key",MicrosoftRegion="eastasia",SourceLanguage="en"}))[0]=="你好","Microsoft result");
-        Pass("Microsoft uses the official HTTPS JSON API with subscription/region headers and separate source/target languages");
+        using(var s=new ContentTranslator(h)) {
+            var o=new ContentTranslator.Options{Provider="microsoft",MicrosoftKey="old-unused-azure-key",SourceLanguage="en"};
+            Assert((await s.Translate(new[]{"Hello"},"zh",CancellationToken.None,o))[0]=="你好","Bing result");
+            o.BypassCache=true;await s.Translate(new[]{"Hello"},"zh",CancellationToken.None,o);Assert(h.Calls==3,"Bing session bootstrap must be reused per transport");
+        }
+        Pass("Free Bing translation bootstraps an in-memory web session, reuses it and never sends Azure keys");
         string longText = new string('a',1800)+"\n你好😀";
         h = new Handler { Send = async(r,t)=>{
             Assert(r.RequestUri.ToString()=="https://example.invalid/v1/chat/completions" && r.Method==HttpMethod.Post,"AI endpoint");
@@ -54,25 +57,30 @@ partial class TranslationTests029
         }};
         using(var s=new ContentTranslator(h)) Assert((await s.Translate(new[]{longText},"ja",CancellationToken.None,new ContentTranslator.Options{Provider="ai",AiEndpoint="https://example.invalid/v1",AiModel="my-model",AiKey="test-ai-key"}))[0]=="こんにちは"&&h.Calls==1,"Long AI request split");
         Pass("AI preserves long input in one translation-only Chat Completions request with explicit model and authorization");
+        var released=false;
         h = new Handler { Send = async(r,t)=>{
-            Assert(r.RequestUri.ToString()=="http://127.0.0.1:5000/translate","Libre endpoint duplicated");
-            var body=JObject.Parse(await r.Content.ReadAsStringAsync());
-            Assert((string)body["source"]=="auto"&&(string)body["target"]=="ko"&&(string)body["format"]=="text"&&(string)body["api_key"]=="test-libre-key","Libre body");
-            return JsonResponse("{\"translatedText\":\"안녕\"}");
+            Assert(r.RequestUri.ToString()=="http://127.0.0.1:55123/v1/chat/completions","Local endpoint");
+            var body=JObject.Parse(await r.Content.ReadAsStringAsync());Assert((string)body["messages"][1]["content"]=="Hello"&&(string)body["model"]=="comfort-local"&&((string)body["messages"][0]["content"]).Contains("Korean"),"Local request contract");
+            Assert(r.Headers.Authorization.Parameter=="ephemeral-local-key","Local process authentication");
+            return JsonResponse("{\"choices\":[{\"message\":{\"content\":\"안녕\"},\"finish_reason\":\"stop\"}]}");
         }};
-        using(var s=new ContentTranslator(h)) Assert((await s.Translate(new[]{"Hello"},"ko",CancellationToken.None,new ContentTranslator.Options{Provider="libre",LibreEndpoint="http://127.0.0.1:5000/translate",LibreKey="test-libre-key"}))[0]=="안녕","Libre result");
-        Pass("LibreTranslate supports a local endpoint, automatic source detection and an optional key without duplicating /translate");
+        using(var s=new ContentTranslator(h)) {
+            var o=new ContentTranslator.Options{Provider="local",LocalConnect=t=>Task.FromResult(new LocalModelService.Connection{Endpoint="http://127.0.0.1:55123",Key="ephemeral-local-key",Release=()=>released=true})};
+            Assert((await s.Translate(new[]{"Hello"},"ko",CancellationToken.None,o))[0]=="안녕"&&released,"Local result/release");
+            var calls=h.Calls;await Failure(()=>s.Translate(new[]{new string('x',1201)},"zh",CancellationToken.None,o),"localLength");Assert(h.Calls==calls,"Overlong local text reached inference");
+        }
+        Pass("Local translation uses authenticated loopback, releases its process lease and rejects excessive input without fallback");
         h = new Handler{Send=(r,t)=>Task.FromResult(JsonResponse("{}"))};
         using(var s=new ContentTranslator(h)) {
             await Failure(()=>s.Translate(new[]{"Hello"},"zh",CancellationToken.None,new ContentTranslator.Options{Provider="ai"}),"serviceConfig");
             await Failure(()=>s.Translate(new[]{"Hello"},"zh",CancellationToken.None,new ContentTranslator.Options{Provider="ai",AiModel="test"}),"missingKey");
-            await Failure(()=>s.Translate(new[]{"Hello"},"zh",CancellationToken.None,new ContentTranslator.Options{Provider="microsoft"}),"missingKey");
-            await Failure(()=>s.Translate(new[]{"Hello"},"zh",CancellationToken.None,new ContentTranslator.Options{Provider="libre",LibreEndpoint="http://example.invalid"}),"serviceConfig");
+            await Failure(()=>s.Translate(new[]{"Hello"},"zh",CancellationToken.None,new ContentTranslator.Options{Provider="local"}),"localMissing");
+            await Failure(()=>s.Translate(new[]{"Hello"},"zh",CancellationToken.None,new ContentTranslator.Options{Provider="ai",AiEndpoint="http://example.invalid",AiModel="test"}),"serviceConfig");
             Assert(h.Calls==0,"Invalid configuration accessed network");
         }
         Assert(!TranslationProviders.ValidEndpoint("https://user:key@example.invalid") && !TranslationProviders.ValidEndpoint("https://example.invalid/?key=x") && !TranslationProviders.ValidValue("key\nInjected",1024),"Credential validation");
         Pass("Missing keys/models, unsafe remote HTTP and credential-bearing URLs are rejected before network access");
-        foreach(var error in new[]{Tuple.Create(401,"auth"),Tuple.Create(403,"auth"),Tuple.Create(407,"proxy"),Tuple.Create(404,"serviceConfig"),Tuple.Create(302,"redirect")}) {
+        foreach(var error in new[]{Tuple.Create(401,"auth"),Tuple.Create(403,"blocked"),Tuple.Create(407,"proxy"),Tuple.Create(404,"serviceConfig"),Tuple.Create(302,"redirect")}) {
             h=new Handler{Send=(r,t)=>Task.FromResult(new HttpResponseMessage((HttpStatusCode)error.Item1))};
             using(var s=new ContentTranslator(h)) await Failure(()=>s.Translate(new[]{"Hello"},"zh",CancellationToken.None,new ContentTranslator.Options{Provider="microsoft",MicrosoftKey="test"}),error.Item2);
         }
@@ -80,7 +88,7 @@ partial class TranslationTests029
         h=new Handler{Send=(r,t)=>Task.FromResult(JsonResponse("{\"choices\":[{\"message\":{\"content\":\"partial\"},\"finish_reason\":\"length\"}]}"))};
         using(var s=new ContentTranslator(h)) await Failure(()=>s.Translate(new[]{"Hello"},"zh",CancellationToken.None,new ContentTranslator.Options{Provider="ai",AiEndpoint="http://localhost:8000/v1",AiModel="test"}),"response");
         h=new Handler{Send=(r,t)=>Task.FromResult(JsonResponse("[]"))};
-        using(var s=new ContentTranslator(h)) await Failure(()=>s.Translate(new[]{"Hello"},"zh",CancellationToken.None,new ContentTranslator.Options{Provider="microsoft",MicrosoftKey="test"}),"response");
+        using(var s=new ContentTranslator(h)) await Failure(()=>s.Translate(new[]{"Hello"},"zh",CancellationToken.None,new ContentTranslator.Options{Provider="microsoft"}),"blocked");
         Pass("Truncated AI output and malformed successful responses fail safely instead of replacing text with partial data");
         h=new Handler{Send=(r,t)=>Task.FromResult(JsonResponse("{\"choices\":[{\"message\":{\"content\":\"ok\"}}]}"))};
         using(var s=new ContentTranslator(h)) {

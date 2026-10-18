@@ -5,7 +5,8 @@ $cases = @(
     @{Name='ChatModeTests0210';Arguments=@((Join-Path $projectRoot 'assets/locales.json'))},
     @{Name='TranslationTests029';Arguments=@()},
     @{Name='CameraPolicyTests029';Arguments=@((Join-Path $projectRoot 'assets/camera-zh.json'),(Join-Path $projectRoot 'assets/locales.json'))},
-    @{Name='NameplateTests030';Arguments=@()}
+    @{Name='NameplateTests030';Arguments=@()},
+    @{Name='LocalModelTests031';Arguments=@()}
 )
 New-Item -ItemType Directory -Path (Join-Path $projectRoot 'artifacts/tests') -Force | Out-Null
 Push-Location $projectRoot

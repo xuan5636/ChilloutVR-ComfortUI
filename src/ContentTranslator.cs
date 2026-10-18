@@ -37,12 +37,14 @@ namespace ComfortUI
             internal string Provider = "mymemory", ProxyMode = "system", ProxyAddress = "", SourceLanguage = "auto";
             internal string AiEndpoint = "https://api.openai.com/v1", AiModel = "", AiKey = "";
             internal string MicrosoftKey = "", MicrosoftRegion = "", LibreEndpoint = "http://127.0.0.1:5000", LibreKey = "";
+            internal string LocalAcceleration = "cpu";
+            internal Func<CancellationToken, Task<LocalModelService.Connection>> LocalConnect;
             internal bool BypassCache;
             internal Options Snapshot() { return (Options)MemberwiseClone(); }
             internal string Identity()
             {
                 using (var hash = SHA256.Create())
-                    return Provider + "\n" + SourceLanguage + "\n" + AiEndpoint + "\n" + AiModel + "\n" + MicrosoftRegion + "\n" + LibreEndpoint + "\n" + Convert.ToBase64String(hash.ComputeHash(Encoding.UTF8.GetBytes(AiKey + "\n" + MicrosoftKey + "\n" + LibreKey)));
+                    return Provider + "\n" + SourceLanguage + "\n" + AiEndpoint + "\n" + AiModel + "\n" + LocalAcceleration + "\n" + Convert.ToBase64String(hash.ComputeHash(Encoding.UTF8.GetBytes(AiKey)));
             }
         }
         internal ContentTranslator(HttpMessageHandler handler = null, int minimumIntervalMs = -1, Func<Options, HttpClient> clientFactory = null)
@@ -54,8 +56,8 @@ namespace ComfortUI
         private static HttpClient Configure(HttpClient value)
         {
             value.Timeout = Timeout.InfiniteTimeSpan;
-            value.MaxResponseContentBufferSize = 128 * 1024;
-            value.DefaultRequestHeaders.UserAgent.ParseAdd("ComfortUI/0.2.14");
+            value.MaxResponseContentBufferSize = 2 * 1024 * 1024;
+            value.DefaultRequestHeaders.UserAgent.ParseAdd("ComfortUI/0.3.1");
             return value;
         }
         internal static bool ValidProxy(string address)
@@ -64,7 +66,7 @@ namespace ComfortUI
             return address != null && address.Length <= 256 && Uri.TryCreate(address, UriKind.Absolute, out uri) &&
                 (uri.Scheme == "http" || uri.Scheme == "https") && string.IsNullOrEmpty(uri.UserInfo) && uri.AbsolutePath == "/" && string.IsNullOrEmpty(uri.Query) && string.IsNullOrEmpty(uri.Fragment);
         }
-        private static string SystemProxyAddress()
+        internal static string SystemProxyAddress()
         {
             try
             {
@@ -146,7 +148,8 @@ namespace ComfortUI
             try
             {
                 var settings = options.Snapshot();
-                if (settings.ProxyMode == "system")
+                if (settings.Provider == "local") { settings.ProxyMode = "direct"; settings.ProxyAddress = ""; }
+                else if (settings.ProxyMode == "system")
                 {
                     var proxy = SystemProxyAddress();
                     if (proxy.Length > 0) { settings.ProxyMode = "manual"; settings.ProxyAddress = proxy; }
@@ -175,7 +178,7 @@ namespace ComfortUI
                                 {
                                     long until;
                                     lock (cacheLock) if (cooldowns.TryGetValue(cooldownKey, out until) && Stopwatch.GetTimestamp() < until) throw new Failure("quota");
-                                    bool paced = options.Provider == "google" || options.Provider == "mymemory";
+                                    bool paced = options.Provider == "google" || options.Provider == "mymemory" || options.Provider == "microsoft";
                                     var wait = (nextPublicRequest - Stopwatch.GetTimestamp()) * 1000 / Stopwatch.Frequency;
                                     if (paced && wait > 0) await Task.Delay((int)Math.Min(wait, interval), token).ConfigureAwait(false);
                                     if (transport == null) transport = Acquire(settings, route);

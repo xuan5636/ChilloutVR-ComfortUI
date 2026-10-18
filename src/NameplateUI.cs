@@ -112,7 +112,7 @@ namespace ComfortUI
         private static Sprite Card()
         {
             if (card != null) return card;
-            const int size = 48, radius = 9;
+            const int size = 64, radius = 8;
             texture = new Texture2D(size, size, TextureFormat.RGBA32, false) { name = "ComfortUI-Nameplate-Card", wrapMode = TextureWrapMode.Clamp };
             var pixels = new Color32[size * size];
             for (var y = 0; y < size; y++) for (var x = 0; x < size; x++)
@@ -122,7 +122,10 @@ namespace ComfortUI
                 pixels[y * size + x] = new Color32(255, 255, 255, (byte)(Mathf.Clamp01(radius + .5f - Mathf.Sqrt(dx * dx + dy * dy)) * 255));
             }
             texture.SetPixels32(pixels); texture.Apply(false, true);
-            card = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(.5f, .5f), 100, 0, SpriteMeshType.FullRect, new Vector4(radius, radius, radius, radius));
+            // Native world Canvas referencePixelsPerUnit is 100. At sprite PPU=100,
+            // an 8px border becomes 8 world units and consumes the whole tiny card.
+            // 64 effective pixels/unit keeps each corner at .125 world units.
+            card = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(.5f, .5f), 6400, 0, SpriteMeshType.FullRect, new Vector4(radius, radius, radius, radius));
             return card;
         }
 
@@ -156,7 +159,7 @@ namespace ComfortUI
                     speaking = go.GetComponent<Image>(); speaking.raycastTarget = false;
                     speaking.material = plate.nameplateBackground.material;
                     speaking.sprite = Card(); speaking.type = Image.Type.Sliced;
-                    Place(speaking.rectTransform, 0, -.268f, 2.22f, .025f);
+                    speaking.pixelsPerUnitMultiplier = 12;
                     speaking.enabled = false;
                 }
                 catch { Object.Destroy(go); throw; }
@@ -171,8 +174,8 @@ namespace ComfortUI
             {
                 if (image == null) return;
                 SaveRect(image.rectTransform);
-                var sprite = image.sprite; var type = image.type; var colour = image.color;
-                restore.Add(() => { if (image != null) { image.sprite = sprite; image.type = type; image.color = colour; } });
+                var sprite = image.sprite; var type = image.type; var colour = image.color; var density = image.pixelsPerUnitMultiplier;
+                restore.Add(() => { if (image != null) { image.sprite = sprite; image.type = type; image.color = colour; image.pixelsPerUnitMultiplier = density; } });
             }
             private void SaveText(TMP_Text text)
             {
@@ -200,32 +203,40 @@ namespace ComfortUI
                 if (nativeRefresh && Plate.staffplateBackground != null) staffColour = Plate.staffplateBackground.color;
                 var withImage = Plate.playerImage != null && Plate.playerImage.gameObject.activeSelf;
                 Plate.nameplateBackground.sprite = Card(); Plate.nameplateBackground.type = Image.Type.Sliced;
-                Place(Plate.nameplateBackground.rectTransform, 0, .06f, 2.65f, .62f);
+                Plate.nameplateBackground.pixelsPerUnitMultiplier = 1;
                 var name = Plate.usrNameText;
-                Place(name.rectTransform, withImage ? .10f : -.07f, .12f, withImage ? 1.72f : 2.06f, .30f);
                 name.margin = Vector4.zero; name.alignment = TextAlignmentOptions.Left;
-                name.enableAutoSizing = true; name.fontSizeMax = value.largeText ? .27f : .25f; name.fontSizeMin = .12f; name.overflowMode = TextOverflowModes.Ellipsis;
+                name.enableAutoSizing = true; name.fontSize = name.fontSizeMax = value.largeText ? .27f : .25f; name.fontSizeMin = .12f; name.overflowMode = TextOverflowModes.Ellipsis;
+                var withRank = Plate.rankText != null && Plate.rankText.enabled && Plate.rankText.gameObject.activeSelf && !string.IsNullOrWhiteSpace(Plate.rankText.text);
+                var leading = withImage ? .61f : .16f;
+                var width = Math.Max(1.55f, Math.Min(3.2f, name.GetPreferredValues(name.text).x + leading + .38f));
+                var left = -width / 2f; var textWidth = width - leading - .28f;
+                var textX = left + leading + textWidth / 2f;
+                Place(Plate.nameplateBackground.rectTransform, 0, .06f, width, withRank ? .56f : .48f);
+                Place(name.rectTransform, textX, withRank ? .15f : .06f, textWidth, .29f);
+                Place(speaking.rectTransform, 0, withRank ? -.25f : -.21f, width - .24f, .022f);
                 // Synthesized bold uses the original atlas and billboard material. Never switch to an alternate font face.
                 var weights = name.font != null ? name.font.fontWeightTable : null;
                 if (weights != null && weights.Length > 7 && weights[7].regularTypeface == null && weights[7].italicTypeface == null) { name.fontWeight = FontWeight.Bold; name.fontStyle |= FontStyles.Bold; }
                 name.color = foreground;
                 if (Plate.rankText != null)
                 {
-                    Place(Plate.rankText.rectTransform, withImage ? .10f : -.07f, -.10f, withImage ? 1.72f : 2.06f, .17f);
+                    Place(Plate.rankText.rectTransform, textX, -.075f, textWidth, .15f);
                     Plate.rankText.margin = Vector4.zero; Plate.rankText.alignment = TextAlignmentOptions.Left; Plate.rankText.overflowMode = TextOverflowModes.Ellipsis;
-                    Plate.rankText.fontSize = .115f;
+                    Plate.rankText.fontSize = .105f;
                     Plate.rankText.color = foreground;
                 }
-                if (Plate.playerImage != null) Place(Plate.playerImage.rectTransform, -1.02f, 0, .45f, .45f);
-                if (Plate.friendsIndicator != null) { Place(Plate.friendsIndicator.rectTransform, 1.16f, 0, .23f, .27f); Plate.friendsIndicator.color = accent; }
+                if (Plate.playerImage != null) Place(Plate.playerImage.rectTransform, left + .30f, 0, .40f, .40f);
+                if (Plate.friendsIndicator != null) { Place(Plate.friendsIndicator.rectTransform, width / 2f - .14f, 0, .17f, .22f); Plate.friendsIndicator.color = accent; }
                 if (Plate.staffplateBackground != null)
                 {
                     Plate.staffplateBackground.sprite = Card(); Plate.staffplateBackground.type = Image.Type.Sliced;
-                    Place(Plate.staffplateBackground.rectTransform, -.77f, .43f, 1.06f, .24f);
+                    Plate.staffplateBackground.pixelsPerUnitMultiplier = 2;
+                    Place(Plate.staffplateBackground.rectTransform, left + .47f, withRank ? .40f : .36f, .94f, .22f);
                 }
                 if (Plate.staffText != null)
                 {
-                    Place(Plate.staffText.rectTransform, 0, 0, .96f, .20f); Plate.staffText.rectTransform.localRotation = Quaternion.identity;
+                    Place(Plate.staffText.rectTransform, 0, 0, .84f, .18f); Plate.staffText.rectTransform.localRotation = Quaternion.identity;
                     Plate.staffText.margin = Vector4.zero; Plate.staffText.alignment = TextAlignmentOptions.Center;
                     Plate.staffText.enableAutoSizing = true; Plate.staffText.fontSizeMax = .13f; Plate.staffText.fontSizeMin = .07f; Plate.staffText.overflowMode = TextOverflowModes.Ellipsis;
                 }

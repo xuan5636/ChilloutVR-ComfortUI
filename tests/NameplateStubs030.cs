@@ -22,21 +22,21 @@ namespace UnityEngine {
  public struct Rect { public Rect(float x,float y,float w,float h){} }
  public enum TextureFormat{RGBA32} public enum TextureWrapMode{Clamp} public enum SpriteMeshType{FullRect}
  public class Texture2D:Object { public TextureWrapMode wrapMode;public Texture2D(int w,int h,TextureFormat format,bool mipmap){}public void SetPixels32(Color32[] values){}public void Apply(bool update,bool immutable){} }
- public class Sprite:Object { public static Sprite Create(Texture2D texture,Rect rect,Vector2 pivot,float ppu,uint extrude,SpriteMeshType type,Vector4 border){return new Sprite();} }
+ public class Sprite:Object { public float pixelsPerUnit; public Vector4 border; public static Sprite Create(Texture2D texture,Rect rect,Vector2 pivot,float ppu,uint extrude,SpriteMeshType type,Vector4 border){return new Sprite{pixelsPerUnit=ppu,border=border};} }
  public class Material:Object { public string Shader="Native BillboardFacing"; }
  public static class Mathf {public static float Max(float a,float b,float c){return Math.Max(a,Math.Max(b,c));}public static float Sqrt(float n){return (float)Math.Sqrt(n);}public static float Clamp01(float n){return Math.Max(0,Math.Min(1,n));} }
  public static class ColorUtility {public static bool TryParseHtmlString(string s,out Color c){c=new Color(Convert.ToInt32(s.Substring(1,2),16)/255f,Convert.ToInt32(s.Substring(3,2),16)/255f,Convert.ToInt32(s.Substring(5,2),16)/255f);return true;} }
  public static class Time {public static float realtimeSinceStartup=10;}
 }
 namespace UnityEngine.UI {
- public class Image:UnityEngine.Component {public enum Type{Simple,Sliced} public UnityEngine.Sprite sprite=new UnityEngine.Sprite();public Type type;public bool enabled=true,raycastTarget=true;public UnityEngine.Material material=new UnityEngine.Material();public UnityEngine.RectTransform rectTransform{get{return (UnityEngine.RectTransform)transform;}}UnityEngine.Color value=UnityEngine.Color.white;public int Writes;public UnityEngine.Color color{get{return value;}set{this.value=value;Writes++;}} }
+ public class Image:UnityEngine.Component {public enum Type{Simple,Sliced} public UnityEngine.Sprite sprite=new UnityEngine.Sprite();public Type type;public float pixelsPerUnitMultiplier=1;public bool enabled=true,raycastTarget=true;public UnityEngine.Material material=new UnityEngine.Material();public UnityEngine.RectTransform rectTransform{get{return (UnityEngine.RectTransform)transform;}}UnityEngine.Color value=UnityEngine.Color.white;public int Writes;public UnityEngine.Color color{get{return value;}set{this.value=value;Writes++;}} }
  public class RawImage:UnityEngine.Component {public UnityEngine.Material material=new UnityEngine.Material();public UnityEngine.RectTransform rectTransform{get{return (UnityEngine.RectTransform)transform;}} }
 }
 namespace TMPro {
  public enum FontWeight{Regular=400,Bold=700} [Flags]public enum FontStyles{Normal=0,Bold=1}public enum TextAlignmentOptions{Left,Center}public enum TextOverflowModes{Overflow,Ellipsis}
  public struct TMP_FontWeightPair{public TMP_FontAsset regularTypeface,italicTypeface;}
  public class TMP_FontAsset{public TMP_FontWeightPair[] fontWeightTable=new TMP_FontWeightPair[10];}
- public class TMP_Text:UnityEngine.Component {public string text="Original name";public TMP_FontAsset font=new TMP_FontAsset();public UnityEngine.Material fontSharedMaterial=new UnityEngine.Material();public UnityEngine.Vector4 margin;public FontStyles fontStyle;public FontWeight fontWeight=FontWeight.Regular;public float fontSizeMin=.1f,fontSizeMax=.3f,fontSize=.3f;public bool enableAutoSizing;public TextAlignmentOptions alignment=TextAlignmentOptions.Center;public TextOverflowModes overflowMode;public UnityEngine.Color color=UnityEngine.Color.white;public UnityEngine.RectTransform rectTransform{get{return (UnityEngine.RectTransform)transform;}} }
+ public class TMP_Text:UnityEngine.Component {public bool enabled=true;public UnityEngine.Vector2 GetPreferredValues(string value){return new UnityEngine.Vector2(value.Length*fontSize*.5f,fontSize);}public string text="Original name";public TMP_FontAsset font=new TMP_FontAsset();public UnityEngine.Material fontSharedMaterial=new UnityEngine.Material();public UnityEngine.Vector4 margin;public FontStyles fontStyle;public FontWeight fontWeight=FontWeight.Regular;public float fontSizeMin=.1f,fontSizeMax=.3f,fontSize=.3f;public bool enableAutoSizing;public TextAlignmentOptions alignment=TextAlignmentOptions.Center;public TextOverflowModes overflowMode;public UnityEngine.Color color=UnityEngine.Color.white;public UnityEngine.RectTransform rectTransform{get{return (UnityEngine.RectTransform)transform;}} }
 }
 namespace ABI_RC.Core.Player {
  public class PlayerBase {public bool IsLocalPlayer,Mic;public bool IsMicActive(){return Mic;}}

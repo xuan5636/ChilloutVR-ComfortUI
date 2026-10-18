@@ -1605,13 +1605,12 @@ html[data-comfort-enabled="true"][data-comfort-context="hud"] .hud-wrapper-left-
 html[data-comfort-enabled="true"][data-comfort-context="hud"] .hex-hub-wrapper > .hex-hub,
 html[data-comfort-enabled="true"][data-comfort-context="hud"] .shards .hex-shard { opacity:0; }
 html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic { display:flex;position:absolute;left:22%;top:18%;width:56%;height:64%;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box;border:1px solid var(--cu-line);border-radius:16%;background-color:var(--cu-bg);color:var(--cu-text); }
-html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic > svg { width:44%;height:48%; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic-symbol { display:block;position:relative;width:44%;height:48%; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic-symbol img { position:absolute;left:0;top:0;width:100%;height:100%; }
 html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic-label { font-size:var(--cu-hud-label);line-height:1.6;font-weight:600;white-space:nowrap; }
-html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic-slash { display:none; }
-html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic[data-state="muted"] .cu-hud-mic-slash { display:block; }
 html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-meter { width:56%;height:4%;margin-top:3%;border-radius:3px;background-color:var(--cu-panel);overflow:hidden; }
 html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-meter span { display:block;width:100%;height:100%;transform-origin:left center;transform:scaleX(0);background-color:var(--cu-accent); }
 html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic[data-state="muted"] .cu-hud-meter { opacity:0; }
 html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-badges { display:flex;position:absolute;left:4%;bottom:1%;width:92%;height:14%;align-items:center;justify-content:center; }
 html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-badge { display:none;flex:none;align-items:center;justify-content:center;width:14%;height:100%;margin:0 1%;box-sizing:border-box;border:1px solid var(--cu-line);border-radius:24%;background-color:var(--cu-bg);color:var(--cu-text); }
-html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-badge svg { width:72%;height:72%; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-badge img { width:72%;height:72%; }

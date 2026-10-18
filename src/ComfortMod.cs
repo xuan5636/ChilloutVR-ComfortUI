@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.3.0", "Local UI Workshop")]
+[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.3.1", "Local UI Workshop")]
 [assembly: MelonGame(null, "ChilloutVR")]
 
 namespace ComfortUI
@@ -34,6 +34,10 @@ namespace ComfortUI
         private readonly ConcurrentQueue<string> translationCommands = new ConcurrentQueue<string>();
         private int commandCount, testRunning, credentialRevision;
         private TranslationSecrets translationSecrets;
+        private LocalModelService localModels;
+        private CancellationTokenSource localPreparation;
+        private int preparingLocal;
+        private string pendingLocalState, localState = "[\"localIdle\",-1]";
         private readonly ConcurrentQueue<string> translationNotices = new ConcurrentQueue<string>();
         private readonly ConcurrentQueue<TranslationDelivery> translations = new ConcurrentQueue<TranslationDelivery>();
 
@@ -51,6 +55,7 @@ namespace ComfortUI
             public bool chatTranslation = true, detailTranslation = true;
             public string translationProvider = "google", proxyMode = "system", proxyAddress = "http://127.0.0.1:7890", translationKey = "F8";
             public string sourceLanguage = "auto", aiEndpoint = "https://api.openai.com/v1", aiModel = "", microsoftRegion = "", libreEndpoint = "http://127.0.0.1:5000";
+            public string localAcceleration = "cpu";
             [JsonIgnore] internal int TranslationRevision;
             public string palette = "graphite";
             public string background = "#282c33";
@@ -104,6 +109,7 @@ namespace ComfortUI
             try { translationSecrets = new TranslationSecrets(Path.Combine(Path.GetDirectoryName(settingsPath), "translation-credentials.dat")); }
             catch (Exception ex) { LoggerInstance.Warning("Translation credentials unavailable: " + ex.GetType().Name); }
             contentTranslator.Diagnostic = value => LoggerInstance.Msg("Translation connection: " + value);
+            localModels = new LocalModelService(Path.Combine(Path.GetDirectoryName(settingsPath), "LocalTranslation"), (code, percent) => Interlocked.Exchange(ref pendingLocalState, JsonConvert.SerializeObject(new object[] { code, percent, Volatile.Read(ref preparingLocal) != 0 })));
             var loaded = typeof(CohtmlControlledView).GetMethod("OnFinishLoad", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (loaded == null) throw new MissingMethodException("CohtmlControlledView.OnFinishLoad");
             HarmonyInstance.Patch(loaded, postfix: new HarmonyMethod(typeof(ComfortMod), nameof(AfterPageLoaded)));
@@ -118,7 +124,7 @@ namespace ComfortUI
             try { localTranslations = ReadLocalTranslations(); }
             catch (Exception ex) { LoggerInstance.Warning("Optional translations skipped: " + ex.GetType().Name); }
             initialized = true;
-            LoggerInstance.Msg("Comfort UI 0.3.0 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
+            LoggerInstance.Msg("Comfort UI 0.3.1 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
         }
 
         private static string ReadResource(string name)
@@ -176,6 +182,20 @@ namespace ComfortUI
                 if (command.StartsWith("{", StringComparison.Ordinal)) SaveTranslationCredential(command);
                 else if (command == "chat") ChatTranslation.Trigger();
                 else if (command == "clearCache") { contentTranslator.ClearCache(); translationNotices.Enqueue("cacheCleared"); }
+                else if (command == "localCancel") localPreparation?.Cancel();
+                else if (command == "localPrepare")
+                {
+                    if (Interlocked.Exchange(ref preparingLocal, 1) != 0) continue;
+                    var options = TranslationOptions(preferences);
+                    var cancellation = new CancellationTokenSource(); localPreparation = cancellation;
+                    Task.Run(async () => {
+                        try { await localModels.Prepare(options, cancellation.Token).ConfigureAwait(false); }
+                        catch (OperationCanceledException) { Interlocked.Exchange(ref pendingLocalState, "[\"localCancelled\",-1]"); }
+                        catch (ContentTranslator.Failure ex) { Interlocked.Exchange(ref pendingLocalState, JsonConvert.SerializeObject(new object[] { ex.Code, -1 })); }
+                        catch { Interlocked.Exchange(ref pendingLocalState, "[\"localDownloadFailed\",-1]"); }
+                        finally { Interlocked.Exchange(ref preparingLocal, 0); }
+                    });
+                }
                 else if (command == "test")
                 {
                     if (Interlocked.Exchange(ref testRunning, 1) != 0) continue;
@@ -194,6 +214,8 @@ namespace ComfortUI
             }
             string notice;
             while (translationNotices.TryDequeue(out notice)) NotifyTranslation(notice);
+            var localUpdate = Interlocked.Exchange(ref pendingLocalState, null);
+            if (localUpdate != null) { localState = localUpdate; Broadcast("if(window.ComfortUI)window.ComfortUI.localModelState.apply(null," + localUpdate + ");"); }
             if (Time.realtimeSinceStartup < nextScan) return;
             nextScan = Time.realtimeSinceStartup + 10f;
             // A slow discovery pass also covers views which existed before the hook was installed.
@@ -201,7 +223,7 @@ namespace ComfortUI
         }
 
         public override void OnSceneWasLoaded(int index, string name) { nextScan = 0; }
-        public override void OnDeinitializeMelon() { NameplateUI.Reset(); }
+        public override void OnDeinitializeMelon() { initialized = false; localPreparation?.Cancel(); localModels?.Dispose(); NameplateUI.Reset(); }
 
         private void Attach(CohtmlControlledView owner, bool reloaded)
         {
@@ -233,7 +255,7 @@ namespace ComfortUI
                     {
                         if (value == "typing") uiTyping = true;
                         else if (value == "idle") uiTyping = false;
-                        else if (value != null && value.Length <= 4096 && (value == "chat" || value == "test" || value == "clearCache" || value.StartsWith("{", StringComparison.Ordinal)))
+                        else if (value != null && value.Length <= 4096 && (value == "chat" || value == "test" || value == "clearCache" || value == "localPrepare" || value == "localCancel" || value.StartsWith("{", StringComparison.Ordinal)))
                         {
                             if (Interlocked.Increment(ref commandCount) <= 16) translationCommands.Enqueue(value);
                             else Interlocked.Decrement(ref commandCount);
@@ -245,6 +267,7 @@ namespace ComfortUI
                 var bootstrap = "window.__comfortContext=" + JsonConvert.SerializeObject(context) + ";" +
                     "window.__comfortHost={native:true,preferences:" + PublicPreferencesJson() + "};" +
                     "window.__comfortChatEnabled=" + (ChatTranslation.IsEnabled ? "true" : "false") + ";" +
+                    "window.__comfortLocalModelState=" + localState + ";" +
                     "window.__comfortExistingTranslations=" + localTranslations + ";" +
                     "window.__comfortSettingsTranslations=" + settingsTranslations + ";" +
                     "window.__comfortLocales=" + languagePacks + ";" +
@@ -391,8 +414,11 @@ namespace ComfortUI
             p.chatTranslation = ReadBool(obj, "chatTranslation", true);
             p.detailTranslation = ReadBool(obj, "detailTranslation", true);
             var provider = (string)obj["translationProvider"];
+            if (provider == "libre") provider = "local";
             if (provider != null && !TranslationProviders.ValidProvider(provider)) throw new FormatException("Unknown translation service");
             if (provider != null) p.translationProvider = provider;
+            p.localAcceleration = (string)obj["localAcceleration"] ?? "cpu";
+            if (p.localAcceleration != "cpu" && p.localAcceleration != "auto") throw new FormatException("Unknown local acceleration");
             p.sourceLanguage = (string)obj["sourceLanguage"] ?? p.sourceLanguage;
             if (p.sourceLanguage != "auto" && !LanguageSupport.Supported(p.sourceLanguage)) throw new FormatException("Unknown source language");
             p.aiEndpoint = (string)obj["aiEndpoint"] ?? p.aiEndpoint;
@@ -460,18 +486,14 @@ namespace ComfortUI
             return new ContentTranslator.Options {
                 Provider = value.translationProvider, ProxyMode = value.proxyMode, ProxyAddress = value.proxyAddress,
                 SourceLanguage = value.sourceLanguage, AiEndpoint = value.aiEndpoint, AiModel = value.aiModel,
-                MicrosoftRegion = value.microsoftRegion, LibreEndpoint = value.libreEndpoint,
+                LocalAcceleration = value.localAcceleration, LocalConnect = token => Instance.localModels.Connect(value.localAcceleration, token),
                 AiKey = Instance?.translationSecrets?.Get("ai", value.aiEndpoint) ?? "",
-                MicrosoftKey = Instance?.translationSecrets?.Get("microsoft", "") ?? "",
-                LibreKey = Instance?.translationSecrets?.Get("libre", value.libreEndpoint) ?? ""
             };
         }
         private string PublicPreferencesJson()
         {
             var data = JObject.FromObject(preferences);
             data["hasAiKey"] = !string.IsNullOrEmpty(translationSecrets?.Get("ai", preferences.aiEndpoint));
-            data["hasMicrosoftKey"] = !string.IsNullOrEmpty(translationSecrets?.Get("microsoft", ""));
-            data["hasLibreKey"] = !string.IsNullOrEmpty(translationSecrets?.Get("libre", preferences.libreEndpoint));
             return data.ToString(Formatting.None);
         }
         private void SaveTranslationCredential(string json)
@@ -480,7 +502,7 @@ namespace ComfortUI
             {
                 var data = JObject.Parse(json);
                 string provider = (string)data["provider"], key = (string)data["key"];
-                if ((string)data["action"] != "credential" || (provider != "ai" && provider != "microsoft" && provider != "libre") || !TranslationProviders.ValidValue(key, 1024)) throw new FormatException();
+                if ((string)data["action"] != "credential" || provider != "ai" || !TranslationProviders.ValidValue(key, 1024)) throw new FormatException();
                 // If an existing protected file cannot be read, do not overwrite it silently.
                 if (translationSecrets == null) throw new InvalidOperationException();
                 var endpoint = provider == "ai" ? preferences.aiEndpoint : provider == "libre" ? preferences.libreEndpoint : "";

@@ -1,3 +1,3 @@
-76436accaeace99e6ec7c3b37b77269d468fc6c220903272eb67b7c5ca42a321  CVRComfortUI.dll
-1b3091a0bdeff3c5fc85b466e2d10864f912821f036714d1a276dbd9e8bebeec  ComfortUI-Setup-0.3.0.exe
-55ad89a929a495ab5d203b6e557e51d36b23f9d2c9aa9fc0047b81c58fc9493c  ComfortUI-Manual-0.3.0.zip
+9bd44dd5334334eeb81bf61ef0efa89ff7e286cccbb617da30e2bdce533fe32f  CVRComfortUI.dll
+a837a47d1b5605a455423a47560bf4c31eb022843ce28af2a61a0998db9fe41e  ComfortUI-Setup-0.3.1.exe
+f554bb7f7a7e3c263366f63354df3bf83ec0ef1c09bcf0becb41a866753c3441  ComfortUI-Manual-0.3.1.zip

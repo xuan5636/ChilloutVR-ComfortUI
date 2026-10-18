@@ -50,7 +50,7 @@ namespace ABI_RC.Systems.ChatBox {
 namespace ComfortUI {
  internal class ComfortMod {
   internal static ComfortMod Instance=new ComfortMod(); internal List<string> Notices=new List<string>(); internal void NotifyTranslation(string value){Notices.Add(value);}
-  internal class Preferences { public string language="zh",translationProvider="google",proxyMode="system",proxyAddress="http://127.0.0.1:7890",translationKey="F8",sourceLanguage="auto",aiEndpoint="https://api.openai.com/v1",aiModel="",microsoftRegion="",libreEndpoint="http://127.0.0.1:5000"; public int TranslationRevision; public bool chatTranslation=true; }
+  internal class Preferences { public string language="zh",translationProvider="google",proxyMode="system",proxyAddress="http://127.0.0.1:7890",translationKey="F8",localAcceleration="cpu",sourceLanguage="auto",aiEndpoint="https://api.openai.com/v1",aiModel="",microsoftRegion="",libreEndpoint="http://127.0.0.1:5000"; public int TranslationRevision; public bool chatTranslation=true; }
   internal static ContentTranslator.Options TranslationOptions(Preferences p){return new ContentTranslator.Options();}
  }
  internal static class CameraUI { internal static TMPro.TMP_FontAsset FontFor(string c){return new TMPro.TMP_FontAsset();} }

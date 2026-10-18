@@ -3,15 +3,17 @@
 An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent ChilloutVR interface.
 非官方 ChilloutVR 界面模组：柔和配色、统一控件、多语言和可选翻译。
 
-**Current release: [0.3.0 — public preview](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.3.0).**
+**Current release: [0.3.1 — public preview](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.3.1).**
 
 | Download / 下载 | Use / 用途 |
 | --- | --- |
-| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.0/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
-| [ComfortUI-Setup-0.3.0.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.0/ComfortUI-Setup-0.3.0.exe) | Standalone installer, update and removal / 独立安装程序 |
-| [ComfortUI-Manual-0.3.0.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.0/ComfortUI-Manual-0.3.0.zip) | DLL and installation instructions / DLL 与说明 |
-| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.0/ComfortUI-Source-0.3.0.zip) | Mod, interface assets, installer and tests / 源码包 |
-| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.0/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
+| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.1/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
+| [ComfortUI-Setup-0.3.1.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.1/ComfortUI-Setup-0.3.1.exe) | Standalone installer, update and removal / 独立安装程序 |
+| [ComfortUI-Manual-0.3.1.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.1/ComfortUI-Manual-0.3.1.zip) | DLL and installation instructions / DLL 与说明 |
+| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.1/ComfortUI-Source-0.3.1.zip) | Mod, interface assets, installer and tests / 源码包 |
+| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.1/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
+
+**Known issue:** a real-client report shows a missing HUD microphone icon (status text remains). A subsequent patch will address it; these 0.3.1 downloads retain the already installed binaries.
 
 ## Features / 功能
 
@@ -25,14 +27,14 @@ An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent Chill
 - Camera controls grouped by frequency: zoom, focus and stabilization accessible; filters and framing grouped.
 - Chat-bubble translation retains the native viewer-facing material, updates the original text output and restores its font/material when switched off.
 - Optional title/description/profile-bio translation. **F8 toggles continuous translation of visible other-player chat bubbles**; press again to restore originals. Starts off each launch and can be rebound in **Settings → Controls**.
-- **Settings → Translation**: Google, MyMemory, Microsoft Azure, configurable AI or LibreTranslate; source language, encrypted keys, proxy, connection test and cache controls. Online translation sends selected/visible text to the chosen provider; see [privacy](docs/PRIVACY.md).
+- **Settings → Translation**: Google, MyMemory, free Bing, configurable AI or a lightweight local model; source language, encrypted keys, proxy, connection test and cache controls. Online translation sends selected/visible text to the chosen provider; see [privacy](docs/PRIVACY.md).
 
 ## Compatibility / 兼容范围
 
 Development target: **ChilloutVR `2026r182-hf4` (`public-nightly`)**, Unity `2022.3.58f1`, **Mono MelonLoader `0.8.0-ci.2548`**, Windows, .NET Framework 4.8.
 Other game branches or loader builds have not been certified. The installer opens a checksum-verified official MelonLoader installer if a Mono loader is missing; this does not certify every runtime it offers.
 
-This release is a **public preview**. Build, 127 managed regression checks and 72 isolated UI checks passed; version 0.3.0 has not completed a full real-client PC/VR and long-session test. See [validation](docs/VALIDATION.md) for the distinction.
+This release is a **preview**. 140 managed and 102 isolated UI checks passed, with additional real synthetic Bing and CPU/Vulkan model probes. Version 0.3.1 has not completed a real-client PC/VR, other-device installation or long-session test. See [validation](docs/VALIDATION.md) for the distinction.
 
 ## Install / 安装
 

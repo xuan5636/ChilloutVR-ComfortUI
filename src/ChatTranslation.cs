@@ -129,7 +129,7 @@ namespace ComfortUI
             if (!ReferenceEquals(lastPreferences, preferences))
             {
                 var next = string.Join("\n", preferences.language, preferences.translationProvider, preferences.proxyMode, preferences.proxyAddress, preferences.chatTranslation.ToString(),
-                    preferences.sourceLanguage, preferences.aiEndpoint, preferences.aiModel, preferences.microsoftRegion, preferences.libreEndpoint, preferences.TranslationRevision.ToString());
+                    preferences.localAcceleration, preferences.sourceLanguage, preferences.aiEndpoint, preferences.aiModel, preferences.microsoftRegion, preferences.libreEndpoint, preferences.TranslationRevision.ToString());
                 if (next != settingsKey) { Reset(); settingsKey = next; }
                 if (!preferences.chatTranslation) enabled = false;
                 lastPreferences = preferences;
