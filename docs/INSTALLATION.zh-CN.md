@@ -1,10 +1,10 @@
-# Comfort UI 0.3.3 安装说明
+# Comfort UI 0.3.4 安装说明
 
 适用开发目标：Windows、ChilloutVR 2026r182-hf4 public-nightly、Mono MelonLoader 0.8.0-ci.2548、.NET Framework 4.8。其他分支和加载器版本需要自行验证。
 
 ## EXE 安装
 
-从 [GitHub Release](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.3.3) 下载 `ComfortUI-Setup-0.3.3.exe`。正常退出游戏后运行，自动查找或手动选择包含 `ChilloutVR.exe` 的文件夹，再选择「安装 / 更新模组」。
+从 [GitHub Release](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.3.4) 下载 `ComfortUI-Setup-0.3.4.exe`。正常退出游戏后运行，自动查找或手动选择包含 `ChilloutVR.exe` 的文件夹，再选择「安装 / 更新模组」。
 
 缺少加载器时可选择加载器引导：程序下载并校验官方 MelonLoader 安装器，用户在官方界面选择 `ChilloutVR.exe` 并安装适合该游戏的 Mono 加载器，完成后返回本程序安装模组。程序不会替你结束或启动游戏，也不自动替换已存在的加载器。
 
@@ -31,3 +31,7 @@ Release 提供 `SHA256SUMS.txt`。PowerShell 可用 `Get-FileHash -Algorithm SHA
 本版是公开测试版；遇到问题，请报告游戏与加载器版本、PC/VR、涉及页面和复现步骤。提供日志前请去除账号凭据、私聊正文及其他不相关个人信息。
 
 翻译服务的接口、模型和密钥配置见 [翻译设置](TRANSLATION.zh-CN.md)。
+
+## 0.3.4 麦克风反馈检查
+
+开启后说话应高亮并有音量条，静音或停止输入会清除。提示音保留游戏的两项声音开关与界面音量，未强行打开或调高；若没有声音，先核对「音频与通讯」对应选项。二维输出与实际设备的可听效果仍需游戏内试听。

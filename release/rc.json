@@ -1,12 +1,12 @@
 {
   "_id": -1,
   "name": "Comfort UI",
-  "modversion": "0.3.3",
+  "modversion": "0.3.4",
   "gameversion": "2026r182-hf4 (public-nightly)",
   "loaderversion": "0.8.0-ci.2548 (Mono)",
   "modtype": "Mod",
   "author": "Local UI Workshop",
-  "description": "Comfort UI 0.3.3：修复在线房间麦克风状态滞留，直接读取游戏语音管理器实际状态，HUD重载补齐快照；修复开启后静音斜线残留及动画帧暂停时旧图层不消失。保留配色、多语言、免费Bing和轻量CPU/Vulkan本地翻译。\n\n156项托管、142项隔离UI检查通过；真实在线房间Cohtml/PC/VR仍待确认，Google历史公共429未解除。\n\nUnofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
+  "description": "Comfort UI 0.3.4：补全麦克风说话高亮与真实音量条，修复电平显隐并在静音/断线后清除。原生开关提示音使用独立二维输出，保留原声音、界面音量和提示音开关，避免重复播放。保留柔和配色、五语言、Bing与轻量CPU/Vulkan本地翻译。\n\n198项托管、172项隔离UI检查通过；实际游戏Cohtml/耳机提示音/PC/VR待确认。\n\nUnofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
   "searchtags": [
     "UI",
     "menu",
@@ -27,8 +27,8 @@
     "[MelonLoader](https://github.com/LavaGang/MelonLoader/releases) — Mono, 0.8.0-ci.2548 (development target)",
     "Windows x64 and .NET Framework 4.8; local model download is optional. See repository installation and translation documentation."
   ],
-  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.3/CVRComfortUI.dll",
+  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.4/CVRComfortUI.dll",
   "sourcelink": "https://github.com/xuan5636/ChilloutVR-ComfortUI",
-  "changelog": "0.3.3：实际语音状态同步、进房间与HUD重载快照、直接控制静音斜线、动画异常收尾。",
+  "changelog": "0.3.4：麦克风语音输入高亮、实际音量条、断线/静音复位、原生提示音二维输出与去重。",
   "embedcolor": "#C1CBDC"
 }

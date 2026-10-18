@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.3.3", "Local UI Workshop")]
+[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.3.4", "Local UI Workshop")]
 [assembly: MelonGame(null, "ChilloutVR")]
 
 namespace ComfortUI
@@ -69,6 +69,7 @@ namespace ComfortUI
             public CohtmlViewTarget Target;
             public string Context;
             public readonly HudMicrophoneSync Microphone = new HudMicrophoneSync();
+            public Func<string, bool> HudExecute;
             public cohtml.Net.BoundEventHandle SaveHandle;
             public cohtml.Net.BoundEventHandle ReportHandle;
             public cohtml.Net.BoundEventHandle TranslateHandle;
@@ -123,10 +124,20 @@ namespace ComfortUI
             catch (Exception ex) { LoggerInstance.Warning("Native message localization unavailable: " + ex.GetType().Name); }
             try { NameplateUI.Install(HarmonyInstance, () => preferences); }
             catch (Exception ex) { LoggerInstance.Warning("Nameplate theme unavailable: " + ex.GetType().Name); }
+            try { MicrophoneSound.Install(HarmonyInstance); }
+            catch (Exception ex) { LoggerInstance.Warning("Microphone sound output unavailable: " + ex.GetType().Name + ". Native audio retained."); }
+            try
+            {
+                var micMeter = AccessTools.Method(typeof(CohtmlHud), "SetMicValue", new[] { typeof(float) });
+                if (micMeter == null) throw new MissingMethodException("CohtmlHud.SetMicValue");
+                HarmonyInstance.Patch(micMeter, postfix: new HarmonyMethod(typeof(ComfortMod), nameof(AfterMicrophoneLevel)));
+                microphoneLevelHooked = true;
+            }
+            catch (Exception ex) { LoggerInstance.Warning("Microphone level observation unavailable: " + ex.GetType().Name + ". Native HUD meter retained."); }
             try { localTranslations = ReadLocalTranslations(); }
             catch (Exception ex) { LoggerInstance.Warning("Optional translations skipped: " + ex.GetType().Name); }
             initialized = true;
-            LoggerInstance.Msg("Comfort UI 0.3.3 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
+            LoggerInstance.Msg("Comfort UI 0.3.4 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
         }
 
         private static string ReadResource(string name)
@@ -140,6 +151,8 @@ namespace ComfortUI
         {
             Instance?.Attach(__instance, true);
         }
+
+        private static void AfterMicrophoneLevel(float __0) { HudMicrophoneSync.Sample(__0, Time.realtimeSinceStartup); }
 
         public override void OnUpdate()
         {
@@ -226,7 +239,7 @@ namespace ComfortUI
         }
 
         public override void OnSceneWasLoaded(int index, string name) { nextScan = 0; }
-        public override void OnDeinitializeMelon() { initialized = false; localPreparation?.Cancel(); localModels?.Dispose(); NameplateUI.Reset(); }
+        public override void OnDeinitializeMelon() { initialized = false; localPreparation?.Cancel(); localModels?.Dispose(); NameplateUI.Reset(); MicrophoneSound.Reset(); }
 
         private void Attach(CohtmlControlledView owner, bool reloaded)
         {
@@ -249,7 +262,7 @@ namespace ComfortUI
                     previous.Target.TryUse(view => view.UnbindCall(previous.ToolsHandle));
                     lock (previous) { previous.TranslationCancellation?.Cancel(); previous.TranslationRequest = null; }
                 }
-                var entry = new AttachedView { Owner = owner, Target = target, Context = context };
+                var entry = new AttachedView { Owner = owner, Target = target, Context = context, HudExecute = target.Execute };
                 if (!target.TryUse(view =>
                 {
                     entry.SaveHandle = view.BindCall("ComfortUI_Save", new Action<string>(QueuePreferences));
@@ -471,10 +484,12 @@ namespace ComfortUI
             script += "if(window.ComfortUI&&window.ComfortUI.chatState)window.ComfortUI.chatState(" + (ChatTranslation.IsEnabled && preferences.chatTranslation ? "true" : "false") + ");";
             Broadcast(script);
         }
+        private bool microphoneLevelHooked;
         private void RefreshHudMicrophone()
         {
             var state = HudMicrophoneSync.Read();
-            if (state == null) return;
+            var now = Time.realtimeSinceStartup;
+            var level = HudMicrophoneSync.ReadLevel(state, now);
             List<uint> stale = null;
             foreach (var item in views)
             {
@@ -486,7 +501,8 @@ namespace ComfortUI
                     stale.Add(item.Key);
                     continue;
                 }
-                entry.Microphone.Deliver(state, Time.realtimeSinceStartup, entry.Target.Execute);
+                entry.Microphone.Deliver(state, now, entry.HudExecute);
+                if (microphoneLevelHooked) entry.Microphone.DeliverLevel(state, level, now, entry.HudExecute);
             }
             if (stale != null) foreach (var id in stale) ForgetView(id);
         }
