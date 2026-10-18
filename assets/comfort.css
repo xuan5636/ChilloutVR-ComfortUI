@@ -538,6 +538,13 @@ html[data-comfort-enabled="true"][data-comfort-context="main"] .detail .toolbar-
 
 html[data-comfort-enabled="true"][data-comfort-context="main"] .detail .toolbar-btn.noaction { display:none; }
 
+/* Reserve three rows for all seven prop actions, including Block. */
+html[data-comfort-enabled="true"][data-comfort-context="main"] #prop-detail .prop-maininformation { height:570px; }
+
+html[data-comfort-enabled="true"][data-comfort-context="main"] #prop-detail > .avatar-toolbar { top:714px;height:366px;overflow-x:hidden;overflow-y:auto; }
+
+html[data-comfort-enabled="true"][data-comfort-context="main"] #prop-detail .toolbar-btn { height:100px;min-height:100px;margin-bottom:10px; }
+
 html[data-comfort-enabled="true"][data-comfort-context="main"] .detail .toolbar-btn:not(.disabled):hover,
 html[data-comfort-enabled="true"][data-comfort-context="main"] .detail .action-btn:not(.disabled):hover { background-color:var(--cu-hover);filter:none; }
 

@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.3.7", "Local UI Workshop")]
+[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.4.0", "Local UI Workshop")]
 [assembly: MelonGame(null, "ChilloutVR")]
 
 namespace ComfortUI
@@ -52,6 +52,7 @@ namespace ComfortUI
             public bool theme = true;
             public bool cameraLayout = true;
             public bool nameplateTheme = true;
+            public bool chatBubbleTheme = true;
             public bool chatTranslation = true, detailTranslation = true;
             public string translationProvider = "google", proxyMode = "system", proxyAddress = "http://127.0.0.1:7890", translationKey = "F8";
             public string sourceLanguage = "auto", aiEndpoint = "https://api.openai.com/v1", aiModel = "", microsoftRegion = "", libreEndpoint = "http://127.0.0.1:5000";
@@ -124,6 +125,8 @@ namespace ComfortUI
             catch (Exception ex) { LoggerInstance.Warning("Native message localization unavailable: " + ex.GetType().Name); }
             try { NameplateUI.Install(HarmonyInstance, () => preferences); }
             catch (Exception ex) { LoggerInstance.Warning("Nameplate theme unavailable: " + ex.GetType().Name); }
+            try { ChatBubbleUI.Install(HarmonyInstance, () => preferences); }
+            catch (Exception ex) { LoggerInstance.Warning("Chat bubble styling unavailable: " + ex.GetType().Name); }
             try { MicrophoneSound.Install(HarmonyInstance); }
             catch (Exception ex) { LoggerInstance.Warning("Microphone sound output unavailable: " + ex.GetType().Name + ". Native audio retained."); }
             try
@@ -137,7 +140,7 @@ namespace ComfortUI
             try { localTranslations = ReadLocalTranslations(); }
             catch (Exception ex) { LoggerInstance.Warning("Optional translations skipped: " + ex.GetType().Name); }
             initialized = true;
-            LoggerInstance.Msg("Comfort UI 0.3.7 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
+            LoggerInstance.Msg("Comfort UI 0.4.0 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
         }
 
         private static string ReadResource(string name)
@@ -189,6 +192,7 @@ namespace ComfortUI
             }
             CameraUI.Tick(preferences);
             NameplateUI.Tick(preferences);
+            ChatBubbleUI.Tick(preferences);
             RefreshHudMicrophone();
             ChatTranslation.Tick(preferences, contentTranslator, uiTyping);
             string command;
@@ -239,7 +243,7 @@ namespace ComfortUI
         }
 
         public override void OnSceneWasLoaded(int index, string name) { nextScan = 0; }
-        public override void OnDeinitializeMelon() { initialized = false; localPreparation?.Cancel(); localModels?.Dispose(); NameplateUI.Reset(); MicrophoneSound.Reset(); }
+        public override void OnDeinitializeMelon() { initialized = false; localPreparation?.Cancel(); localModels?.Dispose(); NameplateUI.Reset(); ChatBubbleUI.Reset(); MicrophoneSound.Reset(); }
 
         private void Attach(CohtmlControlledView owner, bool reloaded)
         {
@@ -428,6 +432,7 @@ namespace ComfortUI
             p.theme = ReadBool(obj, "theme", true);
             p.cameraLayout = ReadBool(obj, "cameraLayout", true);
             p.nameplateTheme = ReadBool(obj, "nameplateTheme", true);
+            p.chatBubbleTheme = ReadBool(obj, "chatBubbleTheme", true);
             p.chatTranslation = ReadBool(obj, "chatTranslation", true);
             p.detailTranslation = ReadBool(obj, "detailTranslation", true);
             var provider = (string)obj["translationProvider"];

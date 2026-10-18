@@ -3,15 +3,15 @@
 An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent ChilloutVR interface.
 非官方 ChilloutVR 界面模组：柔和配色、统一控件、多语言和可选翻译。
 
-**Current release: [0.3.7 — public preview](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.3.7).**
+**Current public release: [0.4.0 — public preview](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.4.0).** Rounded three-dot typing hints and centered downward chat pointers; includes the 0.3.8 chat/prop fixes. Published after user testing. / 当前公开版 0.4.0，统一输入提示与聊天箭头，已完成用户测试并作为公开预览版发布。
 
 | Download / 下载 | Use / 用途 |
 | --- | --- |
-| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.7/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
-| [ComfortUI-Setup-0.3.7.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.7/ComfortUI-Setup-0.3.7.exe) | Standalone installer, update and removal / 独立安装程序 |
-| [ComfortUI-Manual-0.3.7.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.7/ComfortUI-Manual-0.3.7.zip) | DLL and installation instructions / DLL 与说明 |
-| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.7/ComfortUI-Source-0.3.7.zip) | Mod, interface assets, installer and tests / 源码包 |
-| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.7/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
+| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.4.0/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
+| [ComfortUI-Setup-0.4.0.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.4.0/ComfortUI-Setup-0.4.0.exe) | Standalone installer, update and removal / 独立安装程序 |
+| [ComfortUI-Manual-0.4.0.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.4.0/ComfortUI-Manual-0.4.0.zip) | DLL and installation instructions / DLL 与说明 |
+| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.4.0/ComfortUI-Source-0.4.0.zip) | Mod, interface assets, installer and tests / 源码包 |
+| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.4.0/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
 
 ## Features / 功能
 
@@ -23,6 +23,7 @@ An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent Chill
 - Actual voice-manager snapshots, a voice-input highlight and proportional level meter, native microphone cues through persistent 2D output, directly updated glyphs and bounded state transitions, compact localized HUD connection hints, notification cards and a separate microphone status card. Remote-player nameplates use rounded cards with organized portraits/names/status and a subtle border matching each player's primary colour selected in My Profile and synchronized by the game, while retaining native billboard materials and visibility; the original style is available in Interface settings.
 - Translation service and source language use clickable single-row segmented controls with sliding highlights; no native HTML select is required.
 - Camera controls grouped by frequency: zoom, focus and stabilization accessible; filters and framing grouped.
+- Native in-world chat bubbles use readable, content-sized rounded cards with centered downward pointers towards their player. Matching three-dot typing hints retain native status and lifetime; motion Off makes the dots steady. The theme follows the menu palette while retaining native facing, opacity and size settings. Original chat and typing layouts are available in Settings → Interface & display → Chat bubble style.
 - Chat-bubble translation retains the native viewer-facing material, updates the original text output and restores its font/material when switched off.
 - Optional title/description/profile-bio translation. **F8 toggles continuous translation of visible other-player chat bubbles**; press again to restore originals. Starts off each launch and can be rebound in **Settings → Controls**.
 - **Settings → Translation**: Google, MyMemory, free Bing, configurable AI or a lightweight local model; source language, encrypted keys, proxy, connection test and cache controls. Online translation sends selected/visible text to the chosen provider; see [privacy](docs/PRIVACY.md).
@@ -32,7 +33,7 @@ An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent Chill
 Development target: **ChilloutVR `2026r182-hf4` (`public-nightly`)**, Unity `2022.3.58f1`, **Mono MelonLoader `0.8.0-ci.2548`**, Windows, .NET Framework 4.8.
 Other game branches or loader builds have not been certified. The installer opens a checksum-verified official MelonLoader installer if a Mono loader is missing; this does not certify every runtime it offers.
 
-This release is a **preview**. 215 managed checks and 132 isolated HUD checks passed in this release, including a regression reproducing the missing DOM API reported by the real Cohtml client log. The unchanged menu/translation controls retain 54 historical UI checks from 0.3.4, with historical 0.3.1 synthetic Bing and CPU/Vulkan model probes. Version 0.3.7 has not completed a real-client PC/VR, other-device installation or long-session test. See [validation](docs/VALIDATION.md) for the distinction.
+This 0.4.0 public preview passes 290 managed checks, 27 isolated prop UI checks and 14 HUD compatibility checks. These use Unity/Harmony stand-ins and muted headless Edge with synthetic content; they do not certify every PC/VR setup, other computers or long sessions. User testing authorized this publication; see [validation](docs/VALIDATION.md).
 
 ## Install / 安装
 

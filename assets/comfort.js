@@ -1,4 +1,4 @@
-/* Comfort UI 0.3.7. System labels are local; optional content translation runs only on request. */
+/* Comfort UI 0.4.0. System labels are local; optional content translation runs only on request. */
 (function () {
     'use strict';
     var host = window.__comfortHost || {};
@@ -9,7 +9,7 @@
     }
     var KEY = 'CVR_COMFORT_UI_V1';
     var defaults = { language: 'zh', largeText: false, highContrast: false, reducedMotion: false, motionStyle:'fade', motionSpeed:'normal', theme: true, cameraLayout:true, chatTranslation:true, detailTranslation:true, translationProvider:'google', proxyMode:'system', proxyAddress:'http://127.0.0.1:7890', translationKey:'F8', palette:'graphite', background:'#282c33', panel:'#343a43', accent:'#c1cbdc' };
-    Object.assign(defaults,{nameplateTheme:true,sourceLanguage:'auto',aiEndpoint:'https://api.openai.com/v1',aiModel:'',localAcceleration:'cpu',hasAiKey:false});
+    Object.assign(defaults,{nameplateTheme:true,chatBubbleTheme:true,sourceLanguage:'auto',aiEndpoint:'https://api.openai.com/v1',aiModel:'',localAcceleration:'cpu',hasAiKey:false});
     var localModelStatus=window.__comfortLocalModelState || ['localIdle',-1];
     var prefs = copy(defaults), root, dock, context, view = 'home', shown = true;
     var mounted = false, observer, translationTimer, currentToast, lastRenderedView;
@@ -52,7 +52,7 @@
             reset: '恢复本模组默认设置', close: '返回常用', applied: '已应用', saved: '已保存到本机', saving: '正在保存…',
             saveFailed: '已应用，但未能保存；重启后可能恢复。',
             unavailable: '当前页面尚未就绪，请稍后再试。', nativeError: '游戏页面暂时无法打开，请使用原有菜单入口。',
-            hint: 'PC · VR', edition: '简洁柔和 · 试用版 0.3.7',
+            hint: 'PC · VR', edition: '简洁柔和 · 试用版 0.4.0',
             notifications: '通知与其他操作', previewAction: '预览中已打开：',
             previewNote: '界面预览中的示例操作', chinese: '简体中文', english: 'English'
         },
@@ -81,7 +81,7 @@
             reset: 'Reset mod preferences', close: 'Back to quick access', applied: 'Applied', saved: 'Saved on this PC', saving: 'Saving…',
             saveFailed: 'Applied, but could not save. Changes may reset after restart.',
             unavailable: 'This page is not ready yet. Please try again shortly.', nativeError: 'Unable to open the game page. Please use its original menu entry.',
-            hint: 'PC · VR', edition: 'Soft minimal · Preview 0.3.7',
+            hint: 'PC · VR', edition: 'Soft minimal · Preview 0.4.0',
             notifications: 'Notifications and more', previewAction: 'Preview opened: ',
             previewNote: 'Sample action in the interface preview', chinese: '简体中文', english: 'English'
         }
@@ -131,7 +131,7 @@
     function validate(value) {
         var next = copy(defaults);
         if (value && languageCodes.indexOf(value.language)>=0) next.language = value.language;
-        ['largeText','highContrast','reducedMotion','theme','cameraLayout','nameplateTheme','chatTranslation','detailTranslation'].forEach(function (key) { if (value && typeof value[key] === 'boolean') next[key] = value[key]; });
+        ['largeText','highContrast','reducedMotion','theme','cameraLayout','nameplateTheme','chatBubbleTheme','chatTranslation','detailTranslation'].forEach(function (key) { if (value && typeof value[key] === 'boolean') next[key] = value[key]; });
         if(value && ['fade','slide','zoom'].indexOf(value.motionStyle)>=0)next.motionStyle=value.motionStyle;
         if(value && ['fast','normal','gentle'].indexOf(value.motionSpeed)>=0)next.motionSpeed=value.motionSpeed;
         if (value && (palettes[value.palette] || value.palette === 'custom')) next.palette = value.palette;
@@ -446,7 +446,7 @@
         languageHelp:'主菜单、快捷菜单、登录与键盘共用此设置。',
         motionHelp:'短暂淡入和平滑高亮；关闭后立即切换，HUD 提示仍会正常收起。',
         reduced:'关闭动效',full:'舒适动效',original:'显示原版界面',resume:'返回新版界面',
-        edition:'Comfort UI 0.3.7',paletteOpen:'调整菜单配色',paletteClose:'收起配色选项',
+        edition:'Comfort UI 0.4.0',paletteOpen:'调整菜单配色',paletteClose:'收起配色选项',
         mainTitle:'你的空间',quickTitle:'快捷操作',mainIntro:'个人信息、动态和游玩操作，清晰分区。',
         reset:'恢复界面默认设置',originalHelp:'临时切回原版；屏幕上会保留返回新版的按钮。',
         textHelp:'调整系统菜单文字；列表和设置可滚动。',saved:'已保存',
@@ -457,7 +457,7 @@
         languageHelp:'Shared by menus, login and keyboard.',
         motionHelp:'Brief fades and smooth highlights. Off switches instantly; HUD notices still dismiss.',
         reduced:'Off',full:'Comfort motion',original:'Show original UI',resume:'Return to Comfort UI',
-        edition:'Comfort UI 0.3.7',paletteOpen:'Adjust menu colours',paletteClose:'Hide colour options',
+        edition:'Comfort UI 0.4.0',paletteOpen:'Adjust menu colours',paletteClose:'Hide colour options',
         mainTitle:'Your space',quickTitle:'Quick actions',mainIntro:'Your profile, activity and play controls, clearly arranged.',
         reset:'Reset interface preferences',originalHelp:'The return button stays available while the original UI is shown.',
         textHelp:'Adjust system labels. Lists and settings remain scrollable.',saved:'Saved',
@@ -467,6 +467,8 @@
     addLabels('en',{motionStyle:'Motion style',motionStyleHelp:'Small slide and scale effects, with a steady fade out.',motionFade:'Soft fade',motionSlide:'Gentle rise',motionZoom:'Subtle zoom',motionSpeed:'Motion speed',motionSpeedHelp:'Choose a quick, standard or relaxed pace. Off disables all styles.',motionFast:'Quick',motionNormal:'Standard',motionGentle:'Relaxed'});
     addLabels('zh',{cameraLayout:'相机界面',cameraLayoutHelp:'变焦、对焦与防抖放在外面，其余功能按用途分组；也可恢复原版相机排版。',cameraUnified:'统一布局',cameraOriginal:'原版布局'});
     addLabels('en',{cameraLayout:'Camera layout',cameraLayoutHelp:'Zoom, focus and stabilization stay outside. Other tools are grouped by use. The original layout remains available.',cameraUnified:'Unified',cameraOriginal:'Original'});
+    addLabels('zh',{chatBubbleStyle:'聊天气泡外观',chatBubbleHelp:'圆角气泡与三点输入提示，向下箭头指向玩家；保留原版透明度与显示时长。',chatBubbleUnified:'新版气泡',chatBubbleOriginal:'原版气泡'});
+    addLabels('en',{chatBubbleStyle:'Chat bubble style',chatBubbleHelp:'Rounded messages and three-dot typing hints point down towards the player; native opacity and lifetime are retained.',chatBubbleUnified:'Comfort bubbles',chatBubbleOriginal:'Original bubbles'});
     languageCodes.forEach(function(code){
         if(!labels[code])labels[code]=Object.assign({},labels.en);
         Object.assign(labels[code],(localePacks[code] || {}).labels || {});
@@ -493,7 +495,7 @@
         'Invites':'邀请','Invite Requests':'邀请请求','Friend Requests':'好友请求','Group Messages':'群组消息',
         'System Notifications':'系统通知','Other Messages':'其他消息','Silenced Users':'已屏蔽通讯的用户',
         'Create':'创建','Cancel':'取消','Apply':'应用','Save':'保存','Delete':'删除','Favorite':'收藏',
-        'Join':'加入','Drop Portal':'放置传送门','Request Invite':'请求邀请','Invite':'邀请','Block':'屏蔽',
+        'Join':'加入','Drop':'放置','Drop Prop':'放置道具','Drop Portal':'放置传送门','Request Invite':'请求邀请','Invite':'邀请','Block':'屏蔽',
         'Open Hub':'在 Hub 打开','Change':'使用此形象','Share':'分享','Unshare':'取消分享',
         'New':'新建','Load':'加载','Notifications':'通知','Dismiss':'忽略',
         'Name':'名称','Description':'说明','Author':'作者','Members':'成员','Settings':'设置',
@@ -1044,6 +1046,7 @@
                 settingRow('motionSpeed','motionSpeedHelp','motionSpeed',[['fast','motionFast'],['normal','motionNormal'],['gentle','motionGentle']])+
                 settingRow('cameraLayout','cameraLayoutHelp','cameraLayout',[[true,'cameraUnified'],[false,'cameraOriginal']])+
                 settingRow('nameplateStyle','nameplateHelp','nameplateTheme',[[true,'nameplateUnified'],[false,'nameplateOriginal']])+
+                settingRow('chatBubbleStyle','chatBubbleHelp','chatBubbleTheme',[[true,'chatBubbleUnified'],[false,'chatBubbleOriginal']])+
                 settingRow('text','textHelp','largeText',[[false,'standard'],[true,'large']])+
                 settingRow('contrast','contrastHelp','highContrast',[[false,'normalContrast'],[true,'highContrast']])+
                 '<div class="cu-palette-heading">'+button('palette-toggle',t(paletteOpen?'paletteClose':'paletteOpen'),'cu-palette-toggle')+'</div>'+
@@ -1416,7 +1419,7 @@
                 }
             }
             compatibilityReady=valid;
-            report('layout',{version:'0.3.7',width:Math.round(bounds.width),height:Math.round(bounds.height),background:style.backgroundColor,font:style.fontFamily,home:homeActive,hit:hit,valid:!!valid});
+            report('layout',{version:'0.4.0',width:Math.round(bounds.width),height:Math.round(bounds.height),background:style.backgroundColor,font:style.fontFamily,home:homeActive,hit:hit,valid:!!valid});
             if(!valid && ++layoutFailures>=2) {
                 restoreHome();restoreMicrophone();shown=false;setAttributes();render();openNativeHome();
                 report('compatibility-fallback','Original UI restored; return control retained.');
@@ -1638,12 +1641,12 @@
         window.addEventListener('storage',function(e){if(e.key===KEY&&e.newValue)try{setPreferences(JSON.parse(e.newValue),true);}catch(ignored){}});
         window.addEventListener('beforeunload',function(){observer.disconnect();if(hudObserver)hudObserver.disconnect();finishHudMotion();stopHudLevelTimer();clearTimeout(refreshTimer);clearTimeout(quickLabelTimer);clearTimeout(diagnosticTimer);clearTimeout(currentToast);hudHooks.forEach(function(hook){if(window[hook.name]===hook.wrapped)window[hook.name]=hook.original;});});
         document.addEventListener('visibilitychange',function(){if(document.hidden){finishSegmentMotions();finishHudMotion();}});
-        report('ready',{version:'0.3.7',settings:!!root,dashboard:!!dashboard});
+        report('ready',{version:'0.4.0',settings:!!root,dashboard:!!dashboard});
     }
     try{var stored=localStorage.getItem(KEY);if(stored)prefs=validate(JSON.parse(stored));}catch(ignored){}
     if(host.preferences)prefs=validate(host.preferences);
     window.ComfortUI={
-        version:'0.3.7',hudMicrophone:updateHudMicrophone,hudMicrophoneLevel:updateHudMicrophoneLevel,localModelState:updateLocalModelState,translationNotice:function(code,enabled){if(typeof enabled==='boolean')updateChatState(enabled);translationStatus=code;if(translationPanel){var status=translationPanel.querySelector('.cu-translation-status');if(status)status.textContent=t(code);}toast(t(code));},chatState:updateChatState,updatePreferences:setPreferences,getPreferences:function(){return copy(prefs);},
+        version:'0.4.0',hudMicrophone:updateHudMicrophone,hudMicrophoneLevel:updateHudMicrophoneLevel,localModelState:updateLocalModelState,translationNotice:function(code,enabled){if(typeof enabled==='boolean')updateChatState(enabled);translationStatus=code;if(translationPanel){var status=translationPanel.querySelector('.cu-translation-status');if(status)status.textContent=t(code);}toast(t(code));},chatState:updateChatState,updatePreferences:setPreferences,getPreferences:function(){return copy(prefs);},
         translationErrorText:function(code){return labels.en[code]?t(code):t('network');},
         preferenceFailed:function(){saveStatus='saveFailed';render();},
         showPreviewNotice:toast,setMode:setMode,

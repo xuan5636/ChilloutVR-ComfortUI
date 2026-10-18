@@ -1,12 +1,12 @@
 {
   "_id": -1,
   "name": "Comfort UI",
-  "modversion": "0.3.7",
+  "modversion": "0.4.0",
   "gameversion": "2026r182-hf4 (public-nightly)",
   "loaderversion": "0.8.0-ci.2548 (Mono)",
   "modtype": "Mod",
   "author": "Local UI Workshop",
-  "description": "Comfort UI 0.3.7：修复在线房间连接提示报错后，麦克风已开启但底部仍显示已静音的问题。提示翻译改用Cohtml支持的基本DOM节点，麦克风状态、图标和音量先刷新，提示翻译单独容错。保留玩家自选主色名牌、五语言、柔和配色、菜单动效及可选翻译。\n\n215项托管与132项本轮隔离HUD检查通过；实际在线PC/VR与音效待更新后确认。\n\nUnofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
+  "description": "Comfort UI 0.4.0：统一原生正在输入提示为柔和圆角卡片和三点提示，聊天气泡增加居中直向下箭头并保留原生朝向、透明度、大小和F8翻译恢复；合并0.3.8的聊天排版、道具详情七按钮布局与放置用词修复。保留五语言、名牌自选色描边、麦克风状态/电平/提示音、相机整合、可选翻译和动效设置。\n\n290项托管、27项隔离道具界面、14项HUD兼容和42项输入提示/箭头回归通过；用户已完成本轮游戏测试并授权公开测试发布，其他设备和长期运行仍需自行验证。\n\nUnofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
   "searchtags": [
     "UI",
     "menu",
@@ -27,8 +27,8 @@
     "[MelonLoader](https://github.com/LavaGang/MelonLoader/releases) — Mono, 0.8.0-ci.2548 (development target)",
     "Windows x64 and .NET Framework 4.8; local model download is optional. See repository installation and translation documentation."
   ],
-  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.7/CVRComfortUI.dll",
+  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.4.0/CVRComfortUI.dll",
   "sourcelink": "https://github.com/xuan5636/ChilloutVR-ComfortUI",
-  "changelog": "0.3.7：修复连接提示使用不支持DOM API中断麦克风刷新；提示翻译与麦克风状态隔离。",
+  "changelog": "0.4.0：统一正在输入提示与聊天箭头，合并聊天/道具详情修复；用户测试确认后发布公开测试版。",
   "embedcolor": "#C1CBDC"
 }

@@ -82,10 +82,12 @@ namespace ComfortUI
                 if (entry.Label != null)
                 {
                     if (entry.Applied != null && entry.Label.text == entry.Applied) entry.Label.text = entry.Original;
+                    ChatBubbleUI.PrepareFontChange(bubble);
                     entry.Label.font = entry.Font;
                     entry.Label.fontSharedMaterial = entry.Material;
                     entry.Label.richText = entry.RichText;
                     if (entry.Applied != null && entry.Label.isActiveAndEnabled) entry.Label.ForceMeshUpdate();
+                    ChatBubbleUI.Refresh(bubble);
                 }
             }
             catch { /* The native label may already be tearing down. Always release our material. */ }
@@ -164,6 +166,7 @@ namespace ComfortUI
                     if (current.TranslatedMaterial != null)
                     {
                         current.NativeMaterials?.Add(current.TranslatedMaterial);
+                        ChatBubbleUI.PrepareFontChange(current.Bubble);
                         current.Label.font = font;
                         current.Label.fontSharedMaterial = current.TranslatedMaterial;
                     }
@@ -173,6 +176,7 @@ namespace ComfortUI
                     // Rebuild the existing output, rather than leaving its old
                     // geometry visible for a frame or adding another text node.
                     current.Label.ForceMeshUpdate();
+                    ChatBubbleUI.Refresh(current.Bubble);
                 }
                 catch
                 {

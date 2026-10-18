@@ -48,6 +48,7 @@ namespace ABI_RC.Systems.ChatBox {
  }
 }
 namespace ComfortUI {
+ internal static class ChatBubbleUI { internal static void Refresh(ABI_RC.Systems.ChatBox.ChatBoxBubbleBehavior bubble){} internal static void PrepareFontChange(ABI_RC.Systems.ChatBox.ChatBoxBubbleBehavior bubble){} }
  internal class ComfortMod {
   internal static ComfortMod Instance=new ComfortMod(); internal List<string> Notices=new List<string>(); internal void NotifyTranslation(string value){Notices.Add(value);}
   internal class Preferences { public string language="zh",translationProvider="google",proxyMode="system",proxyAddress="http://127.0.0.1:7890",translationKey="F8",localAcceleration="cpu",sourceLanguage="auto",aiEndpoint="https://api.openai.com/v1",aiModel="",microsoftRegion="",libreEndpoint="http://127.0.0.1:5000"; public int TranslationRevision; public bool chatTranslation=true; }

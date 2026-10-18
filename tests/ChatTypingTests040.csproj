@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <LangVersion>latest</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <ChatBubbleSource Condition="'$(ChatBubbleSource)' == ''">../src/ChatBubbleUI.cs</ChatBubbleSource>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="ChatTypingTests040.cs"/>
+    <Compile Include="ChatBubbleStubs038.cs"/>
+    <Compile Include="NameplateStubs030.cs"/>
+    <Compile Include="../src/NameplateUI.cs"/>
+    <Compile Include="$(ChatBubbleSource)"/>
+  </ItemGroup>
+</Project>

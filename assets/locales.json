@@ -224,7 +224,11 @@
       "localIntegrity": "整合性確認に失敗。ファイルを実行せず停止しました。再度準備してください。",
       "localStartFailed": "起動に失敗。CPU モードで再度準備してください。",
       "localPlatform": "ローカルモデルは64ビット Windows が必要です。",
-      "localLength": "軽量モデルは1項目1200文字までです。短縮するかオンライン翻訳を選んでください。"
+      "localLength": "軽量モデルは1項目1200文字までです。短縮するかオンライン翻訳を選んでください。",
+      "chatBubbleStyle": "チャット吹き出し",
+      "chatBubbleHelp": "角丸の吹き出しと3点の入力表示。下向きの矢印がプレイヤーを示し、元の透明度と表示時間を保ちます。",
+      "chatBubbleUnified": "新しい外観",
+      "chatBubbleOriginal": "標準の外観"
     },
     "camera": {
       "Take Picture": "撮影",
@@ -1507,7 +1511,9 @@
       "Connection Failed": "接続に失敗しました",
       "(Local) Discord": "ローカル Discord",
       "Welcome home": "おかえりなさい",
-      "Reason: {value}": "理由：{value}"
+      "Reason: {value}": "理由：{value}",
+      "Drop": "配置",
+      "Drop Prop": "小道具を配置"
     },
     "quick": {
       "core-category-worlds": "ワールド",
@@ -1804,7 +1810,11 @@
       "localIntegrity": "파일 검증에 실패하여 실행하지 않았습니다. 다시 준비하세요.",
       "localStartFailed": "로컬 모델 시작 실패. CPU 모드로 다시 준비하세요.",
       "localPlatform": "로컬 모델에는 64비트 Windows가 필요합니다.",
-      "localLength": "경량 모델은 항목당 최대 1200자를 지원합니다. 텍스트를 줄이거나 온라인 서비스를 선택하세요."
+      "localLength": "경량 모델은 항목당 최대 1200자를 지원합니다. 텍스트를 줄이거나 온라인 서비스를 선택하세요.",
+      "chatBubbleStyle": "채팅 말풍선 모양",
+      "chatBubbleHelp": "둥근 말풍선과 점 세 개의 입력 표시. 아래쪽 화살표가 플레이어를 가리키며 기본 투명도와 표시 시간을 유지합니다.",
+      "chatBubbleUnified": "새 말풍선",
+      "chatBubbleOriginal": "기본 말풍선"
     },
     "camera": {
       "Take Picture": "사진 촬영",
@@ -3087,7 +3097,9 @@
       "Connection Failed": "연결 실패",
       "(Local) Discord": "로컬 Discord",
       "Welcome home": "집에 오신 것을 환영합니다",
-      "Reason: {value}": "이유: {value}"
+      "Reason: {value}": "이유: {value}",
+      "Drop": "배치",
+      "Drop Prop": "소품 배치"
     },
     "quick": {
       "core-category-worlds": "월드",
@@ -3384,7 +3396,11 @@
       "localIntegrity": "Falló la verificación. No se ejecutó ningún archivo. Vuelve a prepararlos.",
       "localStartFailed": "No se pudo iniciar el modelo. Prueba CPU y prepara de nuevo.",
       "localPlatform": "El modelo local requiere Windows de 64 bits.",
-      "localLength": "El modelo ligero admite hasta 1200 caracteres por campo. Acorta el texto o elige un servicio en línea."
+      "localLength": "El modelo ligero admite hasta 1200 caracteres por campo. Acorta el texto o elige un servicio en línea.",
+      "chatBubbleStyle": "Estilo de burbujas",
+      "chatBubbleHelp": "Mensajes redondeados e indicador de escritura de tres puntos, con una flecha hacia el jugador. Conservan la opacidad y duración originales.",
+      "chatBubbleUnified": "Estilo Comfort",
+      "chatBubbleOriginal": "Estilo original"
     },
     "camera": {
       "Take Picture": "Hacer foto",
@@ -4667,7 +4683,9 @@
       "Connection Failed": "Error de conexión",
       "(Local) Discord": "Discord local",
       "Welcome home": "Te damos la bienvenida a casa",
-      "Reason: {value}": "Motivo: {value}"
+      "Reason: {value}": "Motivo: {value}",
+      "Drop": "Colocar",
+      "Drop Prop": "Colocar objeto"
     },
     "quick": {
       "core-category-worlds": "Mundos",
@@ -4911,7 +4929,9 @@
       "Connection Failed": "连接失败",
       "(Local) Discord": "本地 Discord",
       "Welcome home": "欢迎回家",
-      "Reason: {value}": "原因：{value}"
+      "Reason: {value}": "原因：{value}",
+      "Drop": "放置",
+      "Drop Prop": "放置道具"
     },
     "content": {
       "hint": "按需发送本页名称和简介到所选翻译服务，译为当前界面语言；再次点击恢复原文。"
