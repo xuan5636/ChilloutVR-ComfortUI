@@ -1,4 +1,4 @@
-# Translation and local data · 0.3.1
+# Translation and local data · 0.3.2
 
 UI, camera and system-notification localization uses local dictionaries. Optional Google, MyMemory, free Bing web translation or a configured AI service sends the selected description/profile text or visible chat text only to that chosen service. F8 starts off each launch; pressing again restores originals. No automatic cross-provider fallback occurs.
 

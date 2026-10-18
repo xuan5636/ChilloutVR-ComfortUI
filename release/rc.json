@@ -1,12 +1,12 @@
 {
   "_id": -1,
   "name": "Comfort UI",
-  "modversion": "0.3.1",
+  "modversion": "0.3.2",
   "gameversion": "2026r182-hf4 (public-nightly)",
   "loaderversion": "0.8.0-ci.2548 (Mono)",
   "modtype": "Mod",
   "author": "Local UI Workshop",
-  "description": "Comfort UI 0.3.1 测试版：修复麦克风状态同步与扁椭圆名牌，增加开关过渡动画和五语言系统提示。统一主/快捷菜单、设置、详情、登录、键盘、HUD与相机。可选Google、MyMemory、免费Bing、AI或轻量本地模型；F8为持续气泡翻译开关。Bing无需Azure密钥，本地模型首次显式下载约511MB CPU所需文件，可选Vulkan加速再约32MB。小模型适合短句，支持CPU运行；失败保留原文，不自动跨服务发送。\n\n140项托管、102项隔离UI检查和独立进程Bing/CPU/Vulkan合成短句通过，真实游戏PC/VR、其他电脑和长期运行仍需验证。Google既有公共429未解除。\n\nUnofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.\n\nKnown issue: real-client HUD microphone icon may be missing while its status label remains; a following hotfix will address this.",
+  "description": "Comfort UI 0.3.2 麦克风显示修复：改用直接绘制的HTML/CSS图形，避开编码SVG图片依赖；保留状态同步、动画、原生显隐与音量，五语言长文案保持在卡片内。保留免费Bing和可下载的轻量CPU/Vulkan本地翻译。\n\n140项托管和118项隔离UI检查通过，真实Cohtml/PC/VR仍待确认；Google公共429未解除。\n\nUnofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
   "searchtags": [
     "UI",
     "menu",
@@ -27,8 +27,8 @@
     "[MelonLoader](https://github.com/LavaGang/MelonLoader/releases) — Mono, 0.8.0-ci.2548 (development target)",
     "Windows x64 and .NET Framework 4.8; local model download is optional. See repository installation and translation documentation."
   ],
-  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.1/CVRComfortUI.dll",
+  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.2/CVRComfortUI.dll",
   "sourcelink": "https://github.com/xuan5636/ChilloutVR-ComfortUI",
-  "changelog": "0.3.1：麦克风与名牌修复、状态动画、五语言系统提示、免费Bing与可下载的轻量CPU/Vulkan本地模型。真实PC/VR仍待验证。",
+  "changelog": "0.3.2：HUD麦克风改用不依赖图像解码的直接绘制图形，保留状态动画、原生同步，补齐五语言文案边界。",
   "embedcolor": "#C1CBDC"
 }

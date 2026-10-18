@@ -1,3 +1,13 @@
+# 0.3.2 validation scope
+
+2026-10-18. Installed locally with matching package/DLL hashes, unchanged preferences and five protected files, and an exact0.3.1 backup; existing model files were not changed. Publication retains these binaries. GitHub0.3.1 is already published with the user's missing-microphone-icon report disclosed; its artifacts are fixed.
+
+140 managed checks pass: lifetime12/chat39/provider24/camera18/nameplate37/local-model10. 118 isolated browser checks pass: providers17/selectors16/segmented motion18/state reuse3/HUD22/state synchronization26/image-independent glyph16. The last suite deliberately rejects encoded SVG images, verifies separate muted/live/TTS raster outputs, five-language label bounds, native scaling, presets/light contrast, native visibility and restoration. The frozen0.3.1 baseline fails the new image-independent regression. This simulates the reported failure path; it does not prove the exact reason inside Cohtml.
+
+Actual game-reference build, six embedded resources, installer version/payload/SHA256 and archive/source checks are performed during packaging. UI probes use read-only game HTML, mocked bridge, loopback-only requests and muted headless Edge; CSS shape screenshots were inspected. No real chat, paid keys or new online/model probes were used in this hotfix. The genuine Bing/CPU/Vulkan observations below belong to0.3.1 and remain historical.
+
+Unverified: actual0.3.2 game Cohtml rendering, PC/VR/mirror comfort, other-device installation and long-session performance. This patch preserves the0.3.1 native mic/TTS/volume authority, animation cancellation, translation/local-model settings and caches; it does not claim to resolve Google's prior429.
+
 # 0.3.1 validation scope
 
 Known real-client report after installation: the microphone status card can show its label without the icon. This version is published unchanged at the user's request before preparing the next hotfix.
