@@ -24,6 +24,8 @@ namespace ComfortUI
             internal TMP_Text Label;
             internal string Original, Applied;
             internal TMP_FontAsset Font;
+            internal Material Material, TranslatedMaterial;
+            internal HashSet<Material> NativeMaterials;
             internal bool RichText;
             internal int Generation;
         }
@@ -32,6 +34,7 @@ namespace ComfortUI
         private static readonly ConcurrentQueue<Delivery> deliveries = new ConcurrentQueue<Delivery>();
         private static readonly FieldInfo Bubbles = AccessTools.Field(typeof(ChatBoxBubbleBehavior), "ChatBoxes");
         private static readonly FieldInfo Output = AccessTools.Field(typeof(ChatBoxBubbleBehavior), "textBubbleOutputTMP");
+        private static readonly FieldInfo Materials = AccessTools.Field(typeof(ChatBoxBubbleBehavior), "_materials");
         private static readonly FieldInfo InputField = AccessTools.Field(typeof(ViewManager), "_inputField");
         private static CancellationTokenSource cancellation;
         private static string settingsKey;
@@ -47,6 +50,8 @@ namespace ComfortUI
         {
             if (Bubbles == null || Output == null) throw new MissingFieldException("Native ChatBox fields unavailable");
             harmony.Patch(AccessTools.Method(typeof(ChatBoxBubbleBehavior), "OnMessage"), prefix: new HarmonyMethod(typeof(ChatTranslation), nameof(BeforeMessage)));
+            var destroyed = AccessTools.Method(typeof(ChatBoxBubbleBehavior), "OnDestroy");
+            if (destroyed != null) harmony.Patch(destroyed, prefix: new HarmonyMethod(typeof(ChatTranslation), nameof(BeforeMessage)));
             var keyboard = AccessTools.TypeByName("ABI_RC.Core.UI.UIRework.Managers.KeyboardManager");
             if (keyboard != null)
             {
@@ -72,13 +77,45 @@ namespace ComfortUI
         {
             Entry entry;
             if (!entries.TryGetValue(bubble, out entry)) return;
-            if (entry.Label != null)
+            try
             {
-                if (entry.Applied != null && entry.Label.text == entry.Applied) entry.Label.text = entry.Original;
-                entry.Label.font = entry.Font;
-                entry.Label.richText = entry.RichText;
+                if (entry.Label != null)
+                {
+                    if (entry.Applied != null && entry.Label.text == entry.Applied) entry.Label.text = entry.Original;
+                    entry.Label.font = entry.Font;
+                    entry.Label.fontSharedMaterial = entry.Material;
+                    entry.Label.richText = entry.RichText;
+                    if (entry.Applied != null && entry.Label.isActiveAndEnabled) entry.Label.ForceMeshUpdate();
+                }
             }
-            entries.Remove(bubble);
+            catch { /* The native label may already be tearing down. Always release our material. */ }
+            finally
+            {
+                if (entry.TranslatedMaterial != null)
+                {
+                    entry.NativeMaterials?.Remove(entry.TranslatedMaterial);
+                    UnityEngine.Object.Destroy(entry.TranslatedMaterial);
+                }
+                entries.Remove(bubble);
+            }
+        }
+        private static Material FontMaterial(Material original, TMP_FontAsset font)
+        {
+            // Chat bubbles are positioned and faced toward the viewer by the
+            // game's BillboardFacing shader. TMP's font setter otherwise swaps
+            // it for a regular SDF material, leaving text behind / back-to-front.
+            // Preserve that shader and its properties; change only the font atlas
+            // and its SDF metrics, as TMP does for a fallback font material.
+            if (original == null || font == null || font.material == null) return null;
+            var translated = new Material(original) { name = "ComfortUI-Chat-Font", hideFlags = HideFlags.DontSave };
+            try
+            {
+                translated.SetTexture("_MainTex", font.material.GetTexture("_MainTex"));
+                foreach (var property in new[] { "_TextureWidth", "_TextureHeight", "_GradientScale", "_WeightNormal", "_WeightBold" })
+                    if (translated.HasProperty(property) && font.material.HasProperty(property)) translated.SetFloat(property, font.material.GetFloat(property));
+                return translated;
+            }
+            catch { UnityEngine.Object.Destroy(translated); throw; }
         }
         private static void Reset()
         {
@@ -119,11 +156,28 @@ namespace ComfortUI
                 Entry current;
                 if (result.Generation != generation || result.Entry.Bubble == null || !entries.TryGetValue(result.Entry.Bubble, out current) || !ReferenceEquals(current, result.Entry) || !current.Bubble.IsChatBubbleActive || current.Label == null || current.Label.text != current.Original) continue;
                 if (result.Error != null) { error = result.Error; entries.Remove(current.Bubble); continue; }
-                var font = CameraUI.FontFor(preferences.language);
-                if (font != null) current.Label.font = font;
-                current.Label.richText = false;
-                current.Applied = result.Text;
-                current.Label.text = result.Text;
+                try
+                {
+                    var font = CameraUI.FontFor(preferences.language);
+                    current.TranslatedMaterial = FontMaterial(current.Material, font);
+                    if (current.TranslatedMaterial != null)
+                    {
+                        current.NativeMaterials?.Add(current.TranslatedMaterial);
+                        current.Label.font = font;
+                        current.Label.fontSharedMaterial = current.TranslatedMaterial;
+                    }
+                    current.Label.richText = false;
+                    current.Applied = result.Text;
+                    current.Label.text = result.Text;
+                    // Rebuild the existing output, rather than leaving its old
+                    // geometry visible for a frame or adding another text node.
+                    current.Label.ForceMeshUpdate();
+                }
+                catch
+                {
+                    Forget(current.Bubble);
+                    error = "response";
+                }
             }
             if (error != null)
             {
@@ -174,7 +228,7 @@ namespace ComfortUI
             }
             // Snapshot Unity state on the main thread, only while the user has
             // explicitly enabled continuous translation for this session.
-            var work = visible.Select(b => new Entry { Bubble = b, Label = Output.GetValue(b) as TMP_Text }).Where(e => e.Label != null).Select(e => { e.Original = e.Label.text; e.Font = e.Label.font; e.RichText = e.Label.richText; e.Generation = generation; return e; }).ToArray();
+            var work = visible.Select(b => new Entry { Bubble = b, Label = Output.GetValue(b) as TMP_Text, NativeMaterials = Materials?.GetValue(b) as HashSet<Material> }).Where(e => e.Label != null).Select(e => { e.Original = e.Label.text; e.Font = e.Label.font; e.Material = e.Label.fontSharedMaterial; e.RichText = e.Label.richText; e.Generation = generation; return e; }).ToArray();
             if (work.Length == 0) return;
             foreach (var e in work) entries[e.Bubble] = e;
             var options = ComfortMod.TranslationOptions(preferences);

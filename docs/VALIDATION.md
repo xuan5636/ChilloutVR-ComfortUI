@@ -1,3 +1,11 @@
+# 0.2.13 validation scope
+
+2026-10-18. Public preview; live-client validation remains incomplete. The installed game's native chat output uses the BillboardFacing TMP shader. The old font setter replaced this with an ordinary SDF material. The hotfix preserves the native material's shader/properties, changing only the font atlas/SDF metrics on a per-bubble copy, and rebuilds the existing native text output.
+
+The 0.2.12 implementation fails the new facing-material regression; the fix passes 35 chat checks. All four managed suites pass: lifetime 12, chat 35, HTTP 10, camera 18 (75 total). Tests use stand-ins, not an actual Unity renderer. Actual game-reference build: zero warnings/errors. Six embedded assets and installer payload/version/hash match. No new external service calls were made.
+
+Live-client PC/VR, mirror views, multi-atlas glyphs, long translated messages and another computer's complete installation remain unverified. Translation backend expansion and HUD/nameplate improvements are deferred behind this user-requested hotfix.
+
 # 0.2.12 validation scope
 
 2026-10-18. Public preview; real-client validation remains incomplete. 51 isolated UI checks passed: frame-sampled segments 18, language 8, native controls 7, state reuse 3, translation settings 7, hidden-panel/numeric-editor regression 8. Main and quick native HTML use a mock bridge on loopback only.
