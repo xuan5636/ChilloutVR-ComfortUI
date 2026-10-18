@@ -1,12 +1,12 @@
 {
   "_id": -1,
   "name": "Comfort UI",
-  "modversion": "0.2.13",
+  "modversion": "0.2.14",
   "gameversion": "2026r182-hf4 (public-nightly)",
   "loaderversion": "0.8.0-ci.2548 (Mono)",
   "modtype": "Mod",
   "author": "Local UI Workshop",
-  "description": "ChilloutVR 非官方界面模组（0.2.13 公开测试版）。\n\n柔和深色与自选配色；统一主菜单、快捷菜单、设置、详情、创建房间、登录、虚拟键盘和 HUD 的风格；独立麦克风按钮。支持简体中文、English、日本語、한국어、Español，语言使用单行滑块选择。\n\n统一设置开关、选项、滑条及数字输入；分段按钮使用真实滑动高亮，连续切换自然接续；三种动画形式、三档速度，支持关闭动效。相机常用功能与滤镜/构图分组。\n\n气泡译文沿用原生面向玩家材质，修复字体替换后的反向/偏位显示。\n\n可选 Google/MyMemory 内容翻译：详情名称和简介、玩家简介可切换译文/原文；默认 F8 开启持续气泡翻译，再按关闭并还原原文，支持改键。翻译栏目支持系统代理、直连、手动 HTTP 代理、连接测试和缓存。在线翻译会将选中/可见正文发送给所选服务，气泡翻译每次启动默认关闭。\n\n[EXE 安装程序](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.2.13/ComfortUI-Setup-0.2.13.exe) · [安装说明](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/main/docs/INSTALLATION.zh-CN.md) · [验证范围](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/main/docs/VALIDATION.md)\n\n开发目标为 Windows / Mono；其他游戏分支或加载器版本未认证。0.2.13 已通过本地构建与隔离检查，完整真实 PC/VR 及长期运行仍待验证。\n\nUnofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
+  "description": "ChilloutVR 非官方界面模组（0.2.14 公开测试版）。\n\n柔和深色与自选配色，统一主/快捷菜单、设置、详情、创建房间、登录、键盘和 HUD；麦克风独立显示。简体中文、English、日本語、한국어、Español 使用单行语言滑块。统一设置控件，分段选项滑动高亮；三种动效形式、三档速度，也可关闭。相机常用操作、滤镜和构图分组。\n\n可选 Google、MyMemory、微软 Azure、AI 翻译或 LibreTranslate。支持详情名称/简介及玩家简介的译文/原文切换；F8 持续翻译可见他人气泡，再按关闭还原，默认每次启动关闭。保留原气泡面向玩家的材质与生命周期保护。\n\n设置 → 翻译：接口、模型、源语言、微软区域、系统/直连/手动代理、连接测试、缓存。AI/微软/Libre 需要自己的服务配置；API 密钥按当前 Windows 用户加密保存，绑定服务地址，不进入偏好、网页缓存或日志。在线翻译会发送选中/可见正文给所选服务；付费接口可能计费。不会自动跨服务转发。\n\n连接复用、公共请求间隔、相同请求合并与60秒限流冷却。真实代理短示例中 MyMemory 成功，Google 公共接口仍返回429；不能保证公共额度。93项托管及34项隔离界面检查通过，真实PC/VR和微软/AI账户仍待验证。\n\n[EXE 安装程序](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.2.14/ComfortUI-Setup-0.2.14.exe) · [翻译设置](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/v0.2.14/docs/TRANSLATION.zh-CN.md) · [验证范围](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/v0.2.14/docs/VALIDATION.md)\n\nUnofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
   "searchtags": [
     "UI",
     "menu",
@@ -25,10 +25,10 @@
   "requirements": [
     "[ChilloutVR](https://store.steampowered.com/app/661130/ChilloutVR/) — Windows, 2026r182-hf4 public-nightly (development target)",
     "[MelonLoader](https://github.com/LavaGang/MelonLoader/releases) — Mono, 0.8.0-ci.2548 (development target)",
-    "[安装说明](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/main/docs/INSTALLATION.zh-CN.md) — .NET Framework 4.8; Google/MyMemory access is optional for online translation"
+    "[安装说明](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/v0.2.14/docs/INSTALLATION.zh-CN.md) — .NET Framework 4.8; online providers are optional, Microsoft/AI/Libre require user configuration"
   ],
-  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.2.13/CVRComfortUI.dll",
+  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.2.14/CVRComfortUI.dll",
   "sourcelink": "https://github.com/xuan5636/ChilloutVR-ComfortUI",
-  "changelog": "0.2.13：修复 F8 译文反向/偏位；保留原气泡面向玩家的材质，直接刷新原文字组件，关闭/新消息/销毁时还原并释放临时材质。75项托管替身检查通过，实机PC/VR仍待验证。https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/v0.2.13/CHANGELOG.md",
+  "changelog": "0.2.14：增加微软Azure、AI与LibreTranslate；连接复用/限流冷却，新增源语言与加密密钥配置；F8持续翻译与气泡朝向修复保留。Google公共接口仍可能429。93项托管、34项隔离UI通过；实机及付费服务未完整验证。https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/v0.2.14/CHANGELOG.md",
   "embedcolor": "#C1CBDC"
 }

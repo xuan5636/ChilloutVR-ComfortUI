@@ -10,7 +10,7 @@ using ComfortUI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-class TranslationTests029
+partial class TranslationTests029
 {
     sealed class Handler : HttpMessageHandler
     {
@@ -29,7 +29,7 @@ class TranslationTests029
         var requests = new List<string>();
         var multi = new Handler { Send=(request,token)=>{
             var url=request.RequestUri.ToString(); requests.Add(url);
-            return Task.FromResult(url.Contains("translate.google.com") ? new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent("[[[\"Hola\",\"Hello\"],[\" mundo\",\" world\"]],null,\"en\"]")} : Response("test"));
+            return Task.FromResult(url.Contains("translate.google") ? new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent("[[[\"Hola\",\"Hello\"],[\" mundo\",\" world\"]],null,\"en\"]")} : Response("test"));
         }};
         using(var service=new ContentTranslator(multi)){
             foreach(var code in new[]{"zh","en","ja","ko","es"}){
@@ -90,6 +90,7 @@ class TranslationTests029
             handler.Send=(r,t)=>Task.FromResult(Response("fresh"));Assert((await service.Translate(new[]{"fresh"},"zh",CancellationToken.None))[0]=="fresh","semaphore not released");
         }
         Pass("Requests are asynchronous, bounded to two, cancellable, and release capacity after cancellation");
+        await ProviderChecks();
     }
-    static int Main(){try{Run().GetAwaiter().GetResult();Console.WriteLine("TOTAL "+passed+" passed");System.IO.File.WriteAllText("artifacts/tests/translation-report.json",JsonConvert.SerializeObject(new{version="0.2.9",passed=results,live="Mock HTTP only; no game or personal content"},Formatting.Indented));return 0;}catch(Exception e){Console.Error.WriteLine(e);return 1;}}
+    static int Main(){try{Run().GetAwaiter().GetResult();Console.WriteLine("TOTAL "+passed+" passed");System.IO.File.WriteAllText("artifacts/tests/translation-report.json",JsonConvert.SerializeObject(new{version="0.2.14",passed=results,live="Mock HTTP and local Windows encryption only; no game or personal content"},Formatting.Indented));return 0;}catch(Exception e){Console.Error.WriteLine(e);return 1;}}
 }

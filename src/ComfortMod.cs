@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.2.13", "Local UI Workshop")]
+[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.2.14", "Local UI Workshop")]
 [assembly: MelonGame(null, "ChilloutVR")]
 
 namespace ComfortUI
@@ -31,7 +31,9 @@ namespace ComfortUI
         private bool initialized;
         private readonly ContentTranslator contentTranslator = new ContentTranslator();
         private volatile bool uiTyping;
-        private string translationCommand;
+        private readonly ConcurrentQueue<string> translationCommands = new ConcurrentQueue<string>();
+        private int commandCount, testRunning, credentialRevision;
+        private TranslationSecrets translationSecrets;
         private readonly ConcurrentQueue<string> translationNotices = new ConcurrentQueue<string>();
         private readonly ConcurrentQueue<TranslationDelivery> translations = new ConcurrentQueue<TranslationDelivery>();
 
@@ -47,6 +49,8 @@ namespace ComfortUI
             public bool cameraLayout = true;
             public bool chatTranslation = true, detailTranslation = true;
             public string translationProvider = "google", proxyMode = "system", proxyAddress = "http://127.0.0.1:7890", translationKey = "F8";
+            public string sourceLanguage = "auto", aiEndpoint = "https://api.openai.com/v1", aiModel = "", microsoftRegion = "", libreEndpoint = "http://127.0.0.1:5000";
+            [JsonIgnore] internal int TranslationRevision;
             public string palette = "graphite";
             public string background = "#282c33";
             public string panel = "#343a43";
@@ -83,6 +87,9 @@ namespace ComfortUI
                 try { preferences = ParsePreferences(File.ReadAllText(settingsPath)); }
                 catch (Exception ex) { LoggerInstance.Warning("Preferences could not be read; using defaults: " + ex.GetType().Name); }
             }
+            try { translationSecrets = new TranslationSecrets(Path.Combine(Path.GetDirectoryName(settingsPath), "translation-credentials.dat")); }
+            catch (Exception ex) { LoggerInstance.Warning("Translation credentials unavailable: " + ex.GetType().Name); }
+            contentTranslator.Diagnostic = value => LoggerInstance.Msg("Translation connection: " + value);
             var loaded = typeof(CohtmlControlledView).GetMethod("OnFinishLoad", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (loaded == null) throw new MissingMethodException("CohtmlControlledView.OnFinishLoad");
             HarmonyInstance.Patch(loaded, postfix: new HarmonyMethod(typeof(ComfortMod), nameof(AfterPageLoaded)));
@@ -95,7 +102,7 @@ namespace ComfortUI
             try { localTranslations = ReadLocalTranslations(); }
             catch (Exception ex) { LoggerInstance.Warning("Optional translations skipped: " + ex.GetType().Name); }
             initialized = true;
-            LoggerInstance.Msg("Comfort UI 0.2.13 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
+            LoggerInstance.Msg("Comfort UI 0.2.14 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
         }
 
         private static string ReadResource(string name)
@@ -145,20 +152,28 @@ namespace ComfortUI
             }
             CameraUI.Tick(preferences);
             ChatTranslation.Tick(preferences, contentTranslator, uiTyping);
-            var command = Interlocked.Exchange(ref translationCommand, null);
-            if (command == "chat") ChatTranslation.Trigger();
-            else if (command == "clearCache") { contentTranslator.ClearCache(); translationNotices.Enqueue("cacheCleared"); }
-            else if (command == "test")
+            string command;
+            while (translationCommands.TryDequeue(out command))
             {
-                var current = preferences;
-                var options = TranslationOptions(current);
-                options.BypassCache = true;
-                Task.Run(async () =>
+                Interlocked.Decrement(ref commandCount);
+                if (command.StartsWith("{", StringComparison.Ordinal)) SaveTranslationCredential(command);
+                else if (command == "chat") ChatTranslation.Trigger();
+                else if (command == "clearCache") { contentTranslator.ClearCache(); translationNotices.Enqueue("cacheCleared"); }
+                else if (command == "test")
                 {
-                    try { await contentTranslator.Translate(new[] { "Hello." }, current.language, CancellationToken.None, options).ConfigureAwait(false); translationNotices.Enqueue("testSuccess"); }
-                    catch (ContentTranslator.Failure ex) { translationNotices.Enqueue(ex.Code); }
-                    catch { translationNotices.Enqueue("network"); }
-                });
+                    if (Interlocked.Exchange(ref testRunning, 1) != 0) continue;
+                    translationNotices.Enqueue("testing");
+                    var current = preferences;
+                    var options = TranslationOptions(current);
+                    options.BypassCache = true;
+                    Task.Run(async () =>
+                    {
+                        try { await contentTranslator.Translate(new[] { "Hello." }, current.language, CancellationToken.None, options).ConfigureAwait(false); translationNotices.Enqueue("testSuccess"); }
+                        catch (ContentTranslator.Failure ex) { translationNotices.Enqueue(ex.Code); }
+                        catch { translationNotices.Enqueue("network"); }
+                        finally { Interlocked.Exchange(ref testRunning, 0); }
+                    });
+                }
             }
             string notice;
             while (translationNotices.TryDequeue(out notice)) NotifyTranslation(notice);
@@ -200,13 +215,17 @@ namespace ComfortUI
                     {
                         if (value == "typing") uiTyping = true;
                         else if (value == "idle") uiTyping = false;
-                        else if (value == "chat" || value == "test" || value == "clearCache") Interlocked.Exchange(ref translationCommand, value);
+                        else if (value != null && value.Length <= 4096 && (value == "chat" || value == "test" || value == "clearCache" || value.StartsWith("{", StringComparison.Ordinal)))
+                        {
+                            if (Interlocked.Increment(ref commandCount) <= 16) translationCommands.Enqueue(value);
+                            else Interlocked.Decrement(ref commandCount);
+                        }
                     }));
                     if (context == "main") entry.TranslateHandle = view.BindCall("ComfortUI_Translate", new Action<string>(json => QueueTranslation(entry, json)));
                 })) return;
                 views[id] = entry;
                 var bootstrap = "window.__comfortContext=" + JsonConvert.SerializeObject(context) + ";" +
-                    "window.__comfortHost={native:true,preferences:" + JsonConvert.SerializeObject(preferences) + "};" +
+                    "window.__comfortHost={native:true,preferences:" + PublicPreferencesJson() + "};" +
                     "window.__comfortChatEnabled=" + (ChatTranslation.IsEnabled ? "true" : "false") + ";" +
                     "window.__comfortExistingTranslations=" + localTranslations + ";" +
                     "window.__comfortSettingsTranslations=" + settingsTranslations + ";" +
@@ -236,7 +255,7 @@ namespace ComfortUI
 
         private void QueuePreferences(string json)
         {
-            if (json == null || json.Length > 2048) return;
+            if (json == null || json.Length > 4096) return;
             try { ParsePreferences(json); Interlocked.Exchange(ref pending, json); }
             catch { /* malformed browser requests cannot write arbitrary files */ }
         }
@@ -277,13 +296,15 @@ namespace ComfortUI
                     entry.TranslationCancellation = cancellation;
                     entry.TranslationRequest = id;
                 }
+                var currentPreferences = preferences;
+                var options = TranslationOptions(currentPreferences);
                 Task.Run(async () =>
                 {
                     var result = new JObject { ["id"] = id, ["language"] = language };
                     try
                     {
-                        if (!preferences.detailTranslation) throw new ContentTranslator.Failure("disabled");
-                        result["texts"] = new JArray(await contentTranslator.Translate(texts, language, cancellation.Token, TranslationOptions(preferences)).ConfigureAwait(false));
+                        if (!currentPreferences.detailTranslation) throw new ContentTranslator.Failure("disabled");
+                        result["texts"] = new JArray(await contentTranslator.Translate(texts, language, cancellation.Token, options).ConfigureAwait(false));
                     }
                     catch (ContentTranslator.Failure ex) { result["error"] = ex.Code; }
                     catch { result["error"] = "network"; }
@@ -351,8 +372,16 @@ namespace ComfortUI
             p.chatTranslation = ReadBool(obj, "chatTranslation", true);
             p.detailTranslation = ReadBool(obj, "detailTranslation", true);
             var provider = (string)obj["translationProvider"];
-            if (provider != null && provider != "google" && provider != "mymemory") throw new FormatException("Unknown translation service");
+            if (provider != null && !TranslationProviders.ValidProvider(provider)) throw new FormatException("Unknown translation service");
             if (provider != null) p.translationProvider = provider;
+            p.sourceLanguage = (string)obj["sourceLanguage"] ?? p.sourceLanguage;
+            if (p.sourceLanguage != "auto" && !LanguageSupport.Supported(p.sourceLanguage)) throw new FormatException("Unknown source language");
+            p.aiEndpoint = (string)obj["aiEndpoint"] ?? p.aiEndpoint;
+            p.libreEndpoint = (string)obj["libreEndpoint"] ?? p.libreEndpoint;
+            p.aiModel = (string)obj["aiModel"] ?? p.aiModel;
+            p.microsoftRegion = (string)obj["microsoftRegion"] ?? p.microsoftRegion;
+            if (!TranslationProviders.ValidEndpoint(p.aiEndpoint) || !TranslationProviders.ValidEndpoint(p.libreEndpoint) || !TranslationProviders.ValidValue(p.aiModel, 120) || !TranslationProviders.ValidValue(p.microsoftRegion, 64)) throw new FormatException("Invalid service configuration");
+            p.TranslationRevision = Instance?.credentialRevision ?? 0;
             var mode = (string)obj["proxyMode"];
             if (mode != null && mode != "system" && mode != "direct" && mode != "manual") throw new FormatException("Unknown proxy mode");
             if (mode != null) p.proxyMode = mode;
@@ -389,7 +418,7 @@ namespace ComfortUI
 
         private void BroadcastPreferences()
         {
-            var script = "if(window.ComfortUI)window.ComfortUI.updatePreferences(" + JsonConvert.SerializeObject(preferences) + ",true);";
+            var script = "if(window.ComfortUI)window.ComfortUI.updatePreferences(" + PublicPreferencesJson() + ",true);";
             script += "if(window.ComfortUI&&window.ComfortUI.chatState)window.ComfortUI.chatState(" + (ChatTranslation.IsEnabled && preferences.chatTranslation ? "true" : "false") + ");";
             Broadcast(script);
         }
@@ -409,7 +438,40 @@ namespace ComfortUI
         }
         internal static ContentTranslator.Options TranslationOptions(Preferences value)
         {
-            return new ContentTranslator.Options { Provider = value.translationProvider, ProxyMode = value.proxyMode, ProxyAddress = value.proxyAddress };
+            return new ContentTranslator.Options {
+                Provider = value.translationProvider, ProxyMode = value.proxyMode, ProxyAddress = value.proxyAddress,
+                SourceLanguage = value.sourceLanguage, AiEndpoint = value.aiEndpoint, AiModel = value.aiModel,
+                MicrosoftRegion = value.microsoftRegion, LibreEndpoint = value.libreEndpoint,
+                AiKey = Instance?.translationSecrets?.Get("ai", value.aiEndpoint) ?? "",
+                MicrosoftKey = Instance?.translationSecrets?.Get("microsoft", "") ?? "",
+                LibreKey = Instance?.translationSecrets?.Get("libre", value.libreEndpoint) ?? ""
+            };
+        }
+        private string PublicPreferencesJson()
+        {
+            var data = JObject.FromObject(preferences);
+            data["hasAiKey"] = !string.IsNullOrEmpty(translationSecrets?.Get("ai", preferences.aiEndpoint));
+            data["hasMicrosoftKey"] = !string.IsNullOrEmpty(translationSecrets?.Get("microsoft", ""));
+            data["hasLibreKey"] = !string.IsNullOrEmpty(translationSecrets?.Get("libre", preferences.libreEndpoint));
+            return data.ToString(Formatting.None);
+        }
+        private void SaveTranslationCredential(string json)
+        {
+            try
+            {
+                var data = JObject.Parse(json);
+                string provider = (string)data["provider"], key = (string)data["key"];
+                if ((string)data["action"] != "credential" || (provider != "ai" && provider != "microsoft" && provider != "libre") || !TranslationProviders.ValidValue(key, 1024)) throw new FormatException();
+                // If an existing protected file cannot be read, do not overwrite it silently.
+                if (translationSecrets == null) throw new InvalidOperationException();
+                var endpoint = provider == "ai" ? preferences.aiEndpoint : provider == "libre" ? preferences.libreEndpoint : "";
+                translationSecrets.Save(provider, endpoint, key);
+                credentialRevision++;
+                preferences = ParsePreferences(JsonConvert.SerializeObject(preferences));
+                BroadcastPreferences();
+                translationNotices.Enqueue(key.Length == 0 ? "keyCleared" : "keySaved");
+            }
+            catch { translationNotices.Enqueue("keySaveFailed"); }
         }
         internal void NotifyTranslation(string code)
         {

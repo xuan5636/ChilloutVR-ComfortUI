@@ -52,6 +52,17 @@ class ChatModeTests0210
             Clean(p,s);s=new ContentTranslator();a=Bubble("a","camera");var active=new UnityEngine.Camera();ABI_RC.Core.Player.PlayerSetup.Instance=new ABI_RC.Core.Player.PlayerSetup{activeCam=active};var mainCalls=UnityEngine.Camera.main.Calls;ChatTranslation.Trigger();Tick(p,s);Wait(()=>Requests(s)==1);Check(active.Calls>0&&UnityEngine.Camera.main.Calls==mainCalls,"In-menu action uses the player's active PC/VR camera");ChatTranslation.Trigger();Tick(p,s);Thread.Sleep(15);Tick(p,s);ABI_RC.Core.Player.PlayerSetup.Instance.activeCam=null;ChatTranslation.Trigger();Tick(p,s);for(int i=0;i<4;i++)Tick(p,s);Check(ChatTranslation.IsEnabled&&Requests(s)==1,"No active player camera means no text is uploaded while mode stays ready");
             Clean(p,s);s=new ContentTranslator();a=Bubble("a","failure");Toggle(p,s);Wait(()=>Requests(s)==1);var cancellation=(System.Threading.CancellationTokenSource)typeof(ChatTranslation).GetField("cancellation",BindingFlags.NonPublic|BindingFlags.Static).GetValue(null);cancellation.Cancel();Drain(p,s,()=>!ChatTranslation.IsEnabled);Check(a.textBubbleOutputTMP.text=="failure"&&ComfortMod.Instance.Notices.Contains("timeout"),"Expired batch cannot leave untranslatable entries stuck in active mode");
             Clean(p,s);s=new ContentTranslator();a=Bubble("a","render failure");originalMaterial=a.textBubbleOutputTMP.fontSharedMaterial;Toggle(p,s);Wait(()=>Requests(s)==1);a.textBubbleOutputTMP.ThrowMeshOnce=true;s.Pending[0].SetResult(new[]{"不可用"});Drain(p,s,()=>!ChatTranslation.IsEnabled);Check(a.textBubbleOutputTMP.text=="render failure"&&a.textBubbleOutputTMP.fontSharedMaterial==originalMaterial&&a._materials.Count==1,"A display failure restores the original and releases material instead of breaking the update loop");
+            foreach(var setting in new[]{"source","endpoint","model","key"}) {
+                Clean(p,s);p=new ComfortMod.Preferences();s=new ContentTranslator();a=Bubble("settings","pending text");Tick(p,s);Toggle(p,s);Wait(()=>Requests(s)==1);
+                var next=new ComfortMod.Preferences();
+                if(setting=="source")next.sourceLanguage="en";
+                if(setting=="endpoint")next.aiEndpoint="https://example.invalid/v1";
+                if(setting=="model")next.aiModel="new-model";
+                if(setting=="key")next.TranslationRevision=1;
+                Tick(next,s);Wait(()=>s.Pending[0].Task.IsCanceled);Drain(next,s,()=>Requests(s)==2);
+                Check(ChatTranslation.IsEnabled&&a.textBubbleOutputTMP.text=="pending text","Changing translation "+setting+" cancels stale work, restores originals and retains continuous mode");p=next;
+            }
+            Clean(p,s);
             NativeLocalization.Install(new HarmonyLib.Harmony(),System.IO.File.ReadAllText(args[0]),()=>"zh");Check(NativeLocalization.Text("You are currently not Connected to our Realtime API Network","zh").Contains("实时 API"),"Native API error remains locally translated");Check(NativeLocalization.Text("Name disconnected.","zh")=="Name 已离开。","System templates preserve player names");
             Console.WriteLine("TOTAL "+passed+" checks; Unity/Harmony stand-ins, not live game or VR validation");return 0;
         }

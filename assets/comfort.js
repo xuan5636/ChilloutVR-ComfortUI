@@ -1,4 +1,4 @@
-/* Comfort UI 0.2.13. System labels are local; optional content translation runs only on request. */
+/* Comfort UI 0.2.14. System labels are local; optional content translation runs only on request. */
 (function () {
     'use strict';
     var host = window.__comfortHost || {};
@@ -9,6 +9,7 @@
     }
     var KEY = 'CVR_COMFORT_UI_V1';
     var defaults = { language: 'zh', largeText: false, highContrast: false, reducedMotion: false, motionStyle:'fade', motionSpeed:'normal', theme: true, cameraLayout:true, chatTranslation:true, detailTranslation:true, translationProvider:'google', proxyMode:'system', proxyAddress:'http://127.0.0.1:7890', translationKey:'F8', palette:'graphite', background:'#282c33', panel:'#343a43', accent:'#c1cbdc' };
+    Object.assign(defaults,{sourceLanguage:'auto',aiEndpoint:'https://api.openai.com/v1',aiModel:'',microsoftRegion:'',libreEndpoint:'http://127.0.0.1:5000',hasAiKey:false,hasMicrosoftKey:false,hasLibreKey:false});
     var prefs = copy(defaults), root, dock, context, view = 'home', shown = true;
     var mounted = false, observer, translationTimer, currentToast, lastRenderedView;
     var styleTemplate = window.__comfortStyles || '', colourValues, diagnosticTimer, reportCount = 0;
@@ -49,7 +50,7 @@
             reset: '恢复本模组默认设置', close: '返回常用', applied: '已应用', saved: '已保存到本机', saving: '正在保存…',
             saveFailed: '已应用，但未能保存；重启后可能恢复。',
             unavailable: '当前页面尚未就绪，请稍后再试。', nativeError: '游戏页面暂时无法打开，请使用原有菜单入口。',
-            hint: 'PC · VR', edition: '简洁柔和 · 试用版 0.2.13',
+            hint: 'PC · VR', edition: '简洁柔和 · 试用版 0.2.14',
             notifications: '通知与其他操作', previewAction: '预览中已打开：',
             previewNote: '界面预览中的示例操作', chinese: '简体中文', english: 'English'
         },
@@ -78,7 +79,7 @@
             reset: 'Reset mod preferences', close: 'Back to quick access', applied: 'Applied', saved: 'Saved on this PC', saving: 'Saving…',
             saveFailed: 'Applied, but could not save. Changes may reset after restart.',
             unavailable: 'This page is not ready yet. Please try again shortly.', nativeError: 'Unable to open the game page. Please use its original menu entry.',
-            hint: 'PC · VR', edition: 'Soft minimal · Preview 0.2.13',
+            hint: 'PC · VR', edition: 'Soft minimal · Preview 0.2.14',
             notifications: 'Notifications and more', previewAction: 'Preview opened: ',
             previewNote: 'Sample action in the interface preview', chinese: '简体中文', english: 'English'
         }
@@ -133,11 +134,21 @@
         if(value && ['fast','normal','gentle'].indexOf(value.motionSpeed)>=0)next.motionSpeed=value.motionSpeed;
         if (value && (palettes[value.palette] || value.palette === 'custom')) next.palette = value.palette;
         ['background','panel','accent'].forEach(function (key) { if (value && /^#[0-9a-fA-F]{6}$/.test(value[key])) next[key] = value[key].toLowerCase(); });
-        if(value && ['google','mymemory'].indexOf(value.translationProvider)>=0)next.translationProvider=value.translationProvider;
+        if(value && ['google','mymemory','microsoft','ai','libre'].indexOf(value.translationProvider)>=0)next.translationProvider=value.translationProvider;
+        if(value && ['auto'].concat(languageCodes).indexOf(value.sourceLanguage)>=0)next.sourceLanguage=value.sourceLanguage;
+        ['aiEndpoint','libreEndpoint'].forEach(function(key){if(value && validServiceEndpoint(value[key]))next[key]=value[key];});
+        ['aiModel','microsoftRegion'].forEach(function(key){if(value && validServiceValue(value[key],key==='aiModel'?120:64))next[key]=value[key];});
+        ['hasAiKey','hasMicrosoftKey','hasLibreKey'].forEach(function(key){if(value && typeof value[key]==='boolean')next[key]=value[key];});
         if(value && ['system','direct','manual'].indexOf(value.proxyMode)>=0)next.proxyMode=value.proxyMode;
         if(value && typeof value.proxyAddress==='string' && /^https?:\/\/[^\s\/@?#]+(?::\d+)?\/?$/.test(value.proxyAddress) && value.proxyAddress.length<=256)next.proxyAddress=value.proxyAddress;
         if(value && /^(?:[A-Z]|Alpha[0-9]|F(?:[1-9]|1[0-2]))$/.test(value.translationKey))next.translationKey=value.translationKey;
         return next;
+    }
+    function validServiceValue(value,max){return typeof value==='string' && value.length<=max && !/[\r\n\x00]/.test(value);}
+    function validServiceEndpoint(value){
+        if(!validServiceValue(value,512))return false;
+        var link=document.createElement('a');link.href=value;
+        return !/[\s?#@]/.test(value) && /^https?:\/\//.test(value) && (link.protocol==='https:' || link.protocol==='http:' && /^(localhost|127\.0\.0\.1|\[::1\])$/i.test(link.hostname));
     }
     function t(key) { return (labels[prefs.language] || labels.en)[key] || labels.en[key] || key; }
     function pack(){return localePacks[prefs.language] || {};}
@@ -423,7 +434,7 @@
         languageHelp:'主菜单、快捷菜单、登录与键盘共用此设置。',
         motionHelp:'短暂淡入和平滑高亮；关闭后立即切换，HUD 提示仍会正常收起。',
         reduced:'关闭动效',full:'舒适动效',original:'显示原版界面',resume:'返回新版界面',
-        edition:'Comfort UI 0.2.13',paletteOpen:'调整菜单配色',paletteClose:'收起配色选项',
+        edition:'Comfort UI 0.2.14',paletteOpen:'调整菜单配色',paletteClose:'收起配色选项',
         mainTitle:'你的空间',quickTitle:'快捷操作',mainIntro:'个人信息、动态和游玩操作，清晰分区。',
         reset:'恢复界面默认设置',originalHelp:'临时切回原版；屏幕上会保留返回新版的按钮。',
         textHelp:'调整系统菜单文字；列表和设置可滚动。',saved:'已保存',
@@ -434,7 +445,7 @@
         languageHelp:'Shared by menus, login and keyboard.',
         motionHelp:'Brief fades and smooth highlights. Off switches instantly; HUD notices still dismiss.',
         reduced:'Off',full:'Comfort motion',original:'Show original UI',resume:'Return to Comfort UI',
-        edition:'Comfort UI 0.2.13',paletteOpen:'Adjust menu colours',paletteClose:'Hide colour options',
+        edition:'Comfort UI 0.2.14',paletteOpen:'Adjust menu colours',paletteClose:'Hide colour options',
         mainTitle:'Your space',quickTitle:'Quick actions',mainIntro:'Your profile, activity and play controls, clearly arranged.',
         reset:'Reset interface preferences',originalHelp:'The return button stays available while the original UI is shown.',
         textHelp:'Adjust system labels. Lists and settings remain scrollable.',saved:'Saved',
@@ -1049,7 +1060,7 @@
         renderDashboard();renderTranslation();
     }
 
-    var translationPanel, shortcutPanel, capturingKey=false, chatMode=window.__comfortChatEnabled===true;
+    var translationPanel, shortcutPanel, capturingKey=false, chatMode=window.__comfortChatEnabled===true, translationStatus='';
     function updateChatState(enabled){
         chatMode=!!enabled;
         if(!translationPanel)return;
@@ -1058,6 +1069,22 @@
     }
     function translationTool(value){if(window.engine && typeof engine.call==='function')try{engine.call('ComfortUI_TranslationTools',value);}catch(ignored){}}
     function escapeAttribute(value){return String(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+    function translationSelect(key,help,options){
+        return '<div class="cu-setting"><label class="cu-setting-title" for="comfort-'+key+'">'+t(key)+'</label><p class="cu-setting-help">'+t(help)+'</p><select class="cu-service-select" id="comfort-'+key+'" data-service-pref="'+key+'">'+options.map(function(option){return '<option value="'+option[0]+'">'+t(option[1])+'</option>';}).join('')+'</select></div>';
+    }
+    function translationField(key,help,max){
+        return '<div class="cu-service-field"><label for="comfort-'+key+'">'+t(key)+'</label><p class="cu-setting-help">'+t(help)+'</p><input type="text" id="comfort-'+key+'" value="'+escapeAttribute(prefs[key])+'" maxlength="'+max+'" data-max-length="'+max+'" data-input-title="'+escapeAttribute(t(key))+'" data-success-text="OK" /></div>';
+    }
+    function applyServiceConfiguration(){
+        var next=copy(prefs),valid=true;
+        ['aiEndpoint','aiModel','microsoftRegion','libreEndpoint'].forEach(function(key){
+            var input=document.getElementById('comfort-'+key),value=input.value.trim();
+            if((key==='aiEndpoint'||key==='libreEndpoint')?!validServiceEndpoint(value):!validServiceValue(value,key==='aiModel'?120:64))valid=false;
+            next[key]=value;
+        });
+        if(!valid){toast(t('serviceConfig'));return false;}
+        setPreferences(next,false);return true;
+    }
     function renderTranslation(){
         if(context!=='main' && context!=='quick')return;
         var parent;
@@ -1076,18 +1103,35 @@
         var translationRenderKey=prefs.language;
         if(translationPanel.__comfortKey!==translationRenderKey){translationPanel.__comfortKey=translationRenderKey;
         translationPanel.innerHTML='<div class="cu-panel-heading"><h2>'+t('translationTitle')+'</h2><p>'+t('translationIntro')+'</p></div>'+
-            settingRow('translationProvider','translationProviderHelp','translationProvider',[['google','google'],['mymemory','mymemory']])+
+            translationSelect('translationProvider','translationProviderHelp',[['google','google'],['mymemory','mymemory'],['microsoft','microsoft'],['ai','ai'],['libre','libre']])+
+            translationSelect('sourceLanguage','sourceHelp',[['auto','autoDetect'],['zh','chinese'],['en','english'],['ja','japanese'],['ko','korean'],['es','spanish']])+
+            '<div class="cu-service-config" data-service-config="ai">'+translationField('aiEndpoint','aiEndpointHelp',512)+translationField('aiModel','aiModelHelp',120)+'</div>'+
+            '<div class="cu-service-config" data-service-config="microsoft">'+translationField('microsoftRegion','microsoftRegionHelp',64)+'</div>'+
+            '<div class="cu-service-config" data-service-config="libre">'+translationField('libreEndpoint','libreEndpointHelp',512)+'</div>'+
+            '<div class="cu-service-config-action">'+button('translation-config',t('applyServices'),'cu-original')+'</div>'+
+            '<div class="cu-credential"><label for="comfort-api-key">'+t('apiKey')+'</label><p class="cu-setting-help">'+t('apiKeyHelp')+'</p><input id="comfort-api-key" type="password" maxlength="1024" autocomplete="off" spellcheck="false" /><p class="cu-key-status"></p><div class="cu-credential-actions">'+button('translation-save-key',t('saveKey'),'cu-original')+button('translation-clear-key',t('clearKey'),'cu-original')+'</div></div>'+
             settingRow('detailTranslation','detailTranslationHelp','detailTranslation',[[true,'on'],[false,'off']])+
             settingRow('chatTranslation','chatTranslationHelp','chatTranslation',[[true,'on'],[false,'off']])+
             settingRow('proxyMode','proxyHelp','proxyMode',[['system','proxySystem'],['direct','proxyDirect'],['manual','proxyManual']])+
             '<div class="cu-translation-address"><label for="comfort-proxy-address">'+t('proxyAddress')+'</label><p>'+t('proxyAddressHelp')+'</p><input id="comfort-proxy-address" type="text" value="'+escapeAttribute(prefs.proxyAddress)+'" data-max-length="256" data-input-title="'+escapeAttribute(t('proxyAddress'))+'" data-placeholder="http://127.0.0.1:7890" data-success-text="OK" /><div>'+button('translation-proxy',t('applyProxy'),'cu-original')+'</div></div>'+
-            '<div class="cu-translation-actions">'+button('translation-test',t('testTranslation'),'cu-original')+button('translation-cache',t('clearTranslationCache'),'cu-original')+button('translation-chat',t('chatNow'),'cu-original')+'</div><p class="cu-setting-help">'+t('testHelp')+'</p><p class="cu-setting-help">'+t('translationPrivacy')+'</p>';
+            '<div class="cu-translation-actions">'+button('translation-test',t('testTranslation'),'cu-original')+button('translation-cache',t('clearTranslationCache'),'cu-original')+button('translation-chat',t('chatNow'),'cu-original')+'</div><p class="cu-translation-status" role="status"></p><p class="cu-setting-help">'+t('testHelp')+'</p><p class="cu-setting-help">'+t('translationPrivacy')+'</p>';
         bindOwn(translationPanel);
         updateChatState(chatMode);
         var input=document.getElementById('comfort-proxy-address');
         if(input && context==='main')input.addEventListener('click',function(){if(typeof displayKeyboard==='function')displayKeyboard(input)});
+        Array.prototype.forEach.call(translationPanel.querySelectorAll('[data-service-pref]'),function(select){select.addEventListener('change',function(){var next=copy(prefs);next[select.getAttribute('data-service-pref')]=select.value;setPreferences(next,false);});});
+        Array.prototype.forEach.call(translationPanel.querySelectorAll('.cu-service-field input'),function(field){if(context==='main')field.addEventListener('click',function(){if(typeof displayKeyboard==='function')displayKeyboard(field)});});
         }
         syncOwnSegments(translationPanel);
+        Array.prototype.forEach.call(translationPanel.querySelectorAll('[data-service-pref]'),function(select){select.value=prefs[select.getAttribute('data-service-pref')];});
+        Array.prototype.forEach.call(translationPanel.querySelectorAll('[data-service-config]'),function(group){group.style.display=group.getAttribute('data-service-config')===prefs.translationProvider?'':'none';});
+        ['aiEndpoint','aiModel','microsoftRegion','libreEndpoint'].forEach(function(key){if(translationPanel['__value_'+key]!==prefs[key]){translationPanel['__value_'+key]=prefs[key];document.getElementById('comfort-'+key).value=prefs[key];}});
+        var credential=['ai','microsoft','libre'].indexOf(prefs.translationProvider)>=0;
+        translationPanel.querySelector('.cu-credential').style.display=credential?'':'none';
+        translationPanel.querySelector('.cu-service-config-action').style.display=credential?'':'none';
+        translationPanel.querySelector('.cu-key-status').textContent=t(prefs[prefs.translationProvider==='ai'?'hasAiKey':prefs.translationProvider==='microsoft'?'hasMicrosoftKey':'hasLibreKey']?'keyPresent':'keyMissing');
+        if(translationPanel.__credentialProvider!==prefs.translationProvider){translationPanel.__credentialProvider=prefs.translationProvider;document.getElementById('comfort-api-key').value='';}
+        translationPanel.querySelector('.cu-translation-status').textContent=translationStatus?t(translationStatus):'';
         var address=translationPanel.querySelector('.cu-translation-address'),proxyInput=document.getElementById('comfort-proxy-address');
         address.style.display=prefs.proxyMode==='manual'?'':'none';
         if(translationPanel.__comfortProxy!==prefs.proxyAddress){translationPanel.__comfortProxy=prefs.proxyAddress;proxyInput.value=prefs.proxyAddress;}
@@ -1191,6 +1235,13 @@
         if(action==='resume'){setMode(true);return;}
         if(action==='palette-toggle'){paletteOpen=!paletteOpen;render();return;}
         if(action==='translation-proxy'){var field=document.getElementById('comfort-proxy-address'),value=field && field.value.trim();if(!/^https?:\/\/[^\s\/@?#]+(?::\d+)?\/?$/.test(value || '') || value.length>256){toast(t('proxy'));return;}var next=copy(prefs);next.proxyAddress=value;setPreferences(next,false);return;}
+        if(action==='translation-config'){if(applyServiceConfiguration())toast(t('providerConfigApplied'));return;}
+        if(action==='translation-save-key'||action==='translation-clear-key'){
+            var keyField=document.getElementById('comfort-api-key'),key=action==='translation-clear-key'?'':keyField.value.trim();
+            if(!validServiceValue(key,1024) || action==='translation-save-key'&&!key){toast(t('missingKey'));return;}
+            if(!applyServiceConfiguration())return;
+            keyField.value='';translationTool(JSON.stringify({action:'credential',provider:prefs.translationProvider,key:key}));return;
+        }
         if(action==='translation-test'||action==='translation-cache'||action==='translation-chat'){translationTool(action==='translation-test'?'test':action==='translation-cache'?'clearCache':'chat');return;}
         if(action==='translation-key'){capturingKey=true;translationTool('typing');renderTranslation();return;}
         if(action==='reset'){setPreferences(defaults,false);return;}
@@ -1347,7 +1398,7 @@
                 }
             }
             compatibilityReady=valid;
-            report('layout',{version:'0.2.13',width:Math.round(bounds.width),height:Math.round(bounds.height),background:style.backgroundColor,font:style.fontFamily,home:homeActive,hit:hit,valid:!!valid});
+            report('layout',{version:'0.2.14',width:Math.round(bounds.width),height:Math.round(bounds.height),background:style.backgroundColor,font:style.fontFamily,home:homeActive,hit:hit,valid:!!valid});
             if(!valid && ++layoutFailures>=2) {
                 restoreHome();restoreMicrophone();shown=false;setAttributes();render();openNativeHome();
                 report('compatibility-fallback','Original UI restored; return control retained.');
@@ -1416,12 +1467,13 @@
         window.addEventListener('storage',function(e){if(e.key===KEY&&e.newValue)try{setPreferences(JSON.parse(e.newValue),true);}catch(ignored){}});
         window.addEventListener('beforeunload',function(){observer.disconnect();clearTimeout(refreshTimer);clearTimeout(quickLabelTimer);clearTimeout(diagnosticTimer);clearTimeout(currentToast);});
         document.addEventListener('visibilitychange',function(){if(document.hidden)finishSegmentMotions();});
-        report('ready',{version:'0.2.13',settings:!!root,dashboard:!!dashboard});
+        report('ready',{version:'0.2.14',settings:!!root,dashboard:!!dashboard});
     }
     try{var stored=localStorage.getItem(KEY);if(stored)prefs=validate(JSON.parse(stored));}catch(ignored){}
     if(host.preferences)prefs=validate(host.preferences);
     window.ComfortUI={
-        version:'0.2.13',translationNotice:function(code,enabled){if(typeof enabled==='boolean')updateChatState(enabled);toast(t(code));},chatState:updateChatState,updatePreferences:setPreferences,getPreferences:function(){return copy(prefs);},
+        version:'0.2.14',translationNotice:function(code,enabled){if(typeof enabled==='boolean')updateChatState(enabled);translationStatus=code;if(translationPanel){var status=translationPanel.querySelector('.cu-translation-status');if(status)status.textContent=t(code);}toast(t(code));},chatState:updateChatState,updatePreferences:setPreferences,getPreferences:function(){return copy(prefs);},
+        translationErrorText:function(code){return labels.en[code]?t(code):t('network');},
         preferenceFailed:function(){saveStatus='saveFailed';render();},
         showPreviewNotice:toast,setMode:setMode,
         openSettings:openSettings,systemText:systemText,detailPrefix:detailPrefix,splitDetailHeading:splitDetailHeading

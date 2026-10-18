@@ -1,3 +1,11 @@
+# 0.2.14 validation scope
+
+2026-10-18. Public preview; real-client verification remains incomplete. 93 managed checks pass: lifetime 12, chat 39, HTTP/Windows key storage 24, camera 18. 34 isolated native-HTML/mock-bridge UI checks pass: provider configuration 13, segmented motion 18, state reuse 3. Tests include bounded fallback/cooldown, transport reuse, cancellation/coalescing, provider request contracts, source/model/endpoint/key cache separation, real Windows DPAPI round-trip, key-to-endpoint binding, and no key in browser preferences/storage. Actual game-reference build and embedded resources/installer payload match.
+
+Live short synthetic network probes from a .NET Framework process through the local proxy: MyMemory system/manual both HTTP200 with nonempty output. Google primary/fallback both HTTP429; the next attempt was stopped by cooldown. This does not certify Google availability or game/VR networking. No paid keys or real chat were used. Microsoft/AI/Libre were tested with mock HTTP only.
+
+Unverified: real provider accounts, game-Mono credential storage, actual PC/VR rendering/mirrors/multi-atlas/long chats, long-session performance and complete installation on other devices. F8 facing-material/lifecycle protections are retained. HUD/nameplate changes are deferred to the next stage.
+
 # 0.2.13 validation scope
 
 2026-10-18. Public preview; live-client validation remains incomplete. The installed game's native chat output uses the BillboardFacing TMP shader. The old font setter replaced this with an ordinary SDF material. The hotfix preserves the native material's shader/properties, changing only the font atlas/SDF metrics on a per-bubble copy, and rebuilds the existing native text output.

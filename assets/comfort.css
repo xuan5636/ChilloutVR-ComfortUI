@@ -1,4 +1,4 @@
-/* Comfort UI 0.2.13. Native data, controls and hit surfaces; no mixed-unit calc or backdrop filters. */
+/* Comfort UI 0.2.14. Native data, controls and hit surfaces; no mixed-unit calc or backdrop filters. */
 :root { --cu-bg:#282c33;--cu-panel:#343a43;--cu-hover:#424953;--cu-line:#616874;--cu-text:#fafbfc;--cu-muted:#c1c6cc;--cu-panel-text:#fafbfc;--cu-panel-muted:#c8ccd2;--cu-accent:#c1cbdc;--cu-ink:#12161b;--cu-icon-bg:#454f60;--cu-icon-colour:#c1cbdc;--cu-native-accent:#657082;--cu-danger:#634c52;--cu-danger-text:#fafbfc;--cu-positive:#4b625e;--cu-positive-text:#fafbfc; }
 html[data-comfort-enabled="true"] {
  --menu-primary:var(--cu-panel) !important;--menu-primary-darker:var(--cu-bg) !important;--menu-primary-rgba:var(--cu-panel) !important;
@@ -1549,3 +1549,19 @@ html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-nat
 html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-native-segments > .valueList.cu-segmented > .cu-native-selected { background-color:transparent; }
 html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-native-segments { padding:0; }
 html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-native-segments > .valueList.cu-segmented { min-height:90px; }
+/* Service fields keep the same surface and sizing as the rest of Settings. */
+#comfort-translation .cu-service-select,
+#comfort-translation .cu-service-field input,
+#comfort-translation .cu-credential input { width:100%;box-sizing:border-box;min-height:76px;padding:16px 20px;font-family:inherit;font-size:32px;line-height:1.4;color:var(--cu-text);background-color:var(--cu-panel);border:2px solid var(--cu-line);border-radius:10px; }
+#comfort-translation .cu-service-select option { color:var(--cu-text);background-color:var(--cu-panel); }
+#comfort-translation .cu-service-field,
+#comfort-translation .cu-credential { margin:24px 0; }
+#comfort-translation .cu-service-field label,
+#comfort-translation .cu-credential label { font-size:34px; }
+#comfort-translation .cu-credential-actions { display:flex;flex-wrap:wrap; }
+#comfort-translation .cu-credential-actions button { margin:8px 12px 8px 0; }
+#comfort-translation .cu-key-status,
+#comfort-translation .cu-translation-status { font-size:28px;line-height:1.5;white-space:normal;color:var(--cu-text); }
+#comfort-translation .cu-service-select:focus,
+#comfort-translation .cu-service-field input:focus,
+#comfort-translation .cu-credential input:focus { border-color:var(--cu-accent); }
