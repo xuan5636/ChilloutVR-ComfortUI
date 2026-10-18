@@ -15,14 +15,14 @@ using System.Windows.Forms;
 using Microsoft.Win32;
 
 [assembly: AssemblyTitle("Comfort UI 安装助手")]
-[assembly: AssemblyVersion("0.2.14.0")]
+[assembly: AssemblyVersion("0.3.0.0")]
 namespace ComfortSetup {
  public sealed class State {
   public string Version, GamePath, Target, OriginalBackup, InstalledHash, InstalledAt;
  }
  public static class Install {
-  public const string Version="0.2.14";
-  public const string PayloadHash="1C3BE7391EA5623E5C7B4DD82DE15691454F5C24F7DA09415C1278C758B26A50";
+  public const string Version="0.3.0";
+  public const string PayloadHash="76436ACCAEACE99E6EC7C3B37B77269D468FC6C220903272EB67B7C5CA42A321";
   public const string LoaderUrl="https://github.com/LavaGang/MelonLoader/releases/download/v0.7.3/MelonLoader.Installer.exe";
   public const string LoaderHash="27B9EC8D7E937E75333F32A4C8B38CB448B389CBA9BD4EEC32ADFE67C96D0232";
   static readonly JavaScriptSerializer Json=new JavaScriptSerializer();
@@ -49,7 +49,7 @@ namespace ComfortSetup {
    state.Version=Version;state.GamePath=p;state.Target=target;state.InstalledHash=PayloadHash;state.InstalledAt=DateTimeOffset.Now.ToString("o");
    try{Guard(p,true);Atomic(target,bytes);if(HashFile(target)!=PayloadHash)throw new IOException("安装后文件校验失败。");Atomic(stateFile,Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(Json.Serialize(state))).ToArray());}
    catch{if(had)Atomic(target,old);else if(File.Exists(target))File.Delete(target);if(oldState!=null)Atomic(stateFile,oldState);else if(File.Exists(stateFile))File.Delete(stateFile);throw;}
-   return "Comfort UI 0.2.14 已安装。\r\n下次启动游戏时生效；配色和语言设置已保留。";
+   return "Comfort UI 0.3.0 已安装。\r\n下次启动游戏时生效；配色和语言设置已保留。";
   }
   public static string Remove(string path){
    var p=Normalize(path);Guard(p,false);var target=Path.Combine(p,"Mods","CVRComfortUI.dll");var data=Path.Combine(p,"UserData","ComfortUI");var stateFile=Path.Combine(data,"install-state.json");var backup=Path.Combine(data,"backups");var state=ReadState(stateFile);
@@ -78,7 +78,7 @@ namespace ComfortSetup {
  public sealed class MainForm:Form {
   readonly ComboBox path=new ComboBox();readonly Label status=new Label();readonly Label help=new Label();readonly Button install=new Button(),loader=new Button(),browse=new Button(),scan=new Button(),remove=new Button();bool busy;
   public MainForm(){
-   Text="Comfort UI · 安装助手 0.2.14";ClientSize=new Size(720,450);MinimumSize=new Size(680,480);StartPosition=FormStartPosition.CenterScreen;Font=new Font("Microsoft YaHei UI",10);BackColor=Color.FromArgb(40,44,51);ForeColor=Color.FromArgb(245,246,248);AutoScaleMode=AutoScaleMode.Dpi;
+   Text="Comfort UI · 安装助手 0.3.0";ClientSize=new Size(720,450);MinimumSize=new Size(680,480);StartPosition=FormStartPosition.CenterScreen;Font=new Font("Microsoft YaHei UI",10);BackColor=Color.FromArgb(40,44,51);ForeColor=Color.FromArgb(245,246,248);AutoScaleMode=AutoScaleMode.Dpi;
    var grid=new TableLayoutPanel{Dock=DockStyle.Fill,Padding=new Padding(28),ColumnCount=3,RowCount=8};grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,100));grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,100));
    var title=new Label{Text="让 ChilloutVR 的菜单更舒服",AutoSize=true,Font=new Font(Font.FontFamily,19),Margin=new Padding(0,0,0,12)};grid.Controls.Add(title,0,0);grid.SetColumnSpan(title,3);
    var intro=new Label{Text="选择游戏文件夹，安装即可。模组已包含在程序中。",AutoSize=true,Margin=new Padding(0,0,0,18)};grid.Controls.Add(intro,0,1);grid.SetColumnSpan(intro,3);
@@ -104,7 +104,7 @@ namespace ComfortSetup {
    if(MessageBox.Show(this,message,"加载器安装引导",MessageBoxButtons.OKCancel,MessageBoxIcon.Information)!=DialogResult.OK)return;
    Enable(false);try{
     var dir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"ComfortUI","Downloads");Directory.CreateDirectory(dir);var file=Path.Combine(dir,"MelonLoader.Installer-verified.exe");
-    if(!File.Exists(file)||Install.HashFile(file)!=Install.LoaderHash){var temp=file+"."+Guid.NewGuid().ToString("N")+".part";try{ServicePointManager.SecurityProtocol|=SecurityProtocolType.Tls12;using(var web=new WebClient()){web.Headers[HttpRequestHeader.UserAgent]="ComfortUI-Setup/0.2.14";web.DownloadProgressChanged+=(s,e)=>status.Text="正在从 GitHub 下载官方安装器… "+e.ProgressPercentage+"%";await web.DownloadFileTaskAsync(new Uri(Install.LoaderUrl),temp);}if(Install.HashFile(temp)!=Install.LoaderHash)throw new InvalidDataException("官方安装器校验失败，未运行下载的文件。");if(File.Exists(file))File.Delete(file);File.Move(temp,file);}finally{if(File.Exists(temp))File.Delete(temp);}}
+    if(!File.Exists(file)||Install.HashFile(file)!=Install.LoaderHash){var temp=file+"."+Guid.NewGuid().ToString("N")+".part";try{ServicePointManager.SecurityProtocol|=SecurityProtocolType.Tls12;using(var web=new WebClient()){web.Headers[HttpRequestHeader.UserAgent]="ComfortUI-Setup/0.3.0";web.DownloadProgressChanged+=(s,e)=>status.Text="正在从 GitHub 下载官方安装器… "+e.ProgressPercentage+"%";await web.DownloadFileTaskAsync(new Uri(Install.LoaderUrl),temp);}if(Install.HashFile(temp)!=Install.LoaderHash)throw new InvalidDataException("官方安装器校验失败，未运行下载的文件。");if(File.Exists(file))File.Delete(file);File.Move(temp,file);}finally{if(File.Exists(temp))File.Delete(temp);}}
     if(Install.Running())throw new InvalidOperationException("游戏已启动，请先退出再安装加载器。");status.Text="请在官方安装器中完成加载器安装，然后回到这里。";
     using(var process=Process.Start(new ProcessStartInfo(file){UseShellExecute=true})){if(process!=null)await Task.Run(()=>process.WaitForExit());}
    }catch(Exception ex){MessageBox.Show(this,"加载器安装引导未完成："+ex.Message+"\r\n\r\n可从 github.com/LavaGang/MelonLoader/releases 获取官方安装器。","下载或运行未完成",MessageBoxButtons.OK,MessageBoxIcon.Information);}finally{Enable(true);}

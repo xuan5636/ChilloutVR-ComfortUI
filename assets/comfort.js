@@ -1,4 +1,4 @@
-/* Comfort UI 0.2.14. System labels are local; optional content translation runs only on request. */
+/* Comfort UI 0.3.0. System labels are local; optional content translation runs only on request. */
 (function () {
     'use strict';
     var host = window.__comfortHost || {};
@@ -9,7 +9,7 @@
     }
     var KEY = 'CVR_COMFORT_UI_V1';
     var defaults = { language: 'zh', largeText: false, highContrast: false, reducedMotion: false, motionStyle:'fade', motionSpeed:'normal', theme: true, cameraLayout:true, chatTranslation:true, detailTranslation:true, translationProvider:'google', proxyMode:'system', proxyAddress:'http://127.0.0.1:7890', translationKey:'F8', palette:'graphite', background:'#282c33', panel:'#343a43', accent:'#c1cbdc' };
-    Object.assign(defaults,{sourceLanguage:'auto',aiEndpoint:'https://api.openai.com/v1',aiModel:'',microsoftRegion:'',libreEndpoint:'http://127.0.0.1:5000',hasAiKey:false,hasMicrosoftKey:false,hasLibreKey:false});
+    Object.assign(defaults,{nameplateTheme:true,sourceLanguage:'auto',aiEndpoint:'https://api.openai.com/v1',aiModel:'',microsoftRegion:'',libreEndpoint:'http://127.0.0.1:5000',hasAiKey:false,hasMicrosoftKey:false,hasLibreKey:false});
     var prefs = copy(defaults), root, dock, context, view = 'home', shown = true;
     var mounted = false, observer, translationTimer, currentToast, lastRenderedView;
     var styleTemplate = window.__comfortStyles || '', colourValues, diagnosticTimer, reportCount = 0;
@@ -17,6 +17,7 @@
     var customPart = 'accent', colourStep = 8;
     var segmentStates=new WeakMap(), segmentMotions=[], segmentFrame=0;
     var hudTimers=[], started=false, microphone, microphoneMove, transitionPickers=[], settingEventsReady=false,quickLabelTimer;
+    var hud, hudScale, hudTextSources=new WeakMap(), hudHooks=[];
     var palettes = {
         graphite:{background:'#282c33',panel:'#343a43',accent:'#c1cbdc'},
         warm:{background:'#302d29',panel:'#3c3832',accent:'#dfcdb5'},
@@ -50,7 +51,7 @@
             reset: '恢复本模组默认设置', close: '返回常用', applied: '已应用', saved: '已保存到本机', saving: '正在保存…',
             saveFailed: '已应用，但未能保存；重启后可能恢复。',
             unavailable: '当前页面尚未就绪，请稍后再试。', nativeError: '游戏页面暂时无法打开，请使用原有菜单入口。',
-            hint: 'PC · VR', edition: '简洁柔和 · 试用版 0.2.14',
+            hint: 'PC · VR', edition: '简洁柔和 · 试用版 0.3.0',
             notifications: '通知与其他操作', previewAction: '预览中已打开：',
             previewNote: '界面预览中的示例操作', chinese: '简体中文', english: 'English'
         },
@@ -79,7 +80,7 @@
             reset: 'Reset mod preferences', close: 'Back to quick access', applied: 'Applied', saved: 'Saved on this PC', saving: 'Saving…',
             saveFailed: 'Applied, but could not save. Changes may reset after restart.',
             unavailable: 'This page is not ready yet. Please try again shortly.', nativeError: 'Unable to open the game page. Please use its original menu entry.',
-            hint: 'PC · VR', edition: 'Soft minimal · Preview 0.2.14',
+            hint: 'PC · VR', edition: 'Soft minimal · Preview 0.3.0',
             notifications: 'Notifications and more', previewAction: 'Preview opened: ',
             previewNote: 'Sample action in the interface preview', chinese: '简体中文', english: 'English'
         }
@@ -129,7 +130,7 @@
     function validate(value) {
         var next = copy(defaults);
         if (value && languageCodes.indexOf(value.language)>=0) next.language = value.language;
-        ['largeText','highContrast','reducedMotion','theme','cameraLayout','chatTranslation','detailTranslation'].forEach(function (key) { if (value && typeof value[key] === 'boolean') next[key] = value[key]; });
+        ['largeText','highContrast','reducedMotion','theme','cameraLayout','nameplateTheme','chatTranslation','detailTranslation'].forEach(function (key) { if (value && typeof value[key] === 'boolean') next[key] = value[key]; });
         if(value && ['fade','slide','zoom'].indexOf(value.motionStyle)>=0)next.motionStyle=value.motionStyle;
         if(value && ['fast','normal','gentle'].indexOf(value.motionSpeed)>=0)next.motionSpeed=value.motionSpeed;
         if (value && (palettes[value.palette] || value.palette === 'custom')) next.palette = value.palette;
@@ -193,9 +194,14 @@
     function ratio(a,b) { var x=luminance(a),y=luminance(b);return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05); }
     function readable(colour) { return ratio(colour,'#fafbfc')>=ratio(colour,'#12161b')?'#fafbfc':'#12161b'; }
     function muted(colour,text) { var result=mix(colour,text,0.73);return ratio(result,colour)>=4.5?result:text; }
+    function hudUnit(){
+        var style=document.documentElement.style,scale=hudScale?hudScale.scale:Number(style.getPropertyValue('--ui-scale'))||1,fill=hudScale?hudScale.fill:Number(style.getPropertyValue('--fill-y'))||1;
+        return window.innerHeight*0.01*Math.max(0.01,scale)/Math.max(0.01,fill);
+    }
     function applyPalette() {
         var colours=palettes[prefs.palette] || prefs, bg=colours.background, panel=colours.panel, accent=colours.accent;
-        var inputKey=[bg,panel,accent,prefs.highContrast].join(':');
+        var unit=context==='hud'?hudUnit():0;
+        var inputKey=[bg,panel,accent,prefs.highContrast,unit].join(':');
         if(applyPalette.inputKey===inputKey && document.getElementById('comfort-theme'))return;
         applyPalette.inputKey=inputKey;
         var text=readable(bg), panelText=readable(panel), line=mix(bg,text,prefs.highContrast?0.6:0.28);
@@ -207,6 +213,7 @@
             '--cu-danger':mix(panel,'#d99292',0.32),'--cu-danger-text':readable(mix(panel,'#d99292',0.32)),
             '--cu-positive':mix(panel,'#a6c8b4',0.32),'--cu-positive-text':readable(mix(panel,'#a6c8b4',0.32))
         };
+        if(unit){var metrics={max:22,bottom:1.2,padding:1.1,small:1.8,title:2.7,body:2.1,wrapper:18,label:1.45};Object.keys(metrics).forEach(function(key){values['--cu-hud-'+key]=(metrics[key]*unit).toFixed(2)+'px';});}
         colourValues=values;
         Object.keys(values).forEach(function(key){document.documentElement.style.setProperty(key,values[key]);});
         var paletteKey=JSON.stringify(values);
@@ -434,7 +441,7 @@
         languageHelp:'主菜单、快捷菜单、登录与键盘共用此设置。',
         motionHelp:'短暂淡入和平滑高亮；关闭后立即切换，HUD 提示仍会正常收起。',
         reduced:'关闭动效',full:'舒适动效',original:'显示原版界面',resume:'返回新版界面',
-        edition:'Comfort UI 0.2.14',paletteOpen:'调整菜单配色',paletteClose:'收起配色选项',
+        edition:'Comfort UI 0.3.0',paletteOpen:'调整菜单配色',paletteClose:'收起配色选项',
         mainTitle:'你的空间',quickTitle:'快捷操作',mainIntro:'个人信息、动态和游玩操作，清晰分区。',
         reset:'恢复界面默认设置',originalHelp:'临时切回原版；屏幕上会保留返回新版的按钮。',
         textHelp:'调整系统菜单文字；列表和设置可滚动。',saved:'已保存',
@@ -445,7 +452,7 @@
         languageHelp:'Shared by menus, login and keyboard.',
         motionHelp:'Brief fades and smooth highlights. Off switches instantly; HUD notices still dismiss.',
         reduced:'Off',full:'Comfort motion',original:'Show original UI',resume:'Return to Comfort UI',
-        edition:'Comfort UI 0.2.14',paletteOpen:'Adjust menu colours',paletteClose:'Hide colour options',
+        edition:'Comfort UI 0.3.0',paletteOpen:'Adjust menu colours',paletteClose:'Hide colour options',
         mainTitle:'Your space',quickTitle:'Quick actions',mainIntro:'Your profile, activity and play controls, clearly arranged.',
         reset:'Reset interface preferences',originalHelp:'The return button stays available while the original UI is shown.',
         textHelp:'Adjust system labels. Lists and settings remain scrollable.',saved:'Saved',
@@ -1015,6 +1022,7 @@
     }
     function render() {
         if(!mounted)return;
+        if(context==='hud'){refreshHud();return;}
         attachSettings();
         if(root) {
             var active=document.activeElement, pref=active && active.getAttribute('data-pref'), value=active && active.getAttribute('data-value');
@@ -1030,6 +1038,7 @@
                 settingRow('motionStyle','motionStyleHelp','motionStyle',[['fade','motionFade'],['slide','motionSlide'],['zoom','motionZoom']])+
                 settingRow('motionSpeed','motionSpeedHelp','motionSpeed',[['fast','motionFast'],['normal','motionNormal'],['gentle','motionGentle']])+
                 settingRow('cameraLayout','cameraLayoutHelp','cameraLayout',[[true,'cameraUnified'],[false,'cameraOriginal']])+
+                settingRow('nameplateStyle','nameplateHelp','nameplateTheme',[[true,'nameplateUnified'],[false,'nameplateOriginal']])+
                 settingRow('text','textHelp','largeText',[[false,'standard'],[true,'large']])+
                 settingRow('contrast','contrastHelp','highContrast',[[false,'normalContrast'],[true,'highContrast']])+
                 '<div class="cu-palette-heading">'+button('palette-toggle',t(paletteOpen?'paletteClose':'paletteOpen'),'cu-palette-toggle')+'</div>'+
@@ -1069,9 +1078,6 @@
     }
     function translationTool(value){if(window.engine && typeof engine.call==='function')try{engine.call('ComfortUI_TranslationTools',value);}catch(ignored){}}
     function escapeAttribute(value){return String(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
-    function translationSelect(key,help,options){
-        return '<div class="cu-setting"><label class="cu-setting-title" for="comfort-'+key+'">'+t(key)+'</label><p class="cu-setting-help">'+t(help)+'</p><select class="cu-service-select" id="comfort-'+key+'" data-service-pref="'+key+'">'+options.map(function(option){return '<option value="'+option[0]+'">'+t(option[1])+'</option>';}).join('')+'</select></div>';
-    }
     function translationField(key,help,max){
         return '<div class="cu-service-field"><label for="comfort-'+key+'">'+t(key)+'</label><p class="cu-setting-help">'+t(help)+'</p><input type="text" id="comfort-'+key+'" value="'+escapeAttribute(prefs[key])+'" maxlength="'+max+'" data-max-length="'+max+'" data-input-title="'+escapeAttribute(t(key))+'" data-success-text="OK" /></div>';
     }
@@ -1103,8 +1109,8 @@
         var translationRenderKey=prefs.language;
         if(translationPanel.__comfortKey!==translationRenderKey){translationPanel.__comfortKey=translationRenderKey;
         translationPanel.innerHTML='<div class="cu-panel-heading"><h2>'+t('translationTitle')+'</h2><p>'+t('translationIntro')+'</p></div>'+
-            translationSelect('translationProvider','translationProviderHelp',[['google','google'],['mymemory','mymemory'],['microsoft','microsoft'],['ai','ai'],['libre','libre']])+
-            translationSelect('sourceLanguage','sourceHelp',[['auto','autoDetect'],['zh','chinese'],['en','english'],['ja','japanese'],['ko','korean'],['es','spanish']])+
+            settingRow('translationProvider','translationProviderHelp','translationProvider',[['google','google'],['mymemory','mymemory'],['microsoft','microsoft'],['ai','ai'],['libre','libre']])+
+            settingRow('sourceLanguage','sourceHelp','sourceLanguage',[['auto','autoDetect'],['zh','chinese'],['en','english'],['ja','japanese'],['ko','korean'],['es','spanish']])+
             '<div class="cu-service-config" data-service-config="ai">'+translationField('aiEndpoint','aiEndpointHelp',512)+translationField('aiModel','aiModelHelp',120)+'</div>'+
             '<div class="cu-service-config" data-service-config="microsoft">'+translationField('microsoftRegion','microsoftRegionHelp',64)+'</div>'+
             '<div class="cu-service-config" data-service-config="libre">'+translationField('libreEndpoint','libreEndpointHelp',512)+'</div>'+
@@ -1119,11 +1125,9 @@
         updateChatState(chatMode);
         var input=document.getElementById('comfort-proxy-address');
         if(input && context==='main')input.addEventListener('click',function(){if(typeof displayKeyboard==='function')displayKeyboard(input)});
-        Array.prototype.forEach.call(translationPanel.querySelectorAll('[data-service-pref]'),function(select){select.addEventListener('change',function(){var next=copy(prefs);next[select.getAttribute('data-service-pref')]=select.value;setPreferences(next,false);});});
         Array.prototype.forEach.call(translationPanel.querySelectorAll('.cu-service-field input'),function(field){if(context==='main')field.addEventListener('click',function(){if(typeof displayKeyboard==='function')displayKeyboard(field)});});
         }
         syncOwnSegments(translationPanel);
-        Array.prototype.forEach.call(translationPanel.querySelectorAll('[data-service-pref]'),function(select){select.value=prefs[select.getAttribute('data-service-pref')];});
         Array.prototype.forEach.call(translationPanel.querySelectorAll('[data-service-config]'),function(group){group.style.display=group.getAttribute('data-service-config')===prefs.translationProvider?'':'none';});
         ['aiEndpoint','aiModel','microsoftRegion','libreEndpoint'].forEach(function(key){if(translationPanel['__value_'+key]!==prefs[key]){translationPanel['__value_'+key]=prefs[key];document.getElementById('comfort-'+key).value=prefs[key];}});
         var credential=['ai','microsoft','libre'].indexOf(prefs.translationProvider)>=0;
@@ -1227,7 +1231,7 @@
         if(pref) {
             if(pref==='language' && target.parentNode.__skipClick)return;
             var next=copy(prefs),value=target.getAttribute('data-value');
-            next[pref]=pref==='language'||pref==='palette'||pref==='motionStyle'||pref==='motionSpeed'||pref==='translationProvider'||pref==='proxyMode'?value:value==='true';
+            next[pref]=typeof defaults[pref]==='string'?value:value==='true';
             if(pref==='palette' && palettes[value])['background','panel','accent'].forEach(function(key){next[key]=palettes[value][key];});
             setPreferences(next,false);return;
         }
@@ -1398,7 +1402,7 @@
                 }
             }
             compatibilityReady=valid;
-            report('layout',{version:'0.2.14',width:Math.round(bounds.width),height:Math.round(bounds.height),background:style.backgroundColor,font:style.fontFamily,home:homeActive,hit:hit,valid:!!valid});
+            report('layout',{version:'0.3.0',width:Math.round(bounds.width),height:Math.round(bounds.height),background:style.backgroundColor,font:style.fontFamily,home:homeActive,hit:hit,valid:!!valid});
             if(!valid && ++layoutFailures>=2) {
                 restoreHome();restoreMicrophone();shown=false;setAttributes();render();openNativeHome();
                 report('compatibility-fallback','Original UI restored; return control retained.');
@@ -1447,6 +1451,66 @@
         if(context!=='hud')return;
         document.documentElement.setAttribute('data-comfort-hud','true');
     }
+    function hudHook(name,after) {
+        var original=window[name];if(typeof original!=='function')return;
+        var wrapped=function(){var result=original.apply(this,arguments);after.apply(this,arguments);return result;};
+        window[name]=wrapped;hudHooks.push({name:name,original:original,wrapped:wrapped});
+    }
+    function localizeHudMessage() {
+        if(!hud || !hud.message)return;
+        var card=hud.message,head=card.querySelector('.authorative'),title=card.querySelector('.headline');
+        var sourceHead=sourceText(head?head.textContent:''),sourceTitle=sourceText(title?title.textContent:'');
+        var trusted=sourceHead==='(Local) Client' || sourceHead==='(Global) Client';
+        card.setAttribute('data-comfort-notice',trusted && (sourceTitle==='Connected to Instance' || sourceTitle==='Disconnected from Instance')?'connection':'notification');
+        if(!trusted)return;
+        ['.authorative','.headline','.message'].forEach(function(selector){
+            var slot=card.querySelector(selector);if(!slot)return;
+            var walker=document.createTreeWalker(slot,NodeFilter.SHOW_TEXT,null,false),node;
+            while((node=walker.nextNode())){
+                var raw=node.nodeValue,record=hudTextSources.get(node);
+                if(!record || raw!==record.applied){record={source:raw};hudTextSources.set(node,record);}
+                var next=messageText(record.source);record.applied=next;
+                if(raw!==next)node.nodeValue=next;
+            }
+        });
+    }
+    function refreshHud() {
+        if(!hud)return;
+        localizeHudMessage();
+        hud.mic.setAttribute('data-state',hud.live?(hud.tts?'tts':'live'):'muted');
+        hud.label.textContent=t(hud.live?(hud.tts?'hudTts':'hudMicLive'):'hudMicMuted');
+        hud.mic.setAttribute('aria-label',hud.label.textContent);
+        hud.badges.forEach(function(item){
+            item.badge.setAttribute('title',t(item.label));item.badge.setAttribute('aria-label',t(item.label));
+            var active=item.native.classList.contains('active') && !item.native.classList.contains('hidden');
+            item.badge.style.display=active?'flex':'none';
+        });
+    }
+    function installHud() {
+        if(context!=='hud' || hud)return;
+        var wrapper=document.querySelector('.hex-hub-wrapper'),shards=document.querySelector('.shards');
+        if(!wrapper || !shards)return;
+        var mic=document.createElement('div');mic.className='cu-hud-mic';mic.setAttribute('aria-live','off');
+        mic.innerHTML='<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="12" y="4" width="8" height="15" rx="4"/><path d="M8 14v2a8 8 0 0 0 16 0v-2M16 24v5m-5 0h10"/><path class="cu-hud-mic-slash" d="m5 4 23 24"/></svg><span class="cu-hud-mic-label"></span><div class="cu-hud-meter"><span></span></div>';
+        wrapper.appendChild(mic);
+        var rail=document.createElement('div');rail.className='cu-hud-badges';shards.appendChild(rail);
+        var nativeLive=wrapper.querySelector('.hub-unmuted'),nativeTts=wrapper.querySelector('.hub-unmuted-image');
+        hud={mic:mic,label:mic.querySelector('.cu-hud-mic-label'),meter:mic.querySelector('.cu-hud-meter span'),message:document.querySelector('.hud-message'),live:!!nativeLive && nativeLive.style.display!=='none',tts:!!nativeTts && /tts/i.test(nativeTts.getAttribute('src')||''),badges:[]};
+        var paths={infos:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/>',friends:icons.friends,notifications:'<path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5l-2 3Zm5 3h4"/>',comms:'<path d="M3 4h18v13H8l-5 4V4Z"/><path d="M7 9h10m-10 4h7"/>',votes:'<path d="m5 12 5 5L21 5M3 3v18h18"/>',alerts:'<path d="m12 3 10 18H2L12 3Zm0 6v5m0 3v1"/>'};
+        ['infos','friends','notifications','comms','votes','alerts'].forEach(function(name){
+            var native=shards.querySelector('.shard-'+name);if(!native)return;
+            var badge=document.createElement('span');badge.className='cu-hud-badge';
+            badge.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths[name]+'</svg>';
+            rail.appendChild(badge);hud.badges.push({native:native,badge:badge,label:'hud'+name});
+        });
+        hudHook('renderHudMessage',localizeHudMessage);
+        hudHook('changeHudStatus',function(name,status){if(name==='mic')hud.live=!!status;if(name==='tts')hud.tts=!!status;refreshHud();});
+        hudHook('TimeoutShard',refreshHud);
+        hudHook('setMicLevel',function(value){var level=Number(value);hud.meter.style.transform='scaleX('+(isFinite(level)?Math.max(0,Math.min(100,level))/100:0)+')';});
+        if(window.engine && typeof engine.on==='function')engine.on('SetHudScale',function(scale,fillX,fillY){scale=Number(scale);fillY=Number(fillY);if(isFinite(scale)&&scale>0&&isFinite(fillY)&&fillY>0){hudScale={scale:scale,fill:fillY};applyPalette();}});
+        window.addEventListener('resize',applyPalette);
+        refreshHud();
+    }
     function mount(attempt) {
         if(mounted)return;
         context=detectContext();
@@ -1458,21 +1522,21 @@
             (context==='main'?document.querySelector('.wrapper'):anchor).appendChild(dock);
             decorateMenus();
         }
-        installTranslationInput();installHudMotion();enhanceInteraction();translateCommon();decorateNativeSettings();render();scheduleDiagnostics();
+        installTranslationInput();installHudMotion();installHud();enhanceInteraction();translateCommon();decorateNativeSettings();render();scheduleDiagnostics();
         if(context==='quick' && window.engine && typeof engine.on==='function') {
             ['LoadMessages','ClearMessages','ClearAllMessages'].forEach(function(name){engine.on(name,localizeQuickHome);});
         }
         observer=new MutationObserver(scheduleRefresh);
         if(context!=='hud')observer.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
         window.addEventListener('storage',function(e){if(e.key===KEY&&e.newValue)try{setPreferences(JSON.parse(e.newValue),true);}catch(ignored){}});
-        window.addEventListener('beforeunload',function(){observer.disconnect();clearTimeout(refreshTimer);clearTimeout(quickLabelTimer);clearTimeout(diagnosticTimer);clearTimeout(currentToast);});
+        window.addEventListener('beforeunload',function(){observer.disconnect();clearTimeout(refreshTimer);clearTimeout(quickLabelTimer);clearTimeout(diagnosticTimer);clearTimeout(currentToast);hudHooks.forEach(function(hook){if(window[hook.name]===hook.wrapped)window[hook.name]=hook.original;});});
         document.addEventListener('visibilitychange',function(){if(document.hidden)finishSegmentMotions();});
-        report('ready',{version:'0.2.14',settings:!!root,dashboard:!!dashboard});
+        report('ready',{version:'0.3.0',settings:!!root,dashboard:!!dashboard});
     }
     try{var stored=localStorage.getItem(KEY);if(stored)prefs=validate(JSON.parse(stored));}catch(ignored){}
     if(host.preferences)prefs=validate(host.preferences);
     window.ComfortUI={
-        version:'0.2.14',translationNotice:function(code,enabled){if(typeof enabled==='boolean')updateChatState(enabled);translationStatus=code;if(translationPanel){var status=translationPanel.querySelector('.cu-translation-status');if(status)status.textContent=t(code);}toast(t(code));},chatState:updateChatState,updatePreferences:setPreferences,getPreferences:function(){return copy(prefs);},
+        version:'0.3.0',translationNotice:function(code,enabled){if(typeof enabled==='boolean')updateChatState(enabled);translationStatus=code;if(translationPanel){var status=translationPanel.querySelector('.cu-translation-status');if(status)status.textContent=t(code);}toast(t(code));},chatState:updateChatState,updatePreferences:setPreferences,getPreferences:function(){return copy(prefs);},
         translationErrorText:function(code){return labels.en[code]?t(code):t('network');},
         preferenceFailed:function(){saveStatus='saveFailed';render();},
         showPreviewNotice:toast,setMode:setMode,

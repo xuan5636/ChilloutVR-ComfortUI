@@ -1,10 +1,10 @@
-# Comfort UI 0.2.14 安装说明
+# Comfort UI 0.3.0 安装说明
 
 适用开发目标：Windows、ChilloutVR 2026r182-hf4 public-nightly、Mono MelonLoader 0.8.0-ci.2548、.NET Framework 4.8。其他分支和加载器版本需要自行验证。
 
 ## EXE 安装
 
-从 [GitHub Release](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.2.14) 下载 `ComfortUI-Setup-0.2.14.exe`。正常退出游戏后运行，自动查找或手动选择包含 `ChilloutVR.exe` 的文件夹，再选择「安装 / 更新模组」。
+从 [GitHub Release](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.3.0) 下载 `ComfortUI-Setup-0.3.0.exe`。正常退出游戏后运行，自动查找或手动选择包含 `ChilloutVR.exe` 的文件夹，再选择「安装 / 更新模组」。
 
 缺少加载器时可选择加载器引导：程序下载并校验官方 MelonLoader 安装器，用户在官方界面选择 `ChilloutVR.exe` 并安装适合该游戏的 Mono 加载器，完成后返回本程序安装模组。程序不会替你结束或启动游戏，也不自动替换已存在的加载器。
 
@@ -18,8 +18,10 @@
 
 使用 EXE 更新会备份旧 DLL，保存位置为 `UserData/ComfortUI/backups/`，偏好在 `UserData/ComfortUI/preferences.json`。使用本安装器安装的版本可通过「移除模组」移除并保留个人设置。纯手动安装可在退出游戏后自行移走 DLL。
 
-设置 → 界面与显示：五种语言、字体、配色、动效形式/速度和关闭动效。
-设置 → 翻译：Google/MyMemory、系统代理/直连/手动 HTTP 代理、测试、缓存与各项翻译开关。
+首次启动没有偏好文件时，自动读取 Windows 当前用户的显示语言，选择简中/英/日/韩/西；不支持或检测失败回退英文，中文各地区使用简体中文。升级保留已有选择，不会每次启动覆盖语言。
+
+设置 → 界面与显示：五种语言、字体、配色、动效形式/速度、关闭动效、玩家名牌统一/原版样式。
+设置 → 翻译：Google/MyMemory/微软 Azure/AI/LibreTranslate 分段选择、源语言、接口/模型/密钥、系统代理/直连/手动 HTTP 代理、测试、缓存与各项翻译开关。
 设置 → 操作：默认 F8，开启或关闭持续气泡翻译。每次启动默认关闭，文字输入和虚拟键盘使用时不会触发。
 
 ## 下载校验与问题报告

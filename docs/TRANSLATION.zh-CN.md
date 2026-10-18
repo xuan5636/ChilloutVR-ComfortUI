@@ -1,6 +1,8 @@
-# 翻译服务设置 · 0.2.14
+# 翻译服务设置 · 0.3.0
 
 打开游戏 **设置 → 翻译**。所有服务都会把译文转为当前界面语言。详情页按翻译按钮显示译文，再按恢复原文。F8 开启后自动处理当前及随后可见的他人气泡；再按 F8 关闭并还原。每次启动默认关闭。
+
+翻译服务与源语言现在各用一条分段选择栏，点击即可切换，并有滑动高亮。选项不会再显示成不可操作的原生下拉列表。切换服务或源语言只保存配置，不会开启翻译；需要测试时再按连接测试。
 
 | 服务 | 配置方法 |
 | --- | --- |
@@ -18,6 +20,6 @@
 
 点击「测试翻译连接」会用短示例实际联网，不开启气泡模式。页面会保留结果。若提示限流/额度不足，先等待 60 秒，或主动选择其他已配置服务；清缓存不会绕过冷却。密钥错误时检查密钥、服务区域和账户权限。AI 或付费接口按所选服务规则计费。
 
-2026-10-18 本机短示例测试：MyMemory 经系统/手动代理均返回译文；Google 两个公共端点均为 HTTP 429，仍可能不可用。微软、AI 与 Libre 的请求格式和错误处理已通过模拟检查，没有付费服务实测。真实游戏 PC/VR 需要继续确认。
+历史0.2.14（2026-10-18）本机短示例测试：MyMemory 经系统/手动代理均返回译文；Google 两个公共端点均为 HTTP 429，仍可能不可用。微软、AI 与 Libre 的请求格式和错误处理已通过模拟检查，没有付费服务实测。真实游戏 PC/VR 需要继续确认。
 
 接口参考：[微软 Translate](https://learn.microsoft.com/en-us/azure/ai-services/translator/text-translation/reference/v3/translate)、[OpenAI Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)、[LibreTranslate](https://docs.libretranslate.com/api/operations/translate/)。

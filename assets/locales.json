@@ -184,7 +184,20 @@
       "response": "応答を解析できません。原文を保持しました。",
       "redirect": "リダイレクトされました。最終 URL を指定してください。",
       "testing": "選択したサービスをテスト中…",
-      "providerConfigApplied": "サービス設定を適用しました"
+      "providerConfigApplied": "サービス設定を適用しました",
+      "hudMicMuted": "ミュート中",
+      "hudMicLive": "マイクオン",
+      "hudTts": "読み上げ",
+      "hudinfos": "メッセージ",
+      "hudfriends": "フレンド申請",
+      "hudnotifications": "招待",
+      "hudcomms": "コミュニケーション",
+      "hudvotes": "投票",
+      "hudalerts": "システム通知",
+      "nameplateStyle": "プレイヤー名札",
+      "nameplateHelp": "名前、アイコン、役割を整理し、発話中は細いラインで表示します。",
+      "nameplateUnified": "統一スタイル",
+      "nameplateOriginal": "ゲーム標準"
     },
     "camera": {
       "Take Picture": "撮影",
@@ -1419,9 +1432,9 @@
       "nom": "名前",
       "API Response": "API の応答",
       "You are currently not Connected to our Realtime API Network": "現在リアルタイム API に接続していません。接続を確認してください。",
-      "(Global) Client": "（全体）クライアント",
-      "A user has disconnected from this Instance.": "プレイヤーがこのインスタンスから退出しました。",
-      "The user has disconnected from this Instance.": "このプレイヤーは退出しました。",
+      "(Global) Client": "グローバルクライアント",
+      "A user has disconnected from this Instance.": "プレイヤーがインスタンスから退出しました。",
+      "The user has disconnected from this Instance.": "このプレイヤーはインスタンスから退出しました。",
       "A user has joined this Instance.": "プレイヤーがこのインスタンスに参加しました。",
       "A user has joined your Instance.": "プレイヤーがあなたのインスタンスに参加しました。",
       "{value} disconnected.": "{value} が退出しました。",
@@ -1446,7 +1459,11 @@
       "Unable to create player": "プレイヤーを作成できません",
       "KICKED!": "退出させられました！",
       "You have been Kicked too recently from this instance": "このインスタンスから退出させられたため、しばらく再参加できません。",
-      "Events": "イベント"
+      "Events": "イベント",
+      "(Local) Client": "ローカルクライアント",
+      "Connected to Instance": "インスタンスに接続しました",
+      "Disconnected from Instance": "インスタンスから退出しました",
+      "Disconnected from Server!": "サーバーとの接続が切れました"
     },
     "quick": {
       "core-category-worlds": "ワールド",
@@ -1703,7 +1720,20 @@
       "response": "응답을 읽을 수 없습니다. 원문을 유지했습니다.",
       "redirect": "주소가 리디렉션되었습니다. 최종 URL을 입력하세요.",
       "testing": "선택한 서비스 테스트 중…",
-      "providerConfigApplied": "서비스 설정을 적용했습니다"
+      "providerConfigApplied": "서비스 설정을 적용했습니다",
+      "hudMicMuted": "음소거됨",
+      "hudMicLive": "마이크 켜짐",
+      "hudTts": "텍스트 음성 변환",
+      "hudinfos": "메시지",
+      "hudfriends": "친구 요청",
+      "hudnotifications": "초대",
+      "hudcomms": "음성 및 문자 통신",
+      "hudvotes": "투표",
+      "hudalerts": "시스템 알림",
+      "nameplateStyle": "플레이어 이름표",
+      "nameplateHelp": "이름, 프로필 사진, 역할을 구분하고 발화 중에는 가는 선으로 표시합니다.",
+      "nameplateUnified": "통일된 스타일",
+      "nameplateOriginal": "게임 스타일"
     },
     "camera": {
       "Take Picture": "사진 촬영",
@@ -2938,9 +2968,9 @@
       "nom": "이름",
       "API Response": "API 응답",
       "You are currently not Connected to our Realtime API Network": "현재 실시간 API에 연결되어 있지 않습니다. 네트워크를 확인하세요.",
-      "(Global) Client": "(전체) 클라이언트",
-      "A user has disconnected from this Instance.": "플레이어가 이 인스턴스에서 나갔습니다.",
-      "The user has disconnected from this Instance.": "해당 플레이어가 인스턴스에서 나갔습니다.",
+      "(Global) Client": "글로벌 클라이언트",
+      "A user has disconnected from this Instance.": "플레이어가 인스턴스에서 나갔습니다.",
+      "The user has disconnected from this Instance.": "이 플레이어는 인스턴스에서 나갔습니다.",
       "A user has joined this Instance.": "플레이어가 이 인스턴스에 들어왔습니다.",
       "A user has joined your Instance.": "플레이어가 내 인스턴스에 들어왔습니다.",
       "{value} disconnected.": "{value} 님이 나갔습니다.",
@@ -2965,7 +2995,11 @@
       "Unable to create player": "플레이어를 생성할 수 없음",
       "KICKED!": "추방되었습니다!",
       "You have been Kicked too recently from this instance": "방금 이 인스턴스에서 추방되어 아직 다시 들어갈 수 없습니다.",
-      "Events": "이벤트"
+      "Events": "이벤트",
+      "(Local) Client": "로컬 클라이언트",
+      "Connected to Instance": "인스턴스에 연결됨",
+      "Disconnected from Instance": "인스턴스에서 나감",
+      "Disconnected from Server!": "서버와 연결이 끊어졌습니다"
     },
     "quick": {
       "core-category-worlds": "월드",
@@ -3222,7 +3256,20 @@
       "response": "Respuesta ilegible. Se conserva el original.",
       "redirect": "El servicio redirige. Introduce su URL final.",
       "testing": "Probando el servicio seleccionado…",
-      "providerConfigApplied": "Configuración aplicada"
+      "providerConfigApplied": "Configuración aplicada",
+      "hudMicMuted": "Silenciado",
+      "hudMicLive": "Micrófono activo",
+      "hudTts": "Texto a voz",
+      "hudinfos": "Mensajes",
+      "hudfriends": "Solicitudes de amistad",
+      "hudnotifications": "Invitaciones",
+      "hudcomms": "Comunicaciones",
+      "hudvotes": "Votaciones",
+      "hudalerts": "Alertas del sistema",
+      "nameplateStyle": "Placas de jugador",
+      "nameplateHelp": "Nombre, retrato y rol separados, con un indicador discreto al hablar.",
+      "nameplateUnified": "Estilo Comfort",
+      "nameplateOriginal": "Estilo del juego"
     },
     "camera": {
       "Take Picture": "Hacer foto",
@@ -4457,9 +4504,9 @@
       "nom": "nombre",
       "API Response": "Respuesta de la API",
       "You are currently not Connected to our Realtime API Network": "No estás conectado a la API en tiempo real. Revisa la conexión.",
-      "(Global) Client": "(Global) Cliente",
-      "A user has disconnected from this Instance.": "Un jugador se ha desconectado de esta instancia.",
-      "The user has disconnected from this Instance.": "El jugador se ha desconectado de esta instancia.",
+      "(Global) Client": "Cliente global",
+      "A user has disconnected from this Instance.": "Un jugador ha salido de esta instancia.",
+      "The user has disconnected from this Instance.": "Este jugador ha salido de esta instancia.",
       "A user has joined this Instance.": "Un jugador ha entrado en esta instancia.",
       "A user has joined your Instance.": "Un jugador ha entrado en tu instancia.",
       "{value} disconnected.": "{value} se ha desconectado.",
@@ -4484,7 +4531,11 @@
       "Unable to create player": "No se puede crear el jugador",
       "KICKED!": "¡Te han expulsado!",
       "You have been Kicked too recently from this instance": "Te han expulsado recientemente y aún no puedes volver a entrar.",
-      "Events": "Eventos"
+      "Events": "Eventos",
+      "(Local) Client": "Cliente local",
+      "Connected to Instance": "Conectado a la instancia",
+      "Disconnected from Instance": "Has salido de la instancia",
+      "Disconnected from Server!": "Se ha perdido la conexión con el servidor"
     },
     "quick": {
       "core-category-worlds": "Mundos",
@@ -4636,12 +4687,25 @@
       "response": "服务返回的内容无法解析；已保留原文。",
       "redirect": "接口发生了重定向；请填写最终服务地址。",
       "testing": "正在测试所选服务…",
-      "providerConfigApplied": "服务配置已应用"
+      "providerConfigApplied": "服务配置已应用",
+      "hudMicMuted": "已静音",
+      "hudMicLive": "麦克风已开启",
+      "hudTts": "文字转语音",
+      "hudinfos": "消息",
+      "hudfriends": "好友请求",
+      "hudnotifications": "邀请",
+      "hudcomms": "语音与文字通讯",
+      "hudvotes": "投票",
+      "hudalerts": "系统提醒",
+      "nameplateStyle": "玩家名牌",
+      "nameplateHelp": "名字、头像与身份分层显示，说话时显示细线提示。",
+      "nameplateUnified": "统一风格",
+      "nameplateOriginal": "原版风格"
     },
     "system": {
       "API Response": "API 响应",
       "You are currently not Connected to our Realtime API Network": "当前未连接到游戏的实时 API 服务，请检查网络连接。",
-      "(Global) Client": "（全局）客户端",
+      "(Global) Client": "全局客户端",
       "A user has disconnected from this Instance.": "一位玩家已离开此房间。",
       "The user has disconnected from this Instance.": "该玩家已离开此房间。",
       "A user has joined this Instance.": "一位玩家加入了此房间。",
@@ -4667,7 +4731,11 @@
       "You have launched using the `--safe-mode` launch argument. Loaded default Avatar & World.": "已使用 --safe-mode 启动，加载了默认形象和世界。",
       "Unable to create player": "无法创建玩家",
       "KICKED!": "已被移出房间！",
-      "You have been Kicked too recently from this instance": "你刚被此房间移出，暂时无法重新加入。"
+      "You have been Kicked too recently from this instance": "你刚被此房间移出，暂时无法重新加入。",
+      "(Local) Client": "本地客户端",
+      "Connected to Instance": "已连接到房间",
+      "Disconnected from Instance": "已离开房间",
+      "Disconnected from Server!": "与服务器断开连接"
     },
     "content": {
       "hint": "按需发送本页名称和简介到所选翻译服务，译为当前界面语言；再次点击恢复原文。"
@@ -4753,10 +4821,32 @@
       "response": "The service returned an unreadable response. Original text is preserved.",
       "redirect": "The endpoint redirected. Configure its final URL.",
       "testing": "Testing the selected service…",
-      "providerConfigApplied": "Service settings applied"
+      "providerConfigApplied": "Service settings applied",
+      "hudMicMuted": "Muted",
+      "hudMicLive": "Mic on",
+      "hudTts": "Text to speech",
+      "hudinfos": "Messages",
+      "hudfriends": "Friend requests",
+      "hudnotifications": "Invites",
+      "hudcomms": "Communications",
+      "hudvotes": "Votes",
+      "hudalerts": "System alerts",
+      "nameplateStyle": "Player nameplates",
+      "nameplateHelp": "Separate names, portraits and roles, with a subtle speaking indicator.",
+      "nameplateUnified": "Comfort style",
+      "nameplateOriginal": "Game style"
     },
     "content": {
       "hint": "Send this name and description to your selected service on demand, into the interface language. Click again for the original."
+    },
+    "system": {
+      "(Local) Client": "(Local) Client",
+      "(Global) Client": "(Global) Client",
+      "Connected to Instance": "Connected to Instance",
+      "Disconnected from Instance": "Disconnected from Instance",
+      "Disconnected from Server!": "Disconnected from Server!",
+      "A user has disconnected from this Instance.": "A user has disconnected from this Instance.",
+      "The user has disconnected from this Instance.": "The user has disconnected from this Instance."
     }
   }
 }

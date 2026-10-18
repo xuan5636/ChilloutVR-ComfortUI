@@ -1,4 +1,4 @@
-/* Comfort UI 0.2.14. Native data, controls and hit surfaces; no mixed-unit calc or backdrop filters. */
+/* Comfort UI 0.3.0. Native data, controls and hit surfaces; no mixed-unit calc or backdrop filters. */
 :root { --cu-bg:#282c33;--cu-panel:#343a43;--cu-hover:#424953;--cu-line:#616874;--cu-text:#fafbfc;--cu-muted:#c1c6cc;--cu-panel-text:#fafbfc;--cu-panel-muted:#c8ccd2;--cu-accent:#c1cbdc;--cu-ink:#12161b;--cu-icon-bg:#454f60;--cu-icon-colour:#c1cbdc;--cu-native-accent:#657082;--cu-danger:#634c52;--cu-danger-text:#fafbfc;--cu-positive:#4b625e;--cu-positive-text:#fafbfc; }
 html[data-comfort-enabled="true"] {
  --menu-primary:var(--cu-panel) !important;--menu-primary-darker:var(--cu-bg) !important;--menu-primary-rgba:var(--cu-panel) !important;
@@ -25,7 +25,7 @@ html[data-comfort-enabled="true"] select,
 html[data-comfort-enabled="true"] textarea,
 html[data-comfort-enabled="true"] .option-caption,
 html[data-comfort-enabled="true"] .header,
-html[data-comfort-enabled="true"] .label { font-family:"Noto Sans SC","Noto Sans","Microsoft YaHei","Noto Sans Symbols","Noto Sans JP","Noto Sans TC","Noto Sans KR","Noto Sans Arabic",sans-serif;text-shadow:none; }
+html[data-comfort-enabled="true"] .label { font-family:"Noto Sans SC","Noto Sans","Microsoft YaHei","Noto Sans Symbols","Noto Sans JP","Noto Sans TC","Noto Sans KR","Noto Sans Arabic",sans-serif;font-weight:500;text-shadow:none; }
 
 html[data-comfort-enabled="true"] body { color:var(--cu-panel-text); }
 
@@ -1185,7 +1185,14 @@ html[data-comfort-enabled="true"][data-comfort-context="keyboard"] .wrapper .key
 
 html[data-comfort-enabled="true"][data-comfort-context="hud"] body { background-color:transparent;pointer-events:none; }
 
-html[data-comfort-enabled="true"][data-comfort-context="hud"] .hud-message { padding:1vh 1.4vh;border-radius:1.2vh;background-color:var(--cu-bg);color:var(--cu-text);border:1px solid var(--cu-line);text-shadow:none;box-sizing:border-box; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .hud-message { height:auto;min-height:0;max-height:var(--cu-hud-max);max-width:58vw;margin-bottom:var(--cu-hud-bottom);padding:var(--cu-hud-padding);border-radius:1.2vh;background-color:var(--cu-bg);color:var(--cu-text);border:1px solid var(--cu-line);text-shadow:none;box-sizing:border-box;overflow:hidden;justify-content:flex-start; }
+
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .hud-message .authorative { font-size:var(--cu-hud-small);line-height:1.45; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .hud-message .headline { font-size:var(--cu-hud-title);line-height:1.4;font-weight:600;white-space:normal;overflow-wrap:break-word; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .hud-message .message { font-size:var(--cu-hud-body);line-height:1.45;white-space:normal;overflow-wrap:break-word;color:var(--cu-muted); }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .hud-message .message:empty { display:none; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .hud-message[data-comfort-notice="connection"] { background-color:transparent;border-color:transparent;text-shadow:0 1px 3px #101419; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .hud-message[data-comfort-notice="connection"] .authorative { display:none; }
 
 html[data-comfort-enabled="true"][data-comfort-context="hud"] .hud-message .authorative { color:var(--cu-heading-accent); }
 
@@ -1550,10 +1557,8 @@ html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-nat
 html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-native-segments { padding:0; }
 html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-native-segments > .valueList.cu-segmented { min-height:90px; }
 /* Service fields keep the same surface and sizing as the rest of Settings. */
-#comfort-translation .cu-service-select,
 #comfort-translation .cu-service-field input,
 #comfort-translation .cu-credential input { width:100%;box-sizing:border-box;min-height:76px;padding:16px 20px;font-family:inherit;font-size:32px;line-height:1.4;color:var(--cu-text);background-color:var(--cu-panel);border:2px solid var(--cu-line);border-radius:10px; }
-#comfort-translation .cu-service-select option { color:var(--cu-text);background-color:var(--cu-panel); }
 #comfort-translation .cu-service-field,
 #comfort-translation .cu-credential { margin:24px 0; }
 #comfort-translation .cu-service-field label,
@@ -1562,6 +1567,51 @@ html[data-comfort-enabled="true"][data-comfort-context="main"] #settings .cu-nat
 #comfort-translation .cu-credential-actions button { margin:8px 12px 8px 0; }
 #comfort-translation .cu-key-status,
 #comfort-translation .cu-translation-status { font-size:28px;line-height:1.5;white-space:normal;color:var(--cu-text); }
-#comfort-translation .cu-service-select:focus,
 #comfort-translation .cu-service-field input:focus,
 #comfort-translation .cu-credential input:focus { border-color:var(--cu-accent); }
+
+/* Use real buttons: Cohtml does not provide a native HTML select popup. */
+#comfort-translation [data-setting="translationProvider"] .cu-choice,
+#comfort-translation [data-setting="sourceLanguage"] .cu-choice { padding:16px 7px;font-size:29px;line-height:1.35; }
+#comfort-translation [data-pref="sourceLanguage"][data-value="zh"] { font-family:"Noto Sans SC","Microsoft YaHei","Noto Sans",sans-serif !important; }
+#comfort-translation [data-pref="sourceLanguage"][data-value="ja"] { font-family:"Noto Sans JP","Yu Gothic","Meiryo","Noto Sans",sans-serif !important; }
+#comfort-translation [data-pref="sourceLanguage"][data-value="ko"] { font-family:"Noto Sans KR","Malgun Gothic","Noto Sans",sans-serif !important; }
+
+/* Readable weights without changing icon font faces or the size of click targets. */
+html[data-comfort-enabled="true"] .content p,
+html[data-comfort-enabled="true"] .content .filter-option,
+html[data-comfort-enabled="true"] .content .option-caption,
+html[data-comfort-enabled="true"] .content .subcategory-description,
+html[data-comfort-enabled="true"] .content .listValue,
+html[data-comfort-enabled="true"] .toolbar-btn,
+html[data-comfort-enabled="true"] .quick-button .label,
+html[data-comfort-enabled="true"] .cu-setting,
+html[data-comfort-enabled="true"] .cu-setting button,
+html[data-comfort-enabled="true"] .cu-panel-heading p,
+html[data-comfort-enabled="true"] .cu-dashboard-heading p { font-weight:500; }
+html[data-comfort-enabled="true"] #comfort-ui button,
+html[data-comfort-enabled="true"] #comfort-translation button,
+html[data-comfort-enabled="true"] #comfort-keybinding button { font-weight:500; }
+html[data-comfort-enabled="true"] h1,
+html[data-comfort-enabled="true"] h2,
+html[data-comfort-enabled="true"] h3,
+html[data-comfort-enabled="true"] #comfort-home-heading h1,
+html[data-comfort-enabled="true"] #comfort-dashboard .cu-dashboard-heading h1,
+html[data-comfort-enabled="true"] .cu-panel-heading h2 { font-weight:600 !important; }
+
+/* Mirror native HUD state. Original nodes keep their display, opacity and event lifecycle. */
+.cu-hud-mic,.cu-hud-badges { display:none;pointer-events:none; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .hud-wrapper-left-bottom { width:var(--cu-hud-wrapper);height:var(--cu-hud-wrapper); }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .hex-hub-wrapper > .hex-hub,
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .shards .hex-shard { opacity:0; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic { display:flex;position:absolute;left:22%;top:18%;width:56%;height:64%;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box;border:1px solid var(--cu-line);border-radius:16%;background-color:var(--cu-bg);color:var(--cu-text); }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic > svg { width:44%;height:48%; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic-label { font-size:var(--cu-hud-label);line-height:1.6;font-weight:600;white-space:nowrap; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic-slash { display:none; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic[data-state="muted"] .cu-hud-mic-slash { display:block; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-meter { width:56%;height:4%;margin-top:3%;border-radius:3px;background-color:var(--cu-panel);overflow:hidden; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-meter span { display:block;width:100%;height:100%;transform-origin:left center;transform:scaleX(0);background-color:var(--cu-accent); }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-mic[data-state="muted"] .cu-hud-meter { opacity:0; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-badges { display:flex;position:absolute;left:4%;bottom:1%;width:92%;height:14%;align-items:center;justify-content:center; }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-badge { display:none;flex:none;align-items:center;justify-content:center;width:14%;height:100%;margin:0 1%;box-sizing:border-box;border:1px solid var(--cu-line);border-radius:24%;background-color:var(--cu-bg);color:var(--cu-text); }
+html[data-comfort-enabled="true"][data-comfort-context="hud"] .cu-hud-badge svg { width:72%;height:72%; }

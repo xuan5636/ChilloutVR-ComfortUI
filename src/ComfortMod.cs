@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.2.14", "Local UI Workshop")]
+[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.3.0", "Local UI Workshop")]
 [assembly: MelonGame(null, "ChilloutVR")]
 
 namespace ComfortUI
@@ -47,6 +47,7 @@ namespace ComfortUI
             public string motionSpeed = "normal";
             public bool theme = true;
             public bool cameraLayout = true;
+            public bool nameplateTheme = true;
             public bool chatTranslation = true, detailTranslation = true;
             public string translationProvider = "google", proxyMode = "system", proxyAddress = "http://127.0.0.1:7890", translationKey = "F8";
             public string sourceLanguage = "auto", aiEndpoint = "https://api.openai.com/v1", aiModel = "", microsoftRegion = "", libreEndpoint = "http://127.0.0.1:5000";
@@ -82,10 +83,23 @@ namespace ComfortUI
             settingsTranslations = JObject.Parse(ReadResource("ComfortUI.settings-zh.json")).ToString(Formatting.None);
             languagePacks = JObject.Parse(ReadResource("ComfortUI.locales.json")).ToString(Formatting.None);
             settingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserData", "ComfortUI", "preferences.json");
-            if (File.Exists(settingsPath))
+            var hasSavedPreferences = File.Exists(settingsPath);
+            if (hasSavedPreferences)
             {
                 try { preferences = ParsePreferences(File.ReadAllText(settingsPath)); }
                 catch (Exception ex) { LoggerInstance.Warning("Preferences could not be read; using defaults: " + ex.GetType().Name); }
+            }
+            preferences.language = StartupLanguage.Choose(hasSavedPreferences, preferences.language, StartupLanguage.SystemLocale);
+            if (!hasSavedPreferences)
+            {
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(settingsPath));
+                    // CreateNew cannot replace a configuration created concurrently.
+                    using (var stream = new FileStream(settingsPath, FileMode.CreateNew, FileAccess.Write))
+                    using (var writer = new StreamWriter(stream)) writer.Write(JsonConvert.SerializeObject(preferences, Formatting.Indented));
+                }
+                catch (Exception ex) { LoggerInstance.Warning("Initial preferences could not be saved: " + ex.GetType().Name); }
             }
             try { translationSecrets = new TranslationSecrets(Path.Combine(Path.GetDirectoryName(settingsPath), "translation-credentials.dat")); }
             catch (Exception ex) { LoggerInstance.Warning("Translation credentials unavailable: " + ex.GetType().Name); }
@@ -99,10 +113,12 @@ namespace ComfortUI
             catch (Exception ex) { LoggerInstance.Warning("Chat translation hooks unavailable: " + ex.GetType().Name); }
             try { NativeLocalization.Install(HarmonyInstance, languagePacks, () => preferences.language); }
             catch (Exception ex) { LoggerInstance.Warning("Native message localization unavailable: " + ex.GetType().Name); }
+            try { NameplateUI.Install(HarmonyInstance, () => preferences); }
+            catch (Exception ex) { LoggerInstance.Warning("Nameplate theme unavailable: " + ex.GetType().Name); }
             try { localTranslations = ReadLocalTranslations(); }
             catch (Exception ex) { LoggerInstance.Warning("Optional translations skipped: " + ex.GetType().Name); }
             initialized = true;
-            LoggerInstance.Msg("Comfort UI 0.2.14 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
+            LoggerInstance.Msg("Comfort UI 0.3.0 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
         }
 
         private static string ReadResource(string name)
@@ -151,6 +167,7 @@ namespace ComfortUI
                 }
             }
             CameraUI.Tick(preferences);
+            NameplateUI.Tick(preferences);
             ChatTranslation.Tick(preferences, contentTranslator, uiTyping);
             string command;
             while (translationCommands.TryDequeue(out command))
@@ -184,6 +201,7 @@ namespace ComfortUI
         }
 
         public override void OnSceneWasLoaded(int index, string name) { nextScan = 0; }
+        public override void OnDeinitializeMelon() { NameplateUI.Reset(); }
 
         private void Attach(CohtmlControlledView owner, bool reloaded)
         {
@@ -369,6 +387,7 @@ namespace ComfortUI
             if (motionSpeed != null) p.motionSpeed = motionSpeed;
             p.theme = ReadBool(obj, "theme", true);
             p.cameraLayout = ReadBool(obj, "cameraLayout", true);
+            p.nameplateTheme = ReadBool(obj, "nameplateTheme", true);
             p.chatTranslation = ReadBool(obj, "chatTranslation", true);
             p.detailTranslation = ReadBool(obj, "detailTranslation", true);
             var provider = (string)obj["translationProvider"];
