@@ -141,12 +141,16 @@ namespace ComfortUI
             internal readonly PlayerNameplate Plate;
             private readonly List<Action> restore = new List<Action>();
             private readonly Image speaking;
+            private readonly Outline trim;
+            private readonly bool ownsTrim;
+            private readonly Color originalPlayerColour;
             private Color background, accent, foreground, staffColour;
             private bool? active;
 
             internal Session(PlayerNameplate plate)
             {
                 Plate = plate;
+                originalPlayerColour = plate.nameplateBackground.color;
                 staffColour = plate.staffplateBackground != null ? plate.staffplateBackground.color : Color.white;
                 SaveImage(plate.nameplateBackground); SaveImage(plate.staffplateBackground); SaveImage(plate.friendsIndicator);
                 SaveText(plate.usrNameText); SaveText(plate.rankText); SaveText(plate.staffText);
@@ -154,6 +158,18 @@ namespace ComfortUI
                 var go = new GameObject("Comfort-Speaking", typeof(RectTransform), typeof(Image));
                 try
                 {
+                    trim = plate.nameplateBackground.GetComponent<Outline>();
+                    if (trim != null)
+                    {
+                        var enabled = trim.enabled; var colour = trim.effectColor;
+                        var distance = trim.effectDistance; var useAlpha = trim.useGraphicAlpha;
+                        restore.Add(() => { if (trim != null) { trim.enabled = enabled; trim.effectColor = colour; trim.effectDistance = distance; trim.useGraphicAlpha = useAlpha; } });
+                    }
+                    else
+                    {
+                        trim = plate.nameplateBackground.gameObject.AddComponent<Outline>();
+                        ownsTrim = true;
+                    }
                     go.layer = plate.nameplateBackground.gameObject.layer;
                     go.transform.SetParent(plate.nameplateBackground.transform, false);
                     speaking = go.GetComponent<Image>(); speaking.raycastTarget = false;
@@ -162,7 +178,7 @@ namespace ComfortUI
                     speaking.pixelsPerUnitMultiplier = 12;
                     speaking.enabled = false;
                 }
-                catch { Object.Destroy(go); throw; }
+                catch { if (ownsTrim && trim != null) Object.Destroy(trim); Object.Destroy(go); throw; }
             }
             private void SaveRect(RectTransform rect)
             {
@@ -249,9 +265,26 @@ namespace ComfortUI
                 Plate.nameplateBackground.color = background;
                 if (Plate.staffplateBackground != null) Plate.staffplateBackground.color = Color.Lerp(background, staffColour, .22f);
                 if (speaking != null) { speaking.color = accent; speaking.enabled = value; }
+                if (nativeRepainted) RefreshTrim();
             }
+            private void RefreshTrim()
+            {
+                if (trim == null) return;
+                // Use this player's effective native colour, including server updates.
+                // UserColor is only a global fallback and must not tint every player alike.
+                var descriptor = Plate.PlayerDescriptor;
+                var colour = descriptor != null ? descriptor.GetRankColor() : originalPlayerColour;
+                if (!Finite(colour.r) || !Finite(colour.g) || !Finite(colour.b)) colour = accent;
+                colour = new Color(Mathf.Clamp01(colour.r), Mathf.Clamp01(colour.g), Mathf.Clamp01(colour.b), .65f);
+                if (!trim.effectColor.Equals(colour)) trim.effectColor = colour;
+                var distance = trim.effectDistance;
+                if (distance.x != .015f || distance.y != .015f) trim.effectDistance = new Vector2(.015f, .015f);
+                if (trim.useGraphicAlpha) trim.useGraphicAlpha = false;
+                if (!trim.enabled) trim.enabled = true;
+            }
+            private static bool Finite(float value) { return !float.IsNaN(value) && !float.IsInfinity(value); }
             internal void Restore() { foreach (var action in restore) action(); restore.Clear(); Release(); }
-            internal void Release() { if (speaking != null) Object.Destroy(speaking.gameObject); }
+            internal void Release() { if (speaking != null) Object.Destroy(speaking.gameObject); if (ownsTrim && trim != null) Object.Destroy(trim); }
         }
     }
 }
