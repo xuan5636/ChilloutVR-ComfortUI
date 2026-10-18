@@ -23,7 +23,7 @@ namespace ComfortUI
             {
                 using (var request = new HttpRequestMessage(HttpMethod.Get, "https://www.bing.com/translator"))
                 {
-                    request.Headers.UserAgent.ParseAdd("Mozilla/5.0 ComfortUI/0.3.2");
+                    request.Headers.UserAgent.ParseAdd("Mozilla/5.0 ComfortUI/0.3.3");
                     var html = await TranslationProviders.Send(client, request, options, token, diagnostic).ConfigureAwait(false);
                     var ig = Regex.Match(html, "\\bIG:\\s*\"([A-Za-z0-9]+)\"");
                     var helper = Regex.Match(html, @"params_AbusePreventionHelper\s*=\s*(\[[^;\r\n]+\])");

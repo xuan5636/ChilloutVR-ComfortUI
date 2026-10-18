@@ -1,3 +1,11 @@
+# 0.3.3 validation scope
+
+2026-10-18. Installed locally with matching DLL hashes, unchanged preferences and five protected files, and an exact0.3.2 backup. Existing model files are unchanged; publication retains these binaries. 156 managed checks pass (12 lifetime,39 chat,24 provider,18 camera,37 nameplate/startup,10 local model,16 voice snapshots). The new voice suite uses a game-manager stand-in: it covers first-ready hydration, actual mute/TTS precedence, unavailable manager, stable-frame suppression, rapid changes, sparse retry snapshots, replacement documents and failed-send acknowledgement. Native game assembly inspection confirmed the read-only voice properties and TTS precedence; no game implementation is redistributed.
+
+142 isolated UI checks pass (17 providers,16 selectors,18 segmented motion,3 state cache,22 HUD,26 HUD sync,16 glyph,24 voice). Muted headless Edge loads original read-only HUD HTML and mocked bridge, loopback only. New cases keep original HUD DOM muted while the voice snapshot is live; reject delayed contradictory DOM/TTS values; simulate a stylesheet retaining the slash; stall animation frames; toggle rapidly; test Off, five languages and initial bootstrap. 1200 unchanged snapshots produce no custom DOM writes. Frozen0.3.2 lacks the actual-voice snapshot path and fails the new regression. Native Cohtml lifetime simulation remains a separate suite.
+
+Actual game-reference build: zero warnings/errors; all six embedded resources, installer version/payload/hash and archives are checked. Actual0.3.3 Cohtml selector invalidation, online-room transitions, push-to-talk timings, PC/VR/mirrors, other computers and long sessions remain unverified. The exact live failure has not been reproduced under Cohtml by automation. New code avoids dependence on stale DOM and selector invalidation and guarantees animation cleanup. No new online translation probes, real chat, paid keys or model downloads; Google's historical429 is unresolved.
+
 # 0.3.2 validation scope
 
 2026-10-18. Installed locally with matching package/DLL hashes, unchanged preferences and five protected files, and an exact0.3.1 backup; existing model files were not changed. Publication retains these binaries. GitHub0.3.1 is already published with the user's missing-microphone-icon report disclosed; its artifacts are fixed.

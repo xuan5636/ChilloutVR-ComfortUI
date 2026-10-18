@@ -1,4 +1,4 @@
-/* Comfort UI 0.3.2. System labels are local; optional content translation runs only on request. */
+/* Comfort UI 0.3.3. System labels are local; optional content translation runs only on request. */
 (function () {
     'use strict';
     var host = window.__comfortHost || {};
@@ -52,7 +52,7 @@
             reset: '恢复本模组默认设置', close: '返回常用', applied: '已应用', saved: '已保存到本机', saving: '正在保存…',
             saveFailed: '已应用，但未能保存；重启后可能恢复。',
             unavailable: '当前页面尚未就绪，请稍后再试。', nativeError: '游戏页面暂时无法打开，请使用原有菜单入口。',
-            hint: 'PC · VR', edition: '简洁柔和 · 试用版 0.3.2',
+            hint: 'PC · VR', edition: '简洁柔和 · 试用版 0.3.3',
             notifications: '通知与其他操作', previewAction: '预览中已打开：',
             previewNote: '界面预览中的示例操作', chinese: '简体中文', english: 'English'
         },
@@ -81,7 +81,7 @@
             reset: 'Reset mod preferences', close: 'Back to quick access', applied: 'Applied', saved: 'Saved on this PC', saving: 'Saving…',
             saveFailed: 'Applied, but could not save. Changes may reset after restart.',
             unavailable: 'This page is not ready yet. Please try again shortly.', nativeError: 'Unable to open the game page. Please use its original menu entry.',
-            hint: 'PC · VR', edition: 'Soft minimal · Preview 0.3.2',
+            hint: 'PC · VR', edition: 'Soft minimal · Preview 0.3.3',
             notifications: 'Notifications and more', previewAction: 'Preview opened: ',
             previewNote: 'Sample action in the interface preview', chinese: '简体中文', english: 'English'
         }
@@ -444,7 +444,7 @@
         languageHelp:'主菜单、快捷菜单、登录与键盘共用此设置。',
         motionHelp:'短暂淡入和平滑高亮；关闭后立即切换，HUD 提示仍会正常收起。',
         reduced:'关闭动效',full:'舒适动效',original:'显示原版界面',resume:'返回新版界面',
-        edition:'Comfort UI 0.3.2',paletteOpen:'调整菜单配色',paletteClose:'收起配色选项',
+        edition:'Comfort UI 0.3.3',paletteOpen:'调整菜单配色',paletteClose:'收起配色选项',
         mainTitle:'你的空间',quickTitle:'快捷操作',mainIntro:'个人信息、动态和游玩操作，清晰分区。',
         reset:'恢复界面默认设置',originalHelp:'临时切回原版；屏幕上会保留返回新版的按钮。',
         textHelp:'调整系统菜单文字；列表和设置可滚动。',saved:'已保存',
@@ -455,7 +455,7 @@
         languageHelp:'Shared by menus, login and keyboard.',
         motionHelp:'Brief fades and smooth highlights. Off switches instantly; HUD notices still dismiss.',
         reduced:'Off',full:'Comfort motion',original:'Show original UI',resume:'Return to Comfort UI',
-        edition:'Comfort UI 0.3.2',paletteOpen:'Adjust menu colours',paletteClose:'Hide colour options',
+        edition:'Comfort UI 0.3.3',paletteOpen:'Adjust menu colours',paletteClose:'Hide colour options',
         mainTitle:'Your space',quickTitle:'Quick actions',mainIntro:'Your profile, activity and play controls, clearly arranged.',
         reset:'Reset interface preferences',originalHelp:'The return button stays available while the original UI is shown.',
         textHelp:'Adjust system labels. Lists and settings remain scrollable.',saved:'Saved',
@@ -1414,7 +1414,7 @@
                 }
             }
             compatibilityReady=valid;
-            report('layout',{version:'0.3.2',width:Math.round(bounds.width),height:Math.round(bounds.height),background:style.backgroundColor,font:style.fontFamily,home:homeActive,hit:hit,valid:!!valid});
+            report('layout',{version:'0.3.3',width:Math.round(bounds.width),height:Math.round(bounds.height),background:style.backgroundColor,font:style.fontFamily,home:homeActive,hit:hit,valid:!!valid});
             if(!valid && ++layoutFailures>=2) {
                 restoreHome();restoreMicrophone();shown=false;setAttributes();render();openNativeHome();
                 report('compatibility-fallback','Original UI restored; return control retained.');
@@ -1491,9 +1491,11 @@
         if(!hud)return;
         if(prefs.reducedMotion || !shown || !prefs.theme || document.hidden)finishHudMotion();
         localizeHudMessage();
-        // Native nodes are authoritative, including calls that bypass our wrapped globals.
+        // The native voice manager snapshot wins over a stale HUD after joining/reloading.
+        // DOM state is only a fallback before the manager is ready (and in browser preview).
         var live=hud.nativeLive.style.display!=='none',tts=/tts/i.test(hud.nativeTts.getAttribute('src')||'');
-        var state=live?(tts?'tts':'live'):'muted',colour=colourValues?colourValues['--cu-text']:'#fafbfc';
+        var state=hudMicrophoneState || (live?(tts?'tts':'live'):'muted'),colour=colourValues?colourValues['--cu-text']:'#fafbfc';
+        live=state!=='muted';tts=state==='tts';
         if(hud.mic.getAttribute('data-state')!==state)hud.mic.setAttribute('data-state',state);
         var label=t(live?(tts?'hudTts':'hudMicLive'):'hudMicMuted');
         if(hud.label.textContent!==label)hud.label.textContent=label;
@@ -1510,14 +1512,29 @@
             var display=active?'flex':'none';if(item.badge.style.display!==display)item.badge.style.display=display;
         });
     }
-    function finishHudMotion(){if(!hud)return;if(hud.frame)window.cancelAnimationFrame(hud.frame);hud.frame=0;hud.previous.style.display='none';hud.previous.style.opacity='0';hud.icon.style.opacity='1';hud.icon.style.transform='scale(1)';}
+    var hudMicrophoneState=/^(muted|live|tts)$/.test(window.__comfortMicState||'')?window.__comfortMicState:null;
+    function updateHudMicrophone(state){
+        if(state!=='muted'&&state!=='live'&&state!=='tts')return;
+        if(hudMicrophoneState===state && hud && hud.state===state)return;
+        hudMicrophoneState=state;refreshHud();
+    }
+    function setHudGlyph(node,state){
+        node.setAttribute('data-glyph',state);
+        var slash=node.querySelector('.cu-mic-slash'),tts=node.querySelector('.cu-mic-tts');
+        // Set the actual parts directly instead of relying on selector invalidation.
+        slash.style.display=state==='muted'?'block':'none';slash.style.visibility=state==='muted'?'visible':'hidden';
+        tts.style.display=state==='tts'?'block':'none';tts.style.visibility=state==='tts'?'visible':'hidden';
+    }
+    function finishHudMotion(){if(!hud)return;if(hud.frame)window.cancelAnimationFrame(hud.frame);clearTimeout(hud.motionTimer);hud.motionTimer=0;hud.frame=0;hud.previous.style.display='none';hud.previous.style.visibility='hidden';hud.previous.style.opacity='0';hud.icon.style.opacity='1';hud.icon.style.transform='scale(1)';}
     function changeHudIcon(state,animate){
-        var previous=hud.icon.getAttribute('data-glyph');finishHudMotion();hud.icon.setAttribute('data-glyph',state);
+        var previous=hud.icon.getAttribute('data-glyph');finishHudMotion();setHudGlyph(hud.icon,state);
         if(!animate || !previous || prefs.reducedMotion || !shown || !prefs.theme || document.hidden)return;
-        hud.previous.setAttribute('data-glyph',previous);hud.previous.style.display='block';hud.previous.style.opacity='1';hud.icon.style.opacity='0';hud.icon.style.transform='scale(0.92)';
+        setHudGlyph(hud.previous,previous);hud.previous.style.display='block';hud.previous.style.visibility='visible';hud.previous.style.opacity='1';hud.icon.style.opacity='0';hud.icon.style.transform='scale(0.92)';
         var start=segmentTime(),duration=prefs.motionSpeed==='fast'?150:prefs.motionSpeed==='gentle'?280:210;
         function step(){var progress=Math.min(1,(segmentTime()-start)/duration),ease=1-Math.pow(1-progress,3);hud.icon.style.opacity=String(ease);hud.icon.style.transform='scale('+(0.92+0.08*ease)+')';hud.previous.style.opacity=String(1-ease);if(progress<1)hud.frame=window.requestAnimationFrame(step);else finishHudMotion();}
         hud.frame=window.requestAnimationFrame(step);
+        // A paused/throttled animation frame must never leave the old muted layer visible.
+        hud.motionTimer=setTimeout(finishHudMotion,duration+80);
     }
     function hudMicGlyph(className){return '<span class="'+className+'" aria-hidden="true"><i class="cu-mic-capsule"></i><i class="cu-mic-cradle"></i><i class="cu-mic-stem"></i><i class="cu-mic-foot"></i><i class="cu-mic-slash"></i><i class="cu-mic-tts">T</i></span>';}
     function refreshHudMeter(){
@@ -1574,12 +1591,12 @@
         window.addEventListener('storage',function(e){if(e.key===KEY&&e.newValue)try{setPreferences(JSON.parse(e.newValue),true);}catch(ignored){}});
         window.addEventListener('beforeunload',function(){observer.disconnect();if(hudObserver)hudObserver.disconnect();finishHudMotion();clearTimeout(refreshTimer);clearTimeout(quickLabelTimer);clearTimeout(diagnosticTimer);clearTimeout(currentToast);hudHooks.forEach(function(hook){if(window[hook.name]===hook.wrapped)window[hook.name]=hook.original;});});
         document.addEventListener('visibilitychange',function(){if(document.hidden){finishSegmentMotions();finishHudMotion();}});
-        report('ready',{version:'0.3.2',settings:!!root,dashboard:!!dashboard});
+        report('ready',{version:'0.3.3',settings:!!root,dashboard:!!dashboard});
     }
     try{var stored=localStorage.getItem(KEY);if(stored)prefs=validate(JSON.parse(stored));}catch(ignored){}
     if(host.preferences)prefs=validate(host.preferences);
     window.ComfortUI={
-        version:'0.3.2',localModelState:updateLocalModelState,translationNotice:function(code,enabled){if(typeof enabled==='boolean')updateChatState(enabled);translationStatus=code;if(translationPanel){var status=translationPanel.querySelector('.cu-translation-status');if(status)status.textContent=t(code);}toast(t(code));},chatState:updateChatState,updatePreferences:setPreferences,getPreferences:function(){return copy(prefs);},
+        version:'0.3.3',hudMicrophone:updateHudMicrophone,localModelState:updateLocalModelState,translationNotice:function(code,enabled){if(typeof enabled==='boolean')updateChatState(enabled);translationStatus=code;if(translationPanel){var status=translationPanel.querySelector('.cu-translation-status');if(status)status.textContent=t(code);}toast(t(code));},chatState:updateChatState,updatePreferences:setPreferences,getPreferences:function(){return copy(prefs);},
         translationErrorText:function(code){return labels.en[code]?t(code):t('network');},
         preferenceFailed:function(){saveStatus='saveFailed';render();},
         showPreviewNotice:toast,setMode:setMode,

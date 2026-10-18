@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.3.2", "Local UI Workshop")]
+[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.3.3", "Local UI Workshop")]
 [assembly: MelonGame(null, "ChilloutVR")]
 
 namespace ComfortUI
@@ -67,6 +67,8 @@ namespace ComfortUI
         {
             public CohtmlControlledView Owner;
             public CohtmlViewTarget Target;
+            public string Context;
+            public readonly HudMicrophoneSync Microphone = new HudMicrophoneSync();
             public cohtml.Net.BoundEventHandle SaveHandle;
             public cohtml.Net.BoundEventHandle ReportHandle;
             public cohtml.Net.BoundEventHandle TranslateHandle;
@@ -124,7 +126,7 @@ namespace ComfortUI
             try { localTranslations = ReadLocalTranslations(); }
             catch (Exception ex) { LoggerInstance.Warning("Optional translations skipped: " + ex.GetType().Name); }
             initialized = true;
-            LoggerInstance.Msg("Comfort UI 0.3.2 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
+            LoggerInstance.Msg("Comfort UI 0.3.3 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
         }
 
         private static string ReadResource(string name)
@@ -174,6 +176,7 @@ namespace ComfortUI
             }
             CameraUI.Tick(preferences);
             NameplateUI.Tick(preferences);
+            RefreshHudMicrophone();
             ChatTranslation.Tick(preferences, contentTranslator, uiTyping);
             string command;
             while (translationCommands.TryDequeue(out command))
@@ -246,7 +249,7 @@ namespace ComfortUI
                     previous.Target.TryUse(view => view.UnbindCall(previous.ToolsHandle));
                     lock (previous) { previous.TranslationCancellation?.Cancel(); previous.TranslationRequest = null; }
                 }
-                var entry = new AttachedView { Owner = owner, Target = target };
+                var entry = new AttachedView { Owner = owner, Target = target, Context = context };
                 if (!target.TryUse(view =>
                 {
                     entry.SaveHandle = view.BindCall("ComfortUI_Save", new Action<string>(QueuePreferences));
@@ -268,6 +271,7 @@ namespace ComfortUI
                     "window.__comfortHost={native:true,preferences:" + PublicPreferencesJson() + "};" +
                     "window.__comfortChatEnabled=" + (ChatTranslation.IsEnabled ? "true" : "false") + ";" +
                     "window.__comfortLocalModelState=" + localState + ";" +
+                    "window.__comfortMicState=" + JsonConvert.SerializeObject(context == "hud" ? HudMicrophoneSync.Read() : null) + ";" +
                     "window.__comfortExistingTranslations=" + localTranslations + ";" +
                     "window.__comfortSettingsTranslations=" + settingsTranslations + ";" +
                     "window.__comfortLocales=" + languagePacks + ";" +
@@ -466,6 +470,25 @@ namespace ComfortUI
             var script = "if(window.ComfortUI)window.ComfortUI.updatePreferences(" + PublicPreferencesJson() + ",true);";
             script += "if(window.ComfortUI&&window.ComfortUI.chatState)window.ComfortUI.chatState(" + (ChatTranslation.IsEnabled && preferences.chatTranslation ? "true" : "false") + ");";
             Broadcast(script);
+        }
+        private void RefreshHudMicrophone()
+        {
+            var state = HudMicrophoneSync.Read();
+            if (state == null) return;
+            List<uint> stale = null;
+            foreach (var item in views)
+            {
+                var entry = item.Value;
+                if (entry.Context != "hud") continue;
+                if (!entry.Target.IsCurrent)
+                {
+                    if (stale == null) stale = new List<uint>();
+                    stale.Add(item.Key);
+                    continue;
+                }
+                entry.Microphone.Deliver(state, Time.realtimeSinceStartup, entry.Target.Execute);
+            }
+            if (stale != null) foreach (var id in stale) ForgetView(id);
         }
         private void ForgetView(uint id)
         {
