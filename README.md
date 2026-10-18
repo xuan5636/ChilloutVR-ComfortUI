@@ -3,15 +3,15 @@
 An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent ChilloutVR interface.
 非官方 ChilloutVR 界面模组：柔和配色、统一控件、多语言和可选翻译。
 
-**Current release: [0.3.6 — public preview](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.3.6).**
+**Current release: [0.3.7 — public preview](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.3.7).**
 
 | Download / 下载 | Use / 用途 |
 | --- | --- |
-| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.6/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
-| [ComfortUI-Setup-0.3.6.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.6/ComfortUI-Setup-0.3.6.exe) | Standalone installer, update and removal / 独立安装程序 |
-| [ComfortUI-Manual-0.3.6.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.6/ComfortUI-Manual-0.3.6.zip) | DLL and installation instructions / DLL 与说明 |
-| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.6/ComfortUI-Source-0.3.6.zip) | Mod, interface assets, installer and tests / 源码包 |
-| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.6/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
+| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.7/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
+| [ComfortUI-Setup-0.3.7.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.7/ComfortUI-Setup-0.3.7.exe) | Standalone installer, update and removal / 独立安装程序 |
+| [ComfortUI-Manual-0.3.7.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.7/ComfortUI-Manual-0.3.7.zip) | DLL and installation instructions / DLL 与说明 |
+| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.7/ComfortUI-Source-0.3.7.zip) | Mod, interface assets, installer and tests / 源码包 |
+| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.7/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
 
 ## Features / 功能
 
@@ -32,7 +32,7 @@ An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent Chill
 Development target: **ChilloutVR `2026r182-hf4` (`public-nightly`)**, Unity `2022.3.58f1`, **Mono MelonLoader `0.8.0-ci.2548`**, Windows, .NET Framework 4.8.
 Other game branches or loader builds have not been certified. The installer opens a checksum-verified official MelonLoader installer if a Mono loader is missing; this does not certify every runtime it offers.
 
-This release is a **preview**. 215 managed checks passed; web assets only change version labels, so the 172 isolated UI checks from 0.3.4 are retained as prior evidence, with historical 0.3.1 synthetic Bing and CPU/Vulkan model probes. Version 0.3.6 has not completed a real-client PC/VR, other-device installation or long-session test. See [validation](docs/VALIDATION.md) for the distinction.
+This release is a **preview**. 215 managed checks and 132 isolated HUD checks passed in this release, including a regression reproducing the missing DOM API reported by the real Cohtml client log. The unchanged menu/translation controls retain 54 historical UI checks from 0.3.4, with historical 0.3.1 synthetic Bing and CPU/Vulkan model probes. Version 0.3.7 has not completed a real-client PC/VR, other-device installation or long-session test. See [validation](docs/VALIDATION.md) for the distinction.
 
 ## Install / 安装
 

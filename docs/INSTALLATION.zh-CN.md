@@ -1,10 +1,10 @@
-# Comfort UI 0.3.6 安装说明
+# Comfort UI 0.3.7 安装说明
 
 适用开发目标：Windows、ChilloutVR 2026r182-hf4 public-nightly、Mono MelonLoader 0.8.0-ci.2548、.NET Framework 4.8。其他分支和加载器版本需要自行验证。
 
 ## EXE 安装
 
-从 [GitHub Release](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.3.6) 下载 `ComfortUI-Setup-0.3.6.exe`。正常退出游戏后运行，自动查找或手动选择包含 `ChilloutVR.exe` 的文件夹，再选择「安装 / 更新模组」。
+从 [GitHub Release](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.3.7) 下载 `ComfortUI-Setup-0.3.7.exe`。正常退出游戏后运行，自动查找或手动选择包含 `ChilloutVR.exe` 的文件夹，再选择「安装 / 更新模组」。
 
 缺少加载器时可选择加载器引导：程序下载并校验官方 MelonLoader 安装器，用户在官方界面选择 `ChilloutVR.exe` 并安装适合该游戏的 Mono 加载器，完成后返回本程序安装模组。程序不会替你结束或启动游戏，也不自动替换已存在的加载器。
 
@@ -43,3 +43,7 @@ Release 提供 `SHA256SUMS.txt`。PowerShell 可用 `Get-FileHash -Algorithm SHA
 ## 0.3.6 玩家自选颜色
 
 名牌边框读取每位玩家在游戏「My Profile」中选择的主色，由游戏原生机制同步给其他玩家；这与身份/等级配色不同。对方更换颜色后会跟随更新。0.3.5曾取成身份/等级色，已在本版修正；不需另选一次颜色或让对方安装本模组。
+
+## 0.3.7 麦克风状态修复
+
+在线房间连接提示触发的不兼容DOM调用已移除，提示翻译不再阻断麦克风状态、图标与输入音量刷新。正常退出游戏后更新，重启后测试连接/重连、开关麦克风、说话高亮和提示音。原有语言、配色、翻译配置和模型缓存保留。

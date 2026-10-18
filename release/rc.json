@@ -1,12 +1,12 @@
 {
   "_id": -1,
   "name": "Comfort UI",
-  "modversion": "0.3.6",
+  "modversion": "0.3.7",
   "gameversion": "2026r182-hf4 (public-nightly)",
   "loaderversion": "0.8.0-ci.2548 (Mono)",
   "modtype": "Mod",
   "author": "Local UI Workshop",
-  "description": "Comfort UI 0.3.6：修正0.3.5误用身份/等级颜色的问题。名牌轻薄圆角描边现在读取玩家在My Profile自选并由游戏同步的主色，原生颜色变更后跟随更新。保留柔和底色、清晰姓名、头像与说话提示，以及五语言、菜单动效和可选翻译。\n\n215项托管检查通过；网页仅更新版本字样，沿用0.3.4的172项隔离UI历史验证。真实在线PC/VR取色与视觉效果待确认。\n\nUnofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
+  "description": "Comfort UI 0.3.7：修复在线房间连接提示报错后，麦克风已开启但底部仍显示已静音的问题。提示翻译改用Cohtml支持的基本DOM节点，麦克风状态、图标和音量先刷新，提示翻译单独容错。保留玩家自选主色名牌、五语言、柔和配色、菜单动效及可选翻译。\n\n215项托管与132项本轮隔离HUD检查通过；实际在线PC/VR与音效待更新后确认。\n\nUnofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
   "searchtags": [
     "UI",
     "menu",
@@ -27,8 +27,8 @@
     "[MelonLoader](https://github.com/LavaGang/MelonLoader/releases) — Mono, 0.8.0-ci.2548 (development target)",
     "Windows x64 and .NET Framework 4.8; local model download is optional. See repository installation and translation documentation."
   ],
-  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.6/CVRComfortUI.dll",
+  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.3.7/CVRComfortUI.dll",
   "sourcelink": "https://github.com/xuan5636/ChilloutVR-ComfortUI",
-  "changelog": "0.3.6：名牌边框改用玩家自选主色，修正身份色混淆；原生颜色通知、主线程刷新与缓存恢复。",
+  "changelog": "0.3.7：修复连接提示使用不支持DOM API中断麦克风刷新；提示翻译与麦克风状态隔离。",
   "embedcolor": "#C1CBDC"
 }

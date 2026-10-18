@@ -57,7 +57,7 @@ namespace ComfortUI
         {
             value.Timeout = Timeout.InfiniteTimeSpan;
             value.MaxResponseContentBufferSize = 2 * 1024 * 1024;
-            value.DefaultRequestHeaders.UserAgent.ParseAdd("ComfortUI/0.3.6");
+            value.DefaultRequestHeaders.UserAgent.ParseAdd("ComfortUI/0.3.7");
             return value;
         }
         internal static bool ValidProxy(string address)
