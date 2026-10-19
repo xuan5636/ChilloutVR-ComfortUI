@@ -6,7 +6,9 @@ When reporting a problem, please include your mod/game versions, PC or VR mode, 
 
 ## Support & follow / 支持作者与关注动态
 
-If Comfort UI helps you, you are welcome to support its development or follow the author's channel. Sponsorship is entirely optional. 如果这个模组对你有帮助，欢迎自愿赞助支持后续开发，也欢迎关注作者频道。
+I'm a 14-year-old student developing and maintaining Comfort UI. If you find the mod helpful, you're welcome to support its development. Sponsorship is entirely optional; reporting issues, following my channel, or starring the project also means a lot.
+
+我是一名14岁的学生，正在开发和维护 Comfort UI。如果这个模组对你有帮助，欢迎自愿支持后续开发。赞助完全自愿；反馈问题、关注频道或为项目点一个 Star，也都是对我的支持。
 
 | 微信赞助 / WeChat sponsorship | YouTube / 关注频道 |
 | :---: | :---: |
