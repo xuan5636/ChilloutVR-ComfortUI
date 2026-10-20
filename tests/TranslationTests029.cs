@@ -91,6 +91,7 @@ partial class TranslationTests029
         }
         Pass("Requests are asynchronous, bounded to two, cancellable, and release capacity after cancellation");
         await ProviderChecks();
+        await LanguageChecks();
     }
-    static int Main(){try{Run().GetAwaiter().GetResult();Console.WriteLine("TOTAL "+passed+" passed");System.IO.File.WriteAllText("artifacts/tests/translation-report.json",JsonConvert.SerializeObject(new{version="0.2.14",passed=results,live="Mock HTTP and local Windows encryption only; no game or personal content"},Formatting.Indented));return 0;}catch(Exception e){Console.Error.WriteLine(e);return 1;}}
+    static int Main(){try{Run().GetAwaiter().GetResult();Console.WriteLine("TOTAL "+passed+" passed");System.IO.File.WriteAllText("artifacts/tests/translation-report.json",JsonConvert.SerializeObject(new{version="0.5.1",passed=results,live="Mock HTTP and local Windows encryption only; no game or personal content"},Formatting.Indented));return 0;}catch(Exception e){Console.Error.WriteLine(e);return 1;}}
 }

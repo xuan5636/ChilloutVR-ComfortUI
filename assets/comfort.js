@@ -1,8 +1,9 @@
-/* Comfort UI 0.4.0. System labels are local; optional content translation runs only on request. */
+/* Comfort UI 0.5.1. System labels are local; optional content translation runs only on request. */
 (function () {
     'use strict';
     var host = window.__comfortHost || {};
-    var localePacks=window.__comfortLocales || {}, languageCodes=['zh','en','ja','ko','es'];
+    var localePacks=window.__comfortLocales || {}, commonLanguageCodes=['zh','en','ja','ko','es'], extraLanguageCodes=['zh-Hant','fr','ru','pt-BR','it','id','pl','tr'];
+    var languageCodes=commonLanguageCodes.concat(extraLanguageCodes), languageNames={zh:'chinese',en:'english',ja:'japanese',ko:'korean',es:'spanish','zh-Hant':'traditionalChinese',fr:'french',ru:'russian','pt-BR':'portuguese',it:'italian',id:'indonesian',pl:'polish',tr:'turkish'}, pickerEventsReady=false;
     if (window.ComfortUI) {
         if (host.preferences) window.ComfortUI.updatePreferences(host.preferences, true);
         return;
@@ -52,7 +53,7 @@
             reset: '恢复本模组默认设置', close: '返回常用', applied: '已应用', saved: '已保存到本机', saving: '正在保存…',
             saveFailed: '已应用，但未能保存；重启后可能恢复。',
             unavailable: '当前页面尚未就绪，请稍后再试。', nativeError: '游戏页面暂时无法打开，请使用原有菜单入口。',
-            hint: 'PC · VR', edition: '简洁柔和 · 试用版 0.4.0',
+            hint: 'PC · VR', edition: '简洁柔和 · 试用版 0.5.1',
             notifications: '通知与其他操作', previewAction: '预览中已打开：',
             previewNote: '界面预览中的示例操作', chinese: '简体中文', english: 'English'
         },
@@ -81,7 +82,7 @@
             reset: 'Reset mod preferences', close: 'Back to quick access', applied: 'Applied', saved: 'Saved on this PC', saving: 'Saving…',
             saveFailed: 'Applied, but could not save. Changes may reset after restart.',
             unavailable: 'This page is not ready yet. Please try again shortly.', nativeError: 'Unable to open the game page. Please use its original menu entry.',
-            hint: 'PC · VR', edition: 'Soft minimal · Preview 0.4.0',
+            hint: 'PC · VR', edition: 'Soft minimal · Preview 0.5.1',
             notifications: 'Notifications and more', previewAction: 'Preview opened: ',
             previewNote: 'Sample action in the interface preview', chinese: '简体中文', english: 'English'
         }
@@ -132,7 +133,7 @@
         var next = copy(defaults);
         if (value && languageCodes.indexOf(value.language)>=0) next.language = value.language;
         ['largeText','highContrast','reducedMotion','theme','cameraLayout','nameplateTheme','chatBubbleTheme','chatTranslation','detailTranslation'].forEach(function (key) { if (value && typeof value[key] === 'boolean') next[key] = value[key]; });
-        if(value && ['fade','slide','zoom'].indexOf(value.motionStyle)>=0)next.motionStyle=value.motionStyle;
+        if(value && ['fade','slide','zoom','orbit'].indexOf(value.motionStyle)>=0)next.motionStyle=value.motionStyle;
         if(value && ['fast','normal','gentle'].indexOf(value.motionSpeed)>=0)next.motionSpeed=value.motionSpeed;
         if (value && (palettes[value.palette] || value.palette === 'custom')) next.palette = value.palette;
         ['background','panel','accent'].forEach(function (key) { if (value && /^#[0-9a-fA-F]{6}$/.test(value[key])) next[key] = value[key].toLowerCase(); });
@@ -186,7 +187,12 @@
         html.setAttribute('data-comfort-motion', prefs.reducedMotion ? 'reduced' : 'full');
         html.setAttribute('data-comfort-animation',prefs.motionStyle);
         html.setAttribute('data-comfort-speed',prefs.motionSpeed);
-        html.lang = prefs.language === 'zh' ? 'zh-CN' : prefs.language;
+        // Cohtml does not consistently reflect assignments to the HTML lang property.
+        // Use real attributes, as with the other runtime stylesheet switches.
+        html.setAttribute('lang',prefs.language === 'zh' ? 'zh-CN' : prefs.language);
+        html.setAttribute('data-comfort-language',prefs.language);
+        var face=prefs.language==='ko'?'"Noto Sans KR","Malgun Gothic","Noto Sans",sans-serif':prefs.language==='ja'?'"Noto Sans JP","Yu Gothic","Noto Sans",sans-serif':prefs.language==='zh-Hant'?'"Noto Sans TC","Microsoft JhengHei","Noto Sans SC",sans-serif':prefs.language==='zh'?'"Noto Sans SC","Microsoft YaHei","Noto Sans",sans-serif':'"Noto Sans","Segoe UI","Noto Sans SC","Noto Sans JP","Noto Sans KR",sans-serif';
+        html.style.setProperty('--cu-font',face);html.style.setProperty('--standard-font-family',face);
         if(prefs.reducedMotion || !shown)finishSegmentMotions();
         applyPalette();
     }
@@ -204,7 +210,7 @@
     function applyPalette() {
         var colours=palettes[prefs.palette] || prefs, bg=colours.background, panel=colours.panel, accent=colours.accent;
         var unit=context==='hud'?hudUnit():0;
-        var inputKey=[bg,panel,accent,prefs.highContrast,unit].join(':');
+        var inputKey=[bg,panel,accent,prefs.highContrast,unit,prefs.language].join(':');
         if(applyPalette.inputKey===inputKey && document.getElementById('comfort-theme'))return;
         applyPalette.inputKey=inputKey;
         var text=readable(bg), panelText=readable(panel), line=mix(bg,text,prefs.highContrast?0.6:0.28);
@@ -217,6 +223,7 @@
             '--cu-positive':mix(panel,'#a6c8b4',0.32),'--cu-positive-text':readable(mix(panel,'#a6c8b4',0.32))
         };
         values['--cu-hud-speaking']=ratio('#9bdfc6',bg)>=3?'#9bdfc6':'#136547';
+        values['--cu-font']=document.documentElement.style.getPropertyValue('--cu-font');
         values['--cu-hud-speaking-bg']=mix(bg,values['--cu-hud-speaking'],0.15);
         if(unit){var metrics={max:22,bottom:1.2,padding:1.1,small:1.8,title:2.7,body:2.1,wrapper:18,label:1.45,glyph:5,stroke:0.24,meter:0.36};Object.keys(metrics).forEach(function(key){values['--cu-hud-'+key]=(metrics[key]*unit).toFixed(2)+'px';});}
         colourValues=values;
@@ -242,6 +249,7 @@
         next=validate(next);
         var previous=prefs,changed=Object.keys(next).some(function(key){return next[key]!==previous[key];});
         if(!changed){if(remote){saveStatus='saved';updateSaveState();scheduleDiagnostics();}return;}
+        if(previous.language!==next.language){var open=document.querySelectorAll('.cu-picker-open');for(var i=0;i<open.length;i++)closePicker(open[i],false);}
         prefs=next;localSave();setAttributes();
         if(remote)saveStatus='saved';
         else {
@@ -314,6 +322,68 @@
         }).join('');
         return '<div class="cu-setting" data-setting="'+pref+'"><div class="cu-setting-copy"><div class="cu-setting-title">' + t(key) + '</div><div class="cu-setting-help">' + t(help) + '</div></div><div class="cu-choices" role="group" aria-label="' + t(key) + '">' + options + '</div></div>';
     }
+    function languageChoices(codes){return codes.map(function(code){return [code,languageNames[code]];});}
+    function choicePicker(pref,choices,placeholder){
+        var id='comfort-'+context+'-'+pref+'-options';
+        // The game's capture-phase ScrollHandler prevents default wheel scrolling and
+        // resolves only these two classes. The nearest list must own both wheel and drag.
+        return '<div class="cu-picker" data-picker="'+pref+'" data-placeholder-key="'+(placeholder || '')+'"><button type="button" class="cu-picker-toggle" data-action="select:'+pref+'" aria-haspopup="listbox" aria-expanded="false" aria-controls="'+id+'"><span class="cu-picker-value"></span><span class="cu-picker-chevron" aria-hidden="true"></span></button><div class="cu-picker-list list-content scroll-content" nohorizontal="true" data-content-type="comfort-options" id="'+id+'" role="listbox" style="display:none">'+choices.map(function(choice){return '<button type="button" class="cu-picker-option" role="option" data-pref="'+pref+'" data-value="'+choice[0]+'" data-label-key="'+choice[1]+'" data-language-code="'+choice[0]+'" aria-selected="false" tabindex="-1">'+t(choice[1])+'</button>';}).join('')+'</div><div class="cu-picker-nav no-scroll" style="display:none"><button type="button" data-picker-step="-1"><span class="cu-picker-up" aria-hidden="true"></span><span class="cu-picker-nav-label"></span></button><button type="button" data-picker-step="1"><span class="cu-picker-down" aria-hidden="true"></span><span class="cu-picker-nav-label"></span></button></div></div>';
+    }
+    function pickerRow(key,help,pref,choices){return '<div class="cu-setting cu-picker-setting" data-setting="'+pref+'"><div class="cu-setting-copy"><div class="cu-setting-title">'+t(key)+'</div><div class="cu-setting-help">'+t(help)+'</div></div>'+choicePicker(pref,choices)+'</div>';}
+    function languageSettingRow(){var row=settingRow('language','languageHelp','language',languageChoices(commonLanguageCodes));return row.slice(0,-6)+choicePicker('language',languageChoices(extraLanguageCodes),'moreLanguages')+'</div>';}
+    function closePicker(picker,focus){
+        picker.classList.remove('cu-picker-open');picker.querySelector('.cu-picker-list').style.display='none';picker.querySelector('.cu-picker-nav').style.display='none';
+        var toggle=picker.querySelector('.cu-picker-toggle');toggle.setAttribute('aria-expanded','false');if(focus)toggle.focus();
+    }
+    function openPicker(picker){
+        var open=document.querySelectorAll('.cu-picker-open');for(var i=0;i<open.length;i++)if(open[i]!==picker)closePicker(open[i],false);
+        picker.classList.add('cu-picker-open');picker.querySelector('.cu-picker-list').style.display='block';picker.querySelector('.cu-picker-nav').style.display='flex';picker.querySelector('.cu-picker-toggle').setAttribute('aria-expanded','true');
+        var selected=picker.querySelector('.cu-picker-option[aria-selected="true"]');
+        if(selected)revealPickerOption(picker,selected);else picker.querySelector('.cu-picker-list').scrollTop=0;
+        syncPickerScroll(picker);
+    }
+    function syncPickerScroll(picker){
+        var list=picker.querySelector('.cu-picker-list'),buttons=picker.querySelectorAll('[data-picker-step]');
+        if(!list.clientHeight)return;
+        buttons[0].disabled=list.scrollTop<=1;buttons[1].disabled=list.scrollTop+list.clientHeight>=list.scrollHeight-1;
+    }
+    function revealPickerOption(picker,option){
+        var list=picker.querySelector('.cu-picker-list'),bounds=list.getBoundingClientRect(),item=option.getBoundingClientRect();
+        if(item.top<bounds.top+8)list.scrollTop-=bounds.top+8-item.top;
+        else if(item.bottom>bounds.bottom-8)list.scrollTop+=item.bottom-bounds.bottom+8;
+    }
+    function syncPicker(picker){
+        var pref=picker.getAttribute('data-picker'),options=picker.querySelectorAll('.cu-picker-option'),selected=null;
+        for(var i=0;i<options.length;i++){
+            var active=options[i].getAttribute('data-value')===prefs[pref];
+            options[i].setAttribute('aria-selected',String(active));options[i].classList.toggle('cu-selected',active);options[i].textContent=t(options[i].getAttribute('data-label-key'));if(active)selected=options[i];
+        }
+        var value=picker.querySelector('.cu-picker-value'),toggle=picker.querySelector('.cu-picker-toggle');
+        value.textContent=selected?selected.textContent:t(picker.getAttribute('data-placeholder-key'));
+        value.setAttribute('data-language-code',selected?prefs[pref]:'');toggle.classList.toggle('cu-picker-selected',!!selected);
+        picker.querySelector('.cu-picker-list').setAttribute('aria-label',t(pref==='language'?'moreLanguages':'sourceLanguage'));
+        toggle.setAttribute('aria-label',t(pref==='language'?'moreLanguages':'sourceLanguage')+': '+value.textContent);
+        var pageButtons=picker.querySelectorAll('[data-picker-step]');
+        for(var b=0;b<pageButtons.length;b++){pageButtons[b].querySelector('.cu-picker-nav-label').textContent=t(b?'down':'up');pageButtons[b].setAttribute('aria-label',t(b?'down':'up'));}
+        if(picker.__comfortPicker)return;picker.__comfortPicker=true;
+        picker.querySelector('.cu-picker-list').addEventListener('scroll',function(){syncPickerScroll(picker);});
+        for(var p=0;p<pageButtons.length;p++)pageButtons[p].addEventListener('click',function(event){
+            event.preventDefault();event.stopPropagation();var list=picker.querySelector('.cu-picker-list');
+            list.scrollTop+=Number(this.getAttribute('data-picker-step'))*Math.max(76,list.clientHeight*.8);syncPickerScroll(picker);
+        });
+        picker.addEventListener('keydown',function(event){
+            var key=event.key || event.keyCode,isOpen=picker.classList.contains('cu-picker-open');
+            if(key==='Escape'||key===27){if(isOpen){event.preventDefault();event.stopPropagation();closePicker(picker,true);}return;}
+            if(key==='Tab'||key===9){closePicker(picker,false);return;}
+            var down=key==='ArrowDown'||key===40,up=key==='ArrowUp'||key===38,home=key==='Home'||key===36,end=key==='End'||key===35;
+            if(!down&&!up&&!home&&!end)return;
+            event.preventDefault();event.stopPropagation();var index=Array.prototype.indexOf.call(options,document.activeElement);
+            if(!isOpen){openPicker(picker);index=-1;for(var n=0;n<options.length;n++)if(options[n].getAttribute('aria-selected')==='true')index=n;if(index<0)index=up?options.length-1:0;}
+            else index=home?0:end?options.length-1:Math.max(0,Math.min(options.length-1,index+(down?1:-1)));
+            options[index].focus();revealPickerOption(picker,options[index]);syncPickerScroll(picker);
+        });
+        if(!pickerEventsReady){pickerEventsReady=true;document.addEventListener('mousedown',function(event){var open=document.querySelectorAll('.cu-picker-open');for(var n=0;n<open.length;n++)if(!open[n].contains(event.target))closePicker(open[n],false);});}
+    }
     // Keep one thumb alive across renders. Only active controls use a shared frame;
     // no layout reads or polling are needed to slide, retarget or settle it.
     function segmentTime(){return window.performance && typeof performance.now==='function'?performance.now():Date.now();}
@@ -375,30 +445,33 @@
         var rows=container.querySelectorAll('.cu-setting[data-setting]');
         for(var r=0;r<rows.length;r++){
             var pref=rows[r].getAttribute('data-setting');if(pref==='language')continue;
-            var bar=rows[r].querySelector('.cu-choices'),buttons=bar.querySelectorAll('[data-pref]'),index=-1;
+            var bar=rows[r].querySelector('.cu-choices');if(!bar)continue;
+            var buttons=bar.querySelectorAll('[data-pref]'),index=-1;
             for(var i=0;i<buttons.length;i++){
                 var selected=String(prefs[pref])===buttons[i].getAttribute('data-value');
                 buttons[i].classList.toggle('cu-selected',selected);buttons[i].setAttribute('aria-pressed',selected?'true':'false');if(selected)index=i;
             }
             syncSegmentedBar(bar,buttons.length,index);
         }
+        var pickers=container.querySelectorAll('.cu-picker');for(var p=0;p<pickers.length;p++)syncPicker(pickers[p]);
     }
     function updateLanguageSlider() {
         var row=root.querySelector('[data-setting="language"]'), bar=row.querySelector('.cu-choices');
         row.querySelector('.cu-setting-title').textContent=t('language');
         row.querySelector('.cu-setting-help').textContent=t('languageHelp');
         bar.classList.add('cu-language-slider');bar.setAttribute('aria-label',t('language'));
-        var selected=languageCodes.indexOf(prefs.language);
-        syncSegmentedBar(bar,languageCodes.length,selected);
+        var selected=commonLanguageCodes.indexOf(prefs.language);
+        syncSegmentedBar(bar,commonLanguageCodes.length,selected);
+        syncPicker(row.querySelector('.cu-picker'));
         var buttons=bar.querySelectorAll('[data-pref="language"]');
         for(var i=0;i<buttons.length;i++){
-            buttons[i].classList.toggle('cu-selected',i===selected);buttons[i].setAttribute('aria-pressed',i===selected?'true':'false');buttons[i].setAttribute('tabindex',i===selected?'0':'-1');
+            buttons[i].classList.toggle('cu-selected',i===selected);buttons[i].setAttribute('aria-pressed',i===selected?'true':'false');buttons[i].setAttribute('tabindex',i===(selected<0?0:selected)?'0':'-1');
         }
         if(bar.__comfortLanguage)return;
         bar.__comfortLanguage=true;
-        function select(index){var next=copy(prefs);next.language=languageCodes[index];if(next.language!==prefs.language)setPreferences(next,false);}
+        function select(index){var next=copy(prefs);next.language=commonLanguageCodes[index];if(next.language!==prefs.language)setPreferences(next,false);}
         bar.addEventListener('keydown',function(event){
-            var key=event.key || event.keyCode,index=languageCodes.indexOf(prefs.language);
+            var key=event.key || event.keyCode,index=commonLanguageCodes.indexOf(prefs.language);
             if(key==='ArrowLeft'||key===37)index=Math.max(0,index-1);
             else if(key==='ArrowRight'||key===39)index=Math.min(4,index+1);
             else if(key==='Home'||key===36)index=0;
@@ -409,21 +482,21 @@
         var drag;
         bar.addEventListener('mousedown',function(event){
             if(event.button!==0)return;
-            var bounds=bar.getBoundingClientRect();drag={start:event.clientX,left:bounds.left,width:bounds.width,index:languageCodes.indexOf(prefs.language),moved:false};
+            var bounds=bar.getBoundingClientRect();drag={start:event.clientX,left:bounds.left,width:bounds.width,index:commonLanguageCodes.indexOf(prefs.language),moved:false};
         });
         window.addEventListener('mousemove',function(event){
             if(!drag)return;
             if(Math.abs(event.clientX-drag.start)>8)drag.moved=true;
             if(!drag.moved)return;
             var index=Math.max(0,Math.min(4,Math.floor((event.clientX-drag.left)*5/drag.width)));
-            if(index!==drag.index){drag.index=index;syncSegmentedBar(bar,languageCodes.length,index);}
+            if(index!==drag.index){drag.index=index;syncSegmentedBar(bar,commonLanguageCodes.length,index);}
         });
         window.addEventListener('mouseup',function(){
             if(!drag)return;
             var finished=drag;drag=null;
-            if(finished.moved){bar.__skipClick=true;select(finished.index);syncSegmentedBar(bar,languageCodes.length,languageCodes.indexOf(prefs.language));setTimeout(function(){bar.__skipClick=false;},0);}
+            if(finished.moved){bar.__skipClick=true;select(finished.index);syncSegmentedBar(bar,commonLanguageCodes.length,commonLanguageCodes.indexOf(prefs.language));setTimeout(function(){bar.__skipClick=false;},0);}
         });
-        window.addEventListener('blur',function(){drag=null;syncSegmentedBar(bar,languageCodes.length,languageCodes.indexOf(prefs.language));});
+        window.addEventListener('blur',function(){drag=null;syncSegmentedBar(bar,commonLanguageCodes.length,commonLanguageCodes.indexOf(prefs.language));});
     }
     function colourEditor() {
         var current=palettes[prefs.palette] || prefs;
@@ -440,13 +513,13 @@
     // System text only: login fields, typed text, content names and notifications are excluded.
     var excludedText='script,style,textarea,input,#comfort-ui,#comfort-translation,#comfort-keybinding,[data-comfort-translation-category],#comfort-dock,.cu-dashboard-heading,[data-comfort-system-label],#avatars .filter-content .filter-option:not([data-comfort-category-label]),#friends .filter-content .filter-option:not([data-comfort-category-label]),#worlds .filter-content .filter-option:not([data-comfort-category-label]),#props .filter-content .filter-option:not([data-comfort-category-label]),.activity-content,.profile-username,#profile-title,#group-name-home,.content-name,.game-greeting,.game-version,.hud-message,.prop-name,.input_mirror,.inputLineBlock,.textarea-title,.textarea-info,.notification .header,.notification .content,.notifier-root';
     safeSelectors='.toolbar .toolbar-btn,.toolbar #search-btn,#settings .filter-option,#settings .option-caption,#settings .subcategory-name,#settings .subcategory-description,.list-filter h1,.content-btn,.action-btn,.close-btn,.modal-button,.modal-base h2,.modal-base h3,.content-caption,.user-toolbar .button,#quickmenu-wrapper .quick-button .label,#quickmenu-wrapper .quick-button .inner-toggle,#quickmenu-wrapper .container-back .content,#quickmenu-wrapper .notification-container .header-button,#quickmenu-wrapper .notification-container .header-text,#quickmenu-wrapper .toolbar-container .button,#CVRUI-QMUI-SettingsPage .text-sm,#CVRUI-QMUI-SettingsPage .text-title,#CVRUI-QMUI-SettingsPage .category-header .header,.keyboard-func,.keyboard-mod,.keyboard .settings h2,.keyboard .settings h3,.login-block label,.login-block .button,.login-block .button-no-bg,.login-block .input-button,.login-block h1,.login-block h2,.login-block h3,.icon-block .exit-button';
-    function addLabels(language, values) { Object.keys(values).forEach(function(key){labels[language][key]=values[key];}); }
+    function addLabels(language, values) { if(!labels[language])labels[language]={};Object.keys(values).forEach(function(key){labels[language][key]=values[key];}); }
     addLabels('zh',{
         home:'首页',appearance:'界面与显示',appearanceIntro:'舒适的配色、清晰的文字，按你的习惯调整。',
         languageHelp:'主菜单、快捷菜单、登录与键盘共用此设置。',
         motionHelp:'短暂淡入和平滑高亮；关闭后立即切换，HUD 提示仍会正常收起。',
         reduced:'关闭动效',full:'舒适动效',original:'显示原版界面',resume:'返回新版界面',
-        edition:'Comfort UI 0.4.0',paletteOpen:'调整菜单配色',paletteClose:'收起配色选项',
+        edition:'Comfort UI 0.5.1',paletteOpen:'调整菜单配色',paletteClose:'收起配色选项',
         mainTitle:'你的空间',quickTitle:'快捷操作',mainIntro:'个人信息、动态和游玩操作，清晰分区。',
         reset:'恢复界面默认设置',originalHelp:'临时切回原版；屏幕上会保留返回新版的按钮。',
         textHelp:'调整系统菜单文字；列表和设置可滚动。',saved:'已保存',
@@ -457,7 +530,7 @@
         languageHelp:'Shared by menus, login and keyboard.',
         motionHelp:'Brief fades and smooth highlights. Off switches instantly; HUD notices still dismiss.',
         reduced:'Off',full:'Comfort motion',original:'Show original UI',resume:'Return to Comfort UI',
-        edition:'Comfort UI 0.4.0',paletteOpen:'Adjust menu colours',paletteClose:'Hide colour options',
+        edition:'Comfort UI 0.5.1',paletteOpen:'Adjust menu colours',paletteClose:'Hide colour options',
         mainTitle:'Your space',quickTitle:'Quick actions',mainIntro:'Your profile, activity and play controls, clearly arranged.',
         reset:'Reset interface preferences',originalHelp:'The return button stays available while the original UI is shown.',
         textHelp:'Adjust system labels. Lists and settings remain scrollable.',saved:'Saved',
@@ -469,10 +542,12 @@
     addLabels('en',{cameraLayout:'Camera layout',cameraLayoutHelp:'Zoom, focus and stabilization stay outside. Other tools are grouped by use. The original layout remains available.',cameraUnified:'Unified',cameraOriginal:'Original'});
     addLabels('zh',{chatBubbleStyle:'聊天气泡外观',chatBubbleHelp:'圆角气泡与三点输入提示，向下箭头指向玩家；保留原版透明度与显示时长。',chatBubbleUnified:'新版气泡',chatBubbleOriginal:'原版气泡'});
     addLabels('en',{chatBubbleStyle:'Chat bubble style',chatBubbleHelp:'Rounded messages and three-dot typing hints point down towards the player; native opacity and lifetime are retained.',chatBubbleUnified:'Comfort bubbles',chatBubbleOriginal:'Original bubbles'});
+    addLabels('zh',{moreLanguages:'更多语言'});addLabels('en',{moreLanguages:'More languages'});
+    addLabels('ja',{moreLanguages:'その他の言語'});addLabels('ko',{moreLanguages:'다른 언어'});addLabels('es',{moreLanguages:'Más idiomas'});
     languageCodes.forEach(function(code){
         if(!labels[code])labels[code]=Object.assign({},labels.en);
         Object.assign(labels[code],(localePacks[code] || {}).labels || {});
-        Object.assign(labels[code],{chinese:'简体中文',english:'English',japanese:'日本語',korean:'한국어',spanish:'Español'});
+        Object.assign(labels[code],{chinese:'简体中文',english:'English',japanese:'日本語',korean:'한국어',spanish:'Español',traditionalChinese:'繁體中文',french:'Français',russian:'Русский',portuguese:'Português (Brasil)',italian:'Italiano',indonesian:'Bahasa Indonesia',polish:'Polski',turkish:'Türkçe'});
     });
     var extra={
         'User Interface':'界面与显示','General Menu Settings':'其他界面设置','Quick Menu Settings':'快捷设置',
@@ -608,6 +683,9 @@
             months.forEach(function(name,i){words['core-month-'+i]=[(i+1)+'月',name];});
             days.forEach(function(name,i){words['core-weekday-'+i]=['星期'+['日','一','二','三','四','五','六'][i],name];});
             var translated=function(lang,key,translations) {
+                // Resolve our own keys without replacing the native English registration.
+                // Another language mod may register into that slot before or after us.
+                var local=(pack().quick || {})[key];if(typeof local==='string')return local;
                 if(words[key])return prefs.language==='zh'?words[key][0]:prefs.language==='en'?words[key][1]:((pack().quick || {})[key] || systemText(words[key][1]));
                 var value=original.apply(this,arguments),source=typeof value==='string'?sourceText(value):null;return source?systemText(source):value;
             };
@@ -1035,14 +1113,14 @@
             var active=document.activeElement, pref=active && active.getAttribute('data-pref'), value=active && active.getAttribute('data-value');
             var action=active && active.getAttribute('data-action');
             if(!root.querySelector('.cu-appearance-options'))root.innerHTML='<div class="cu-panel-heading"><span class="cu-kicker">COMFORT</span><h2></h2><p></p></div>'+
-                settingRow('language','languageHelp','language',[['zh','chinese'],['en','english'],['ja','japanese'],['ko','korean'],['es','spanish']])+'<div class="cu-appearance-options"></div>';
+                languageSettingRow()+'<div class="cu-appearance-options"></div>';
             root.querySelector('.cu-panel-heading h2').textContent=t('appearance');root.querySelector('.cu-panel-heading p').textContent=t('appearanceIntro');
             updateLanguageSlider();
             var appearanceKey=[prefs.language,paletteOpen,customPart,colourStep,paletteOpen?JSON.stringify([prefs.palette,prefs.background,prefs.panel,prefs.accent]):''].join('|');
             if(root.__comfortAppearanceKey!==appearanceKey){
             root.__comfortAppearanceKey=appearanceKey;
             root.querySelector('.cu-appearance-options').innerHTML=settingRow('motion','motionHelp','reducedMotion',[[false,'full'],[true,'reduced']])+
-                settingRow('motionStyle','motionStyleHelp','motionStyle',[['fade','motionFade'],['slide','motionSlide'],['zoom','motionZoom']])+
+                settingRow('motionStyle','motionStyleHelp','motionStyle',[['fade','motionFade'],['slide','motionSlide'],['zoom','motionZoom'],['orbit','motionOrbit']])+
                 settingRow('motionSpeed','motionSpeedHelp','motionSpeed',[['fast','motionFast'],['normal','motionNormal'],['gentle','motionGentle']])+
                 settingRow('cameraLayout','cameraLayoutHelp','cameraLayout',[[true,'cameraUnified'],[false,'cameraOriginal']])+
                 settingRow('nameplateStyle','nameplateHelp','nameplateTheme',[[true,'nameplateUnified'],[false,'nameplateOriginal']])+
@@ -1118,7 +1196,7 @@
         if(translationPanel.__comfortKey!==translationRenderKey){translationPanel.__comfortKey=translationRenderKey;
         translationPanel.innerHTML='<div class="cu-panel-heading"><h2>'+t('translationTitle')+'</h2><p>'+t('translationIntro')+'</p></div>'+
             settingRow('translationProvider','translationProviderHelp','translationProvider',[['google','google'],['mymemory','mymemory'],['microsoft','microsoft'],['ai','ai'],['local','local']])+
-            settingRow('sourceLanguage','sourceHelp','sourceLanguage',[['auto','autoDetect'],['zh','chinese'],['en','english'],['ja','japanese'],['ko','korean'],['es','spanish']])+
+            pickerRow('sourceLanguage','sourceHelp','sourceLanguage',[['auto','autoDetect']].concat(languageChoices(languageCodes)))+
             '<div class="cu-service-config" data-service-config="ai">'+translationField('aiEndpoint','aiEndpointHelp',512)+translationField('aiModel','aiModelHelp',120)+'</div>'+
             '<div class="cu-service-config" data-service-config="microsoft"><p class="cu-setting-help">'+t('bingHelp')+'</p></div>'+
             '<div class="cu-service-config" data-service-config="local"><h3>'+t('localModelTitle')+'</h3><p class="cu-setting-help">'+t('localModelHelp')+'</p>'+settingRow('localAcceleration','localAccelerationHelp','localAcceleration',[['cpu','localCpu'],['auto','localAuto']])+'<div class="cu-translation-actions">'+button('translation-local-prepare',t('localPrepare'),'cu-original')+button('translation-local-cancel',t('localCancel'),'cu-original')+'</div><p class="cu-local-status" role="status"></p></div>'+
@@ -1246,11 +1324,13 @@
         report('click',pref || action);
         if(pref) {
             if(pref==='language' && target.parentNode.__skipClick)return;
+            var picker=target.closest('.cu-picker');if(picker)closePicker(picker,false);
             var next=copy(prefs),value=target.getAttribute('data-value');
             next[pref]=typeof defaults[pref]==='string'?value:value==='true';
             if(pref==='palette' && palettes[value])['background','panel','accent'].forEach(function(key){next[key]=palettes[value][key];});
-            setPreferences(next,false);return;
+            setPreferences(next,false);if(picker && document.documentElement.contains(picker))picker.querySelector('.cu-picker-toggle').focus();return;
         }
+        if(action && action.indexOf('select:')===0){var picker=target.closest('.cu-picker');if(picker.classList.contains('cu-picker-open'))closePicker(picker,false);else openPicker(picker);return;}
         if(action==='original'){setMode(false);return;}
         if(action==='resume'){setMode(true);return;}
         if(action==='palette-toggle'){paletteOpen=!paletteOpen;render();return;}
@@ -1419,7 +1499,7 @@
                 }
             }
             compatibilityReady=valid;
-            report('layout',{version:'0.4.0',width:Math.round(bounds.width),height:Math.round(bounds.height),background:style.backgroundColor,font:style.fontFamily,home:homeActive,hit:hit,valid:!!valid});
+            report('layout',{version:'0.5.1',width:Math.round(bounds.width),height:Math.round(bounds.height),background:style.backgroundColor,font:style.fontFamily,home:homeActive,hit:hit,valid:!!valid});
             if(!valid && ++layoutFailures>=2) {
                 restoreHome();restoreMicrophone();shown=false;setAttributes();render();openNativeHome();
                 report('compatibility-fallback','Original UI restored; return control retained.');
@@ -1470,8 +1550,45 @@
     }
     function hudHook(name,after) {
         var original=window[name];if(typeof original!=='function')return;
-        var wrapped=function(){var result=original.apply(this,arguments);after.apply(this,arguments);return result;};
+        var wrapped=function(){var result=original.apply(this,arguments);try{after.apply(this,arguments);}catch(ignored){disableHudReplacement();}return result;};
         window[name]=wrapped;hudHooks.push({name:name,original:original,wrapped:wrapped});
+    }
+    function disableHudReplacement(){
+        document.documentElement.removeAttribute('data-comfort-hud-ready');
+        document.documentElement.removeAttribute('data-comfort-hud-stage');
+        if(hud){clearTimeout(hud.verifyTimer);hud.verifyTimer=0;hud.ready=false;hud.mic.style.display='none';hud.mic.style.visibility='hidden';if(hud.rail)hud.rail.style.display='none';}
+    }
+    function queueHudVerification(reset){
+        if(!hud || !shown)return;
+        if(reset){hud.verifyAttempts=0;hud.verifyFailed=false;}
+        if(hud.verifyFailed || hud.verifyTimer)return;
+        hud.verifyTimer=setTimeout(function(){hud.verifyTimer=0;verifyHudReplacement();},80);
+    }
+    function verifyHudReplacement(){
+        if(!hud)return;var html=document.documentElement;
+        try{
+            if(!shown){disableHudReplacement();return;}
+            if(!html.contains(hud.mic) || !hud.nativeLive || !hud.nativeTts || !hud.icon.querySelector('.cu-mic-capsule') || !hud.icon.querySelector('.cu-mic-slash')){disableHudReplacement();return;}
+            // Cohtml may defer the first layout after inserting a stylesheet. Stage
+            // the complete card invisibly while the original microphone stays visible.
+            // A bounded startup/resize retry replaces the former one-shot zero-size fail.
+            html.setAttribute('data-comfort-hud-stage','probe');
+            hud.mic.style.display='flex';if(!hud.ready)hud.mic.style.visibility='hidden';
+            var glyph=hud.icon.querySelector('.cu-mic-capsule').getBoundingClientRect(),card=hud.mic.getBoundingClientRect();
+            // A small render texture or the user's HUD scale is still a valid layout.
+            // Fixed 2px/12px thresholds rejected working miniature HUDs as broken.
+            if(glyph.width<=0 || glyph.height<=0 || card.width<=0 || card.height<=0 || glyph.width>card.width || glyph.height>card.height){
+                html.removeAttribute('data-comfort-hud-ready');hud.ready=false;hud.mic.style.visibility='hidden';if(hud.rail)hud.rail.style.display='none';
+                hud.verifyAttempts=(hud.verifyAttempts||0)+1;
+                if(hud.verifyAttempts<12)queueHudVerification(false);
+                else {disableHudReplacement();hud.verifyFailed=true;report('hud-replacement',{ready:false,reason:'layout-not-ready',attempts:12});}
+                return;
+            }
+            html.setAttribute('data-comfort-hud-ready','true');html.removeAttribute('data-comfort-hud-stage');
+            hud.mic.style.visibility='visible';if(hud.rail)hud.rail.style.display='flex';
+            if(!hud.ready)report('hud-replacement',{ready:true,attempts:(hud.verifyAttempts||0)+1});
+            hud.ready=true;hud.verifyAttempts=0;
+        }catch(ignored){disableHudReplacement();}
     }
     function localizeHudMessage() {
         if(!hud || !hud.message)return;
@@ -1505,6 +1622,9 @@
         try{localizeHudMessage();}catch(ignored){}
     }
     function refreshHud() {
+        try{refreshHudContents();if(hud && !hud.ready)queueHudVerification(false);return true;}catch(ignored){disableHudReplacement();return false;}
+    }
+    function refreshHudContents() {
         if(!hud)return;
         if(prefs.reducedMotion || !shown || !prefs.theme || document.hidden)finishHudMotion();
         // The native voice manager snapshot wins over a stale HUD after joining/reloading.
@@ -1595,13 +1715,13 @@
     function installHud() {
         if(context!=='hud' || hud)return;
         var wrapper=document.querySelector('.hex-hub-wrapper'),shards=document.querySelector('.shards');
-        if(!wrapper || !shards)return;
-        var mic=document.createElement('div');mic.className='cu-hud-mic';mic.setAttribute('aria-live','off');
+        if(!wrapper || !shards || !wrapper.querySelector('.hub-unmuted') || !wrapper.querySelector('.hub-unmuted-image'))return;
+        var mic=document.createElement('div');mic.className='cu-hud-mic';mic.setAttribute('aria-live','off');mic.style.display='none';mic.style.visibility='hidden';
         mic.innerHTML='<span class="cu-hud-mic-symbol">'+hudMicGlyph('cu-hud-mic-previous')+hudMicGlyph('cu-hud-mic-icon')+'</span><span class="cu-hud-mic-label"></span><div class="cu-hud-meter"><span></span></div>';
         wrapper.appendChild(mic);
-        var rail=document.createElement('div');rail.className='cu-hud-badges';shards.appendChild(rail);
+        var rail=document.createElement('div');rail.className='cu-hud-badges';rail.style.display='none';shards.appendChild(rail);
         var nativeLive=wrapper.querySelector('.hub-unmuted'),nativeTts=wrapper.querySelector('.hub-unmuted-image');
-        hud={mic:mic,icon:mic.querySelector('.cu-hud-mic-icon'),previous:mic.querySelector('.cu-hud-mic-previous'),label:mic.querySelector('.cu-hud-mic-label'),meter:mic.querySelector('.cu-hud-meter span'),message:document.querySelector('.hud-message'),nativeLive:nativeLive,nativeTts:nativeTts,nativeMeter:wrapper.querySelector('.hub-muted-bar .bar-content'),glyphBorders:Array.prototype.slice.call(mic.querySelectorAll('.cu-mic-capsule,.cu-mic-cradle,.cu-mic-tts')),glyphFills:Array.prototype.slice.call(mic.querySelectorAll('.cu-mic-stem,.cu-mic-foot,.cu-mic-slash')),badges:[]};
+        hud={mic:mic,rail:rail,icon:mic.querySelector('.cu-hud-mic-icon'),previous:mic.querySelector('.cu-hud-mic-previous'),label:mic.querySelector('.cu-hud-mic-label'),meter:mic.querySelector('.cu-hud-meter span'),message:document.querySelector('.hud-message'),nativeLive:nativeLive,nativeTts:nativeTts,nativeMeter:wrapper.querySelector('.hub-muted-bar .bar-content'),glyphBorders:Array.prototype.slice.call(mic.querySelectorAll('.cu-mic-capsule,.cu-mic-cradle,.cu-mic-tts')),glyphFills:Array.prototype.slice.call(mic.querySelectorAll('.cu-mic-stem,.cu-mic-foot,.cu-mic-slash')),badges:[]};
         ['infos','friends','notifications','comms','votes','alerts'].forEach(function(name){
             var native=shards.querySelector('.shard-'+name);if(!native)return;
             var badge=document.createElement('span');badge.className='cu-hud-badge';
@@ -1614,12 +1734,12 @@
         hudHook('TimeoutShard',refreshHud);
         hudHook('setMicLevel',refreshHudMeter);
         // Observe only native state attributes; no document scans or per-frame style/layout reads.
-        hudObserver=new MutationObserver(function(records){var changed=false,meter=false;records.forEach(function(r){if(r.target===hud.nativeMeter)meter=true;else changed=true;});if(changed)refreshHud();if(meter)refreshHudMeter();});
-        [nativeLive,nativeTts,wrapper.querySelector('.hub-muted'),hud.nativeMeter].concat(hud.badges.map(function(item){return item.native;})).forEach(function(node){if(node)hudObserver.observe(node,{attributes:true,attributeFilter:['style','src','class']});});
+        hudObserver=new MutationObserver(function(records){var changed=false,meter=false,visibility=false;records.forEach(function(r){if(r.target===hud.nativeMeter)meter=true;else changed=true;if(r.target===wrapper)visibility=true;});if(changed)refreshHud();if(meter)refreshHudMeter();if(visibility && !hud.ready)queueHudVerification(true);});
+        [wrapper,nativeLive,nativeTts,wrapper.querySelector('.hub-muted'),hud.nativeMeter].concat(hud.badges.map(function(item){return item.native;})).forEach(function(node){if(node)hudObserver.observe(node,{attributes:true,attributeFilter:['style','src','class']});});
         if(hud.message)hudObserver.observe(hud.message,{childList:true,subtree:true,characterData:true});
-        if(window.engine && typeof engine.on==='function')engine.on('SetHudScale',function(scale,fillX,fillY){scale=Number(scale);fillY=Number(fillY);if(isFinite(scale)&&scale>0&&isFinite(fillY)&&fillY>0){hudScale={scale:scale,fill:fillY};applyPalette();}});
-        window.addEventListener('resize',applyPalette);
-        refreshHud();refreshHudMeter();
+        if(window.engine && typeof engine.on==='function')engine.on('SetHudScale',function(scale,fillX,fillY){scale=Number(scale);fillY=Number(fillY);if(isFinite(scale)&&scale>0&&isFinite(fillY)&&fillY>0){hudScale={scale:scale,fill:fillY};applyPalette();queueHudVerification(true);}});
+        window.addEventListener('resize',function(){applyPalette();queueHudVerification(true);});
+        if(refreshHud())queueHudVerification(true);
     }
     function mount(attempt) {
         if(mounted)return;
@@ -1641,12 +1761,12 @@
         window.addEventListener('storage',function(e){if(e.key===KEY&&e.newValue)try{setPreferences(JSON.parse(e.newValue),true);}catch(ignored){}});
         window.addEventListener('beforeunload',function(){observer.disconnect();if(hudObserver)hudObserver.disconnect();finishHudMotion();stopHudLevelTimer();clearTimeout(refreshTimer);clearTimeout(quickLabelTimer);clearTimeout(diagnosticTimer);clearTimeout(currentToast);hudHooks.forEach(function(hook){if(window[hook.name]===hook.wrapped)window[hook.name]=hook.original;});});
         document.addEventListener('visibilitychange',function(){if(document.hidden){finishSegmentMotions();finishHudMotion();}});
-        report('ready',{version:'0.4.0',settings:!!root,dashboard:!!dashboard});
+        report('ready',{version:'0.5.1',settings:!!root,dashboard:!!dashboard});
     }
     try{var stored=localStorage.getItem(KEY);if(stored)prefs=validate(JSON.parse(stored));}catch(ignored){}
     if(host.preferences)prefs=validate(host.preferences);
     window.ComfortUI={
-        version:'0.4.0',hudMicrophone:updateHudMicrophone,hudMicrophoneLevel:updateHudMicrophoneLevel,localModelState:updateLocalModelState,translationNotice:function(code,enabled){if(typeof enabled==='boolean')updateChatState(enabled);translationStatus=code;if(translationPanel){var status=translationPanel.querySelector('.cu-translation-status');if(status)status.textContent=t(code);}toast(t(code));},chatState:updateChatState,updatePreferences:setPreferences,getPreferences:function(){return copy(prefs);},
+        version:'0.5.1',hudMicrophone:updateHudMicrophone,hudMicrophoneLevel:updateHudMicrophoneLevel,localModelState:updateLocalModelState,translationNotice:function(code,enabled){if(typeof enabled==='boolean')updateChatState(enabled);translationStatus=code;if(translationPanel){var status=translationPanel.querySelector('.cu-translation-status');if(status)status.textContent=t(code);}toast(t(code));},chatState:updateChatState,updatePreferences:setPreferences,getPreferences:function(){return copy(prefs);},
         translationErrorText:function(code){return labels.en[code]?t(code):t('network');},
         preferenceFailed:function(){saveStatus='saveFailed';render();},
         showPreviewNotice:toast,setMode:setMode,

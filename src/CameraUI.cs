@@ -10,6 +10,8 @@ using Newtonsoft.Json.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using Object = UnityEngine.Object;
 
 namespace ComfortUI
@@ -33,9 +35,10 @@ namespace ComfortUI
         {
             var words = new Dictionary<string, Dictionary<string, string>> { ["zh"] = JsonConvert.DeserializeObject<Dictionary<string, string>>(dictionary) };
             var packs = JObject.Parse(languagePacks);
-            foreach (var code in new[] { "ja", "ko", "es" }) words[code] = packs[code]["camera"].ToObject<Dictionary<string, string>>();
+            foreach (var code in LanguageSupport.Codes)
+                if (code != "zh" && code != "en" && packs[code]?["camera"] != null) words[code] = packs[code]["camera"].ToObject<Dictionary<string, string>>();
             labels = new CameraLabels(words);
-            foreach (var name in new[] { "Start", "OnEnable", "OnDisable", "SetCaptureMode", "UpdateOptionsDisplay", "OnPostVRModeSwitch", "ToggleLockCameraUI" })
+            foreach (var name in new[] { "Start", "OnEnable", "OnDisable", "SetCaptureMode", "UpdateOptionsDisplay", "OnPostVRModeSwitch", "ToggleLockCameraUI", "ToggleSettings" })
             {
                 var method = AccessTools.Method(typeof(PortableCamera), name);
                 if (method != null) harmony.Patch(method, postfix: new HarmonyMethod(typeof(CameraUI), nameof(CameraChanged)));
@@ -115,7 +118,7 @@ namespace ComfortUI
             if (!fontAttempts.Add(code)) return null;
             // Font(string path) is supported by this game's actual Unity runtime.
             // OS fallback fonts can render in Unity yet expose no CJK face to TMP.
-            var filename = code == "ja" ? "NotoSansJP.ttf" : code == "ko" ? "NotoSansKR.ttf" : code == "zh" ? "NotoSansSC.ttf" : "NotoSans.ttf";
+            var filename = LanguageSupport.FontFile(code);
             var path = Path.Combine(Application.streamingAssetsPath, "Cohtml", "UIResources", "Fonts", filename);
             string failure = "No usable font face";
             for (var attempt = 0; attempt < 2; attempt++)
@@ -195,16 +198,19 @@ namespace ComfortUI
             private readonly RectTransform canvas;
             private readonly Dictionary<TMP_Text, TextState> text = new Dictionary<TMP_Text, TextState>();
             private readonly List<Action> restore = new List<Action>();
-            private readonly HashSet<int> savedRects = new HashSet<int>(), savedImages = new HashSet<int>();
+            private readonly HashSet<int> savedRects = new HashSet<int>(), savedImages = new HashSet<int>(), savedButtons = new HashSet<int>();
             private readonly List<GameObject> owned = new List<GameObject>();
             private readonly List<ModState> mods = new List<ModState>();
             private readonly List<KeyValuePair<TMP_Text, string>> captions = new List<KeyValuePair<TMP_Text, string>>();
             private readonly Dictionary<TMP_Text, float> captionSizes = new Dictionary<TMP_Text, float>();
-            private RectTransform common, drawer;
+            private RectTransform common, drawer, modeOverlay;
+            private Vector3 modeOverlayOrigin;
             private ScrollRect scroll;
             private CanvasGroup drawerGroup;
             private BoxCollider toolbarCollider, drawerCollider;
-            private Button effectsButton, framingButton;
+            private Button effectsButton, framingButton, closeButton;
+            private bool layoutVr;
+            private Vector2 layoutSize;
             private CameraGroup? selected;
             private bool built, lastLayoutRequested = true, reported;
             private float animationFrom, animationTo, animationStart, animationDuration;
@@ -250,7 +256,7 @@ namespace ComfortUI
                 foreach (var setting in Camera.@interface.settings) if (setting != null) TranslateKnownText(setting.DisplayNameText);
                 if (built)
                 {
-                    AddMods(); Theme(); UpdateCaptions(); UpdateVisibility();
+                    AddMods(); Reflow(); Theme(); UpdateCaptions(); UpdateVisibility();
                     if (preferences.reducedMotion) FinishAnimation();
                 }
                 ModCount = Camera.loadedMods.Count; SettingCount = Camera.@interface.settings.Count;
@@ -310,10 +316,61 @@ namespace ComfortUI
             {
                 var rect = NewRect("Comfort-" + group, common); Place(rect, x, 0, width, 196);
                 var image = Panel(rect); var button = rect.gameObject.AddComponent<Button>(); button.targetGraphic = image;
-                var colours = button.colors; colours.normalColor = Color.white; colours.highlightedColor = new Color(1.1f, 1.1f, 1.1f, 1); colours.pressedColor = new Color(.8f, .8f, .8f, 1); colours.fadeDuration = .08f; button.colors = colours;
+                StyleButton(button, image);
                 var caption = Caption(rect, source, 39); Stretch(caption.rectTransform, 18);
                 button.onClick.AddListener(() => SelectGroup(selected == group ? (CameraGroup?)null : group));
                 return button;
+            }
+
+            private void StyleButton(Button button, Image image)
+            {
+                if (button == null || image == null || !savedButtons.Add(button.GetInstanceID())) return;
+                var previous = button.colors; var transition = button.transition;
+                restore.Add(() => { if (button != null) { button.colors = previous; button.transition = transition; } });
+                button.transition = Selectable.Transition.ColorTint;
+                var colours = previous; colours.normalColor = colours.selectedColor = Color.white;
+                colours.highlightedColor = new Color(.82f, .88f, 1f, 1f);
+                colours.pressedColor = new Color(.7f, .76f, .85f, 1f); colours.fadeDuration = .08f; button.colors = colours;
+                // The original EventTrigger also swaps background sprites on enter/exit.
+                // Suppress only those persistent image callbacks; tooltip and click
+                // listeners keep working, including their original native routes.
+                var trigger = button.GetComponent<EventTrigger>();
+                if (trigger == null) return;
+                foreach (var entry in trigger.triggers)
+                    for (var index = 0; index < entry.callback.GetPersistentEventCount(); index++)
+                        if (CameraPolicy.ReplaceHoverCallback(entry.callback.GetPersistentMethodName(index), entry.callback.GetPersistentTarget(index) == image))
+                        {
+                            var callback = entry.callback; var slot = index; var state = callback.GetPersistentListenerState(slot);
+                            callback.SetPersistentListenerState(slot, UnityEventCallState.Off);
+                            restore.Add(() => { if (button != null) callback.SetPersistentListenerState(slot, state); });
+                        }
+            }
+
+            private void AddCloseButton()
+            {
+                var rect = NewRect("Comfort-Camera-Close", canvas); Place(rect, 816, 468, 240, 104);
+                var image = Panel(rect); closeButton = rect.gameObject.AddComponent<Button>(); closeButton.targetGraphic = image;
+                StyleButton(closeButton, image);
+                var label = Caption(rect, "Close camera", 35); Stretch(label.rectTransform, 14);
+                var hit = rect.gameObject.AddComponent<BoxCollider>(); hit.isTrigger = true; hit.size = new Vector3(240, 104, .025f);
+                closeButton.onClick.AddListener(() => {
+                    var controller = PortableCameraController.Instance;
+                    if (controller != null) controller.Disable();
+                });
+            }
+
+            private void Reflow()
+            {
+                if (!built || canvas == null || common == null || drawer == null) return;
+                var vr = ABI_RC.Core.Savior.MetaPort.Instance != null && ABI_RC.Core.Savior.MetaPort.Instance.isUsingVr;
+                var size = canvas.rect.size;
+                if (layoutSize == size && layoutVr == vr) return;
+                layoutSize = size; layoutVr = vr;
+                var plan = CameraPolicy.Layout(vr, size.x, size.y);
+                Place(common, 0, plan.ToolbarY, 2440, 220); common.localScale = Vector3.one * plan.ToolbarScale;
+                Place(drawer, 0, plan.DrawerY, 2200, 520); drawer.localScale = Vector3.one * plan.DrawerScale;
+                if (closeButton != null) Place((RectTransform)closeButton.transform, plan.CloseX, plan.CloseY, 240, 104);
+                if (modeOverlay != null) modeOverlay.anchoredPosition3D = modeOverlayOrigin + new Vector3(0, vr ? 0 : 895, 0);
             }
 
             private void Build()
@@ -362,7 +419,9 @@ namespace ComfortUI
                 SaveImage(settingsImage); if (settingsImage != null) { settingsImage.sprite = RoundedPanel(); settingsImage.type = Image.Type.Sliced; }
                 effectsButton = GroupButton("Filters & effects", 600, 360, CameraGroup.Effects);
                 framingButton = GroupButton("Framing & tracking", 1000, 400, CameraGroup.Framing);
-                AddButtonCaptions(); built = true; AddMods();
+                modeOverlay = canvas.Find("Background/TextOverlay") as RectTransform;
+                if (modeOverlay != null) { SaveRect(modeOverlay); modeOverlayOrigin = modeOverlay.anchoredPosition3D; }
+                AddButtonCaptions(); AddCloseButton(); built = true; layoutSize = Vector2.zero; Reflow(); AddMods();
                 drawerGroup.alpha = 0; drawerGroup.interactable = drawerGroup.blocksRaycasts = false; drawer.gameObject.SetActive(false);
             }
 
@@ -388,6 +447,7 @@ namespace ComfortUI
                 {
                     var control = backgroundRoot.Find(pair.Key) as RectTransform; if (control == null) continue;
                     var image = control.GetComponent<Image>(); SaveImage(image); if (image != null) { image.sprite = RoundedPanel(); image.type = Image.Type.Sliced; }
+                    StyleButton(control.GetComponent<Button>(), image);
                     var label = Caption(control, pair.Value, 35); Place(label.rectTransform, 0, -86, 200, 62);
                     // Native left-side buttons are mirrored. Counter-mirror the readable label.
                     label.rectTransform.localScale = new Vector3(control.localScale.x < 0 ? -1 : 1, 1, 1);
@@ -407,6 +467,7 @@ namespace ComfortUI
                     if (group == CameraGroup.Common) Place(wrapper, pair.Key.GetType().Name == "AutoFocus" ? 50 : 290, 0, 220, 196);
                     root.SetParent(wrapper, false); Stretch(root);
                     var image = root.GetComponent<Image>(); SaveImage(image); if (image != null) { image.sprite = RoundedPanel(); image.type = Image.Type.Sliced; }
+                    StyleButton(root.GetComponent<Button>(), image);
                     var icon = root.Find("Icon") as RectTransform; if (icon != null) { SaveRect(icon); icon.anchoredPosition = new Vector2(0, 26); }
                     if (mod.activeOverlay != null)
                     {
@@ -433,6 +494,11 @@ namespace ComfortUI
             }
             private void UpdateVisibility()
             {
+                // The native settings sheet owns the preview while it is open. Keep
+                // the added toolbar/drawer from covering its lower setting controls.
+                var settingsOpen = Camera.settingsMenu != null && Camera.settingsMenu.activeSelf;
+                if (common != null && common.gameObject.activeSelf == settingsOpen) common.gameObject.SetActive(!settingsOpen);
+                if (settingsOpen && selected != null) { selected = null; FinishAnimation(); }
                 foreach (var mod in mods)
                     if (mod.Mod != null && mod.Wrapper != null)
                     {
@@ -455,6 +521,9 @@ namespace ComfortUI
             }
             internal void Animate()
             {
+                // Constant-size reads only; no Canvas tree scan. Handles PC resize and
+                // the game's VR/desktop switch while the camera is already open.
+                Reflow();
                 if (!built || drawerGroup == null || animationDuration <= 0) return;
                 var progress = Mathf.Clamp01((Time.realtimeSinceStartup - animationStart) / animationDuration);
                 drawerGroup.alpha = Mathf.Lerp(animationFrom, animationTo, 1 - Mathf.Pow(1 - progress, 3));
@@ -487,6 +556,7 @@ namespace ComfortUI
                 if (common != null) common.GetComponent<Image>().color = background;
                 if (effectsButton != null) effectsButton.GetComponent<Image>().color = selected == CameraGroup.Effects ? Color.Lerp(panel, accent, .32f) : panel;
                 if (framingButton != null) framingButton.GetComponent<Image>().color = selected == CameraGroup.Framing ? Color.Lerp(panel, accent, .32f) : panel;
+                if (closeButton != null) closeButton.GetComponent<Image>().color = panel;
                 if (scroll != null && scroll.viewport != null && scroll.viewport.GetComponent<Image>() != null) scroll.viewport.GetComponent<Image>().color = background;
                 foreach (var mod in mods)
                 {
@@ -511,8 +581,8 @@ namespace ComfortUI
             {
                 for (var i = restore.Count - 1; i >= 0; i--) try { restore[i](); } catch { }
                 foreach (var go in owned) if (go != null) Object.Destroy(go);
-                restore.Clear(); savedRects.Clear(); savedImages.Clear(); owned.Clear(); mods.Clear(); captions.Clear(); captionSizes.Clear();
-                common = null; drawer = null; effectsButton = framingButton = null; drawerGroup = null; toolbarCollider = drawerCollider = null;
+                restore.Clear(); savedRects.Clear(); savedImages.Clear(); savedButtons.Clear(); owned.Clear(); mods.Clear(); captions.Clear(); captionSizes.Clear();
+                common = null; drawer = null; modeOverlay = null; effectsButton = framingButton = closeButton = null; drawerGroup = null; toolbarCollider = drawerCollider = null;
                 built = false; reported = false; selected = null; animationDuration = 0;
                 foreach (var state in text.Values) if (state.Node != null) { state.Node.color = state.Color; state.Node.fontSize = state.Size; }
             }

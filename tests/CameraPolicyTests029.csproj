@@ -1,4 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
  <PropertyGroup><TargetFramework>net48</TargetFramework><OutputType>Exe</OutputType><LangVersion>latest</LangVersion><EnableDefaultCompileItems>false</EnableDefaultCompileItems><AssemblyName>CameraPolicyTests029</AssemblyName></PropertyGroup>
- <ItemGroup><Reference Include="System.Web.Extensions"/><Compile Include="CameraPolicyTests029.cs"/><Compile Include="../src/CameraPolicy.cs"/></ItemGroup>
+ <ItemGroup><Reference Include="System.Web.Extensions"/><Compile Include="CameraPolicyTests029.cs"/><Compile Include="../src/CameraPolicy.cs"/><Compile Include="../src/LanguageSupport.cs"/></ItemGroup>
 </Project>

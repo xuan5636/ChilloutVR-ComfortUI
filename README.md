@@ -3,26 +3,26 @@
 An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent ChilloutVR interface.
 非官方 ChilloutVR 界面模组：柔和配色、统一控件、多语言和可选翻译。
 
-**Current public release: [0.4.0 — public preview](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.4.0).** Rounded three-dot typing hints and centered downward chat pointers; includes the 0.3.8 chat/prop fixes. Published after user testing. / 当前公开版 0.4.0，统一输入提示与聊天箭头，已完成用户测试并作为公开预览版发布。
+**Current public release: [0.5.1 — public preview](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.5.1).** Includes 13 languages, scrollable language lists, Korean font selection, direct camera closing, camera hover/layout fixes, an optional fourth motion style and microphone style recovery. Published with the user's authorization; real-client/VR checks and native-speaker review remain separate from the automated checks. / **当前公开版0.5.1。** 合并13语言更新及语言列表、韩语、相机和麦克风修复，新增第四种可选动效；已获用户授权发布，实机与母语审校范围见[验证记录](docs/VALIDATION.md)。
 
 | Download / 下载 | Use / 用途 |
 | --- | --- |
-| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.4.0/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
-| [ComfortUI-Setup-0.4.0.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.4.0/ComfortUI-Setup-0.4.0.exe) | Standalone installer, update and removal / 独立安装程序 |
-| [ComfortUI-Manual-0.4.0.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.4.0/ComfortUI-Manual-0.4.0.zip) | DLL and installation instructions / DLL 与说明 |
-| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.4.0/ComfortUI-Source-0.4.0.zip) | Mod, interface assets, installer and tests / 源码包 |
-| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.4.0/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
+| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.1/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
+| [ComfortUI-Setup-0.5.1.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.1/ComfortUI-Setup-0.5.1.exe) | Standalone installer, update and removal / 独立安装程序 |
+| [ComfortUI-Manual-0.5.1.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.1/ComfortUI-Manual-0.5.1.zip) | DLL and installation instructions / DLL 与说明 |
+| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.1/ComfortUI-Source-0.5.1.zip) | Mod, interface assets, installer and tests / 源码包 |
+| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.1/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
 
 ## Features / 功能
 
 - Main/quick menus, settings, details, instance creation, login, virtual keyboard and HUD share a soft, configurable theme. A separate microphone control keeps navigation focused.
-- First startup without a saved preference file follows the Windows display language (zh/en/ja/ko/es); unsupported languages fall back to English. Upgrades retain the saved choice.
-- 简体中文 / English / 日本語 / 한국어 / Español in a single-row language selector. Built-in labels and camera controls use local dictionaries; world/avatar/prop names remain original until translated on request.
+- First startup without a saved preference file follows the Windows display language when it maps to one of 13 supported languages; unsupported languages fall back to English. Upgrades retain the saved choice.
+- 13 languages: Simplified/Traditional Chinese, English, Japanese, Korean, Spanish, French, Russian, Brazilian Portuguese, Italian, Indonesian, Polish and Turkish. The five frequent choices stay on a single-row slider; the other eight open from a secondary selector with wheel/drag scrolling and paging buttons. Some low-frequency translations are machine-drafted and need native-speaker review. Built-in labels and camera controls use local dictionaries; world/avatar/prop names remain original until translated on request.
 - Smooth sliding highlights on segmented choices, including native game settings; rapid changes continue from the visible position. Three speeds and motion Off apply consistently.
-- Matching switches, short-option selectors, sliders and numeric inputs. Three motion styles and three speeds; animations can be disabled in **Settings → Interface & display**.
+- Matching switches, short-option selectors, sliders and numeric inputs. Four motion styles and three speeds; optional Orbit burst adds rotation and spring movement. All styles can be disabled in **Settings → Interface & display**.
 - Actual voice-manager snapshots, a voice-input highlight and proportional level meter, native microphone cues through persistent 2D output, directly updated glyphs and bounded state transitions, compact localized HUD connection hints, notification cards and a separate microphone status card. Remote-player nameplates use rounded cards with organized portraits/names/status and a subtle border matching each player's primary colour selected in My Profile and synchronized by the game, while retaining native billboard materials and visibility; the original style is available in Interface settings.
 - Translation service and source language use clickable single-row segmented controls with sliding highlights; no native HTML select is required.
-- Camera controls grouped by frequency: zoom, focus and stabilization accessible; filters and framing grouped.
+- Camera controls include a direct close button, restored hover appearance and a bounded desktop drawer. Controls are grouped by frequency: zoom, focus and stabilization accessible; filters and framing grouped.
 - Native in-world chat bubbles use readable, content-sized rounded cards with centered downward pointers towards their player. Matching three-dot typing hints retain native status and lifetime; motion Off makes the dots steady. The theme follows the menu palette while retaining native facing, opacity and size settings. Original chat and typing layouts are available in Settings → Interface & display → Chat bubble style.
 - Chat-bubble translation retains the native viewer-facing material, updates the original text output and restores its font/material when switched off.
 - Optional title/description/profile-bio translation. **F8 toggles continuous translation of visible other-player chat bubbles**; press again to restore originals. Starts off each launch and can be rebound in **Settings → Controls**.
@@ -33,7 +33,7 @@ An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent Chill
 Development target: **ChilloutVR `2026r182-hf4` (`public-nightly`)**, Unity `2022.3.58f1`, **Mono MelonLoader `0.8.0-ci.2548`**, Windows, .NET Framework 4.8.
 Other game branches or loader builds have not been certified. The installer opens a checksum-verified official MelonLoader installer if a Mono loader is missing; this does not certify every runtime it offers.
 
-This 0.4.0 public preview passes 290 managed checks, 27 isolated prop UI checks and 14 HUD compatibility checks. These use Unity/Harmony stand-ins and muted headless Edge with synthetic content; they do not certify every PC/VR setup, other computers or long sessions. User testing authorized this publication; see [validation](docs/VALIDATION.md).
+This 0.5.1 public preview passes 367 managed checks, 78 isolated browser checks and 32 native-camera static contract checks. These use Unity/Harmony stand-ins, muted headless Edge with synthetic content and read-only native asset metadata; they do not certify actual Cohtml/PC/VR behavior, other computers or long sessions. The release retains the locally installed DLL and verified EXE payload; see [validation](docs/VALIDATION.md).
 
 ## Install / 安装
 
@@ -41,7 +41,7 @@ This 0.4.0 public preview passes 290 managed checks, 27 isolated prop UI checks 
 2. Or install Mono MelonLoader yourself and place **only `CVRComfortUI.dll`** into `ChilloutVR/Mods/`. Do not install both copies of the same DLL under different names.
 3. Start the game normally. Interface settings are in **Settings → Interface & display** and **Settings → Translation**.
 
-Only the first launch without `UserData/ComfortUI/preferences.json` detects the system display language. Chinese variants use the supported Simplified Chinese pack; other unsupported languages use English.
+Only the first launch without `UserData/ComfortUI/preferences.json` detects the system display language. Chinese script/region variants select Simplified or Traditional Chinese; Portuguese variants select the available Brazilian pack. Other unsupported languages use English. Existing preferences are kept.
 
 Updates preserve `UserData/ComfortUI/preferences.json`. The installer backs up prior mod files and can remove its installation; manual installations can be removed by moving the DLL out of `Mods` while the game is closed. Original game HTML and third-party files are not shipped or replaced.
 
@@ -54,6 +54,8 @@ Updates preserve `UserData/ComfortUI/preferences.json`. The installer backs up p
 - `installer/`: standalone Windows installer source.
 - `tests/`, `test.ps1`: managed regression tests using mock Unity/Cohtml/HTTP implementations.
 - `release/rc.json`: current publication metadata matching the CVRMG Bot format.
+
+Language-pack maintenance and regression guidance: [Localization](docs/LOCALIZATION.md).
 
 Build: `powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -GameDir "D:\SteamLibrary\steamapps\common\ChilloutVR"`.
 Use your own game directory. This repository does not include game/Unity/Cohtml/MelonLoader binaries, personal configuration, chat logs or credentials.

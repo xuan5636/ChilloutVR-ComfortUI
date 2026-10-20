@@ -69,7 +69,7 @@ namespace ComfortUI
                     else if (options.ProxyMode == "system") { var proxy = ContentTranslator.SystemProxyAddress(); handler.Proxy = proxy.Length > 0 ? new WebProxy(proxy) : WebRequest.GetSystemWebProxy(); }
                     using (var client = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(15) })
                     {
-                        client.DefaultRequestHeaders.UserAgent.ParseAdd("ComfortUI/0.4.0");
+                        client.DefaultRequestHeaders.UserAgent.ParseAdd("ComfortUI/0.5.1");
                         await Fetch(client, Release + CpuArchive, Path.Combine(root, CpuArchive), CpuHash, "localRuntimeDownload", 24000000, linked.Token).ConfigureAwait(false);
                         await Fetch(client, ModelUrl, ModelPath, ModelHash, "localModelDownload", 492000000, linked.Token).ConfigureAwait(false);
                         if (options.LocalAcceleration == "auto")

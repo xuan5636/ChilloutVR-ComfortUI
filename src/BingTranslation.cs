@@ -23,7 +23,7 @@ namespace ComfortUI
             {
                 using (var request = new HttpRequestMessage(HttpMethod.Get, "https://www.bing.com/translator"))
                 {
-                    request.Headers.UserAgent.ParseAdd("Mozilla/5.0 ComfortUI/0.4.0");
+                    request.Headers.UserAgent.ParseAdd("Mozilla/5.0 ComfortUI/0.5.1");
                     var html = await TranslationProviders.Send(client, request, options, token, diagnostic).ConfigureAwait(false);
                     var ig = Regex.Match(html, "\\bIG:\\s*\"([A-Za-z0-9]+)\"");
                     var helper = Regex.Match(html, @"params_AbusePreventionHelper\s*=\s*(\[[^;\r\n]+\])");
@@ -38,8 +38,8 @@ namespace ComfortUI
             {
                 request.Headers.Referrer = new Uri("https://www.bing.com/translator");
                 request.Content = new FormUrlEncodedContent(new Dictionary<string, string> {
-                    ["fromLang"] = options.SourceLanguage == "auto" ? "auto-detect" : options.SourceLanguage == "zh" ? "zh-Hans" : options.SourceLanguage,
-                    ["text"] = text, ["to"] = target == "zh-CN" ? "zh-Hans" : target,
+                    ["fromLang"] = options.SourceLanguage == "auto" ? "auto-detect" : LanguageSupport.BingTarget(options.SourceLanguage),
+                    ["text"] = text, ["to"] = LanguageSupport.BingTarget(target),
                     ["key"] = state.Key, ["token"] = state.Token });
                 try
                 {

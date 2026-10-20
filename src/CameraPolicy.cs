@@ -8,6 +8,30 @@ namespace ComfortUI
 
     internal static class CameraPolicy
     {
+        internal struct LayoutPlan
+        {
+            internal float ToolbarY, ToolbarScale, DrawerY, DrawerScale, CloseX, CloseY;
+        }
+        // Desktop camera placement fits its original preview rectangle. Adding rows
+        // below that rectangle is invisible in the native landscape placement mode.
+        internal static LayoutPlan Layout(bool vr, float canvasWidth, float canvasHeight)
+        {
+            var width = canvasWidth > 480 ? Math.Min(1920f, canvasWidth - 480f) : 1920f;
+            var height = canvasHeight >= 360 ? Math.Min(1080f, canvasHeight) : 1080f;
+            var toolbarScale = Math.Min(width / 2440f, height * .19f / 220f);
+            var toolbarY = -height / 2 + 14 + 110 * toolbarScale;
+            var drawerScale = Math.Min(.85f, Math.Min(width / 2200f, (height - 220 * toolbarScale - 50) / 520f));
+            return new LayoutPlan {
+                ToolbarY = vr ? -710 : toolbarY, ToolbarScale = vr ? 1 : toolbarScale,
+                DrawerY = vr ? -1110 : toolbarY + 110 * toolbarScale + 22 + 260 * drawerScale,
+                DrawerScale = vr ? 1 : drawerScale, CloseX = width / 2 - 142, CloseY = height / 2 - 72
+            };
+        }
+
+        internal static bool ReplaceHoverCallback(string method, bool ownBackground)
+        {
+            return ownBackground && (method == "set_sprite" || method == "set_color");
+        }
         // Only classify built-in types by their full name; third-party effects stay accessible.
         internal static CameraGroup Group(string type)
         {

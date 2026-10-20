@@ -7,6 +7,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <Compile Include="TranslationTests029.cs" /><Compile Include="../src/LanguageSupport.cs" />
     <Compile Include="TranslationProviderTests0214.cs" />
+    <Compile Include="LanguageTranslationTests041.cs" />
     <Compile Include="../src/ContentTranslator.cs" />
     <Compile Include="../src/TranslationProviders.cs" /><Compile Include="../src/TranslationSecrets.cs" />
     <Compile Include="../src/BingTranslation.cs" /><Compile Include="../src/LocalModelService.cs" />

@@ -10,7 +10,16 @@ namespace ComfortUI
 
         internal static string FromLocale(string locale)
         {
-            var primary = (locale ?? "").Trim().Replace('_', '-').Split('-')[0].ToLowerInvariant();
+            var parts = (locale ?? "").Trim().Replace('_', '-').ToLowerInvariant().Split('-');
+            var primary = parts[0];
+            if (primary == "zh")
+            {
+                // An explicit script takes precedence over the region (e.g. zh-Hans-HK).
+                if (Array.IndexOf(parts, "hant") >= 0) return "zh-Hant";
+                if (Array.IndexOf(parts, "hans") >= 0) return "zh";
+                return Array.IndexOf(parts, "tw") >= 0 || Array.IndexOf(parts, "hk") >= 0 || Array.IndexOf(parts, "mo") >= 0 ? "zh-Hant" : "zh";
+            }
+            if (primary == "pt") return "pt-BR";
             return LanguageSupport.Supported(primary) ? primary : "en";
         }
 

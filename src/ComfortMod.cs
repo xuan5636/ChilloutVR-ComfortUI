@@ -13,8 +13,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.4.0", "Local UI Workshop")]
+[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.5.1", "Local UI Workshop")]
 [assembly: MelonGame(null, "ChilloutVR")]
+[assembly: AssemblyVersion("0.5.1.0")]
+[assembly: AssemblyFileVersion("0.5.1.0")]
 
 namespace ComfortUI
 {
@@ -140,7 +142,7 @@ namespace ComfortUI
             try { localTranslations = ReadLocalTranslations(); }
             catch (Exception ex) { LoggerInstance.Warning("Optional translations skipped: " + ex.GetType().Name); }
             initialized = true;
-            LoggerInstance.Msg("Comfort UI 0.4.0 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
+            LoggerInstance.Msg("Comfort UI 0.5.1 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
         }
 
         private static string ReadResource(string name)
@@ -424,7 +426,7 @@ namespace ComfortUI
             p.highContrast = ReadBool(obj, "highContrast", false);
             p.reducedMotion = ReadBool(obj, "reducedMotion", false);
             var motionStyle = (string)obj["motionStyle"];
-            if (motionStyle != null && motionStyle != "fade" && motionStyle != "slide" && motionStyle != "zoom") throw new FormatException("Unknown motion style");
+            if (motionStyle != null && motionStyle != "fade" && motionStyle != "slide" && motionStyle != "zoom" && motionStyle != "orbit") throw new FormatException("Unknown motion style");
             if (motionStyle != null) p.motionStyle = motionStyle;
             var motionSpeed = (string)obj["motionSpeed"];
             if (motionSpeed != null && motionSpeed != "fast" && motionSpeed != "normal" && motionSpeed != "gentle") throw new FormatException("Unknown motion speed");
