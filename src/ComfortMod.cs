@@ -13,10 +13,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.5.1", "Local UI Workshop")]
+[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.5.2", "Local UI Workshop")]
 [assembly: MelonGame(null, "ChilloutVR")]
-[assembly: AssemblyVersion("0.5.1.0")]
-[assembly: AssemblyFileVersion("0.5.1.0")]
+[assembly: AssemblyVersion("0.5.2.0")]
+[assembly: AssemblyFileVersion("0.5.2.0")]
 
 namespace ComfortUI
 {
@@ -77,6 +77,9 @@ namespace ComfortUI
             public cohtml.Net.BoundEventHandle ReportHandle;
             public cohtml.Net.BoundEventHandle TranslateHandle;
             public cohtml.Net.BoundEventHandle ToolsHandle;
+            public cohtml.Net.BoundEventHandle ReadyHandle;
+            public volatile bool BridgeReady;
+            public bool Bootstrapped;
             public CancellationTokenSource TranslationCancellation;
             public string TranslationRequest;
         }
@@ -89,7 +92,10 @@ namespace ComfortUI
         public override void OnInitializeMelon()
         {
             Instance = this;
-            javascript = ReadResource("ComfortUI.content-tools.js") + "\n" + ReadResource("ComfortUI.comfort.js");
+            // Only embedded, trusted code reaches ExecuteScript. Runtime data is
+            // delivered later through fixed typed events after the ready handshake.
+            javascript = ReadResource("ComfortUI.native-bridge.js") + "\nwindow.ComfortNativeBridge.install(function(){\n" +
+                ReadResource("ComfortUI.content-tools.js") + "\n" + ReadResource("ComfortUI.comfort.js") + "\n});";
             stylesheet = ReadResource("ComfortUI.comfort.css");
             settingsTranslations = JObject.Parse(ReadResource("ComfortUI.settings-zh.json")).ToString(Formatting.None);
             languagePacks = JObject.Parse(ReadResource("ComfortUI.locales.json")).ToString(Formatting.None);
@@ -115,7 +121,7 @@ namespace ComfortUI
             try { translationSecrets = new TranslationSecrets(Path.Combine(Path.GetDirectoryName(settingsPath), "translation-credentials.dat")); }
             catch (Exception ex) { LoggerInstance.Warning("Translation credentials unavailable: " + ex.GetType().Name); }
             contentTranslator.Diagnostic = value => LoggerInstance.Msg("Translation connection: " + value);
-            localModels = new LocalModelService(Path.Combine(Path.GetDirectoryName(settingsPath), "LocalTranslation"), (code, percent) => Interlocked.Exchange(ref pendingLocalState, JsonConvert.SerializeObject(new object[] { code, percent, Volatile.Read(ref preparingLocal) != 0 })));
+            localModels = new LocalModelService(Path.Combine(Path.GetDirectoryName(settingsPath), "LocalTranslation"), (code, percent) => Interlocked.Exchange(ref pendingLocalState, UiDataJson.Serialize(new JArray(code, percent, Volatile.Read(ref preparingLocal) != 0))));
             var loaded = typeof(CohtmlControlledView).GetMethod("OnFinishLoad", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (loaded == null) throw new MissingMethodException("CohtmlControlledView.OnFinishLoad");
             HarmonyInstance.Patch(loaded, postfix: new HarmonyMethod(typeof(ComfortMod), nameof(AfterPageLoaded)));
@@ -142,7 +148,7 @@ namespace ComfortUI
             try { localTranslations = ReadLocalTranslations(); }
             catch (Exception ex) { LoggerInstance.Warning("Optional translations skipped: " + ex.GetType().Name); }
             initialized = true;
-            LoggerInstance.Msg("Comfort UI 0.5.1 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
+            LoggerInstance.Msg("Comfort UI 0.5.2 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
         }
 
         private static string ReadResource(string name)
@@ -162,14 +168,15 @@ namespace ComfortUI
         public override void OnUpdate()
         {
             if (!initialized) return;
+            InitializeReadyViews();
             TranslationDelivery delivery;
             while (translations.TryDequeue(out delivery))
             {
                 AttachedView current;
                 // IDs are captured while the page is alive. Never query a retained
                 // native handle merely to decide whether a late reply is stale.
-                if (views.TryGetValue(delivery.Entry.Target.Id, out current) && ReferenceEquals(current, delivery.Entry) && current.TranslationRequest == delivery.Request)
-                    current.Target.Execute("if(window.ComfortContent)window.ComfortContent.receive(" + delivery.Json + ");");
+                if (views.TryGetValue(delivery.Entry.Target.Id, out current) && ReferenceEquals(current, delivery.Entry) && current.Bootstrapped && current.TranslationRequest == delivery.Request)
+                    current.Target.Translation(delivery.Json);
             }
             // The native callback only queues changes; execute JS after the callback has returned.
             var incoming = Interlocked.Exchange(ref pending, null);
@@ -213,7 +220,7 @@ namespace ComfortUI
                     Task.Run(async () => {
                         try { await localModels.Prepare(options, cancellation.Token).ConfigureAwait(false); }
                         catch (OperationCanceledException) { Interlocked.Exchange(ref pendingLocalState, "[\"localCancelled\",-1]"); }
-                        catch (ContentTranslator.Failure ex) { Interlocked.Exchange(ref pendingLocalState, JsonConvert.SerializeObject(new object[] { ex.Code, -1 })); }
+                        catch (ContentTranslator.Failure ex) { Interlocked.Exchange(ref pendingLocalState, UiDataJson.Serialize(new JArray(UiDataJson.Status(ex.Code), -1))); }
                         catch { Interlocked.Exchange(ref pendingLocalState, "[\"localDownloadFailed\",-1]"); }
                         finally { Interlocked.Exchange(ref preparingLocal, 0); }
                     });
@@ -237,7 +244,7 @@ namespace ComfortUI
             string notice;
             while (translationNotices.TryDequeue(out notice)) NotifyTranslation(notice);
             var localUpdate = Interlocked.Exchange(ref pendingLocalState, null);
-            if (localUpdate != null) { localState = localUpdate; Broadcast("if(window.ComfortUI)window.ComfortUI.localModelState.apply(null," + localUpdate + ");"); }
+            if (localUpdate != null) { localState = localUpdate; BroadcastData(target => target.LocalModelState(localUpdate)); }
             if (Time.realtimeSinceStartup < nextScan) return;
             nextScan = Time.realtimeSinceStartup + 10f;
             // A slow discovery pass also covers views which existed before the hook was installed.
@@ -266,11 +273,13 @@ namespace ComfortUI
                     previous.Target.TryUse(view => view.UnbindCall(previous.ReportHandle));
                     previous.Target.TryUse(view => view.UnbindCall(previous.TranslateHandle));
                     previous.Target.TryUse(view => view.UnbindCall(previous.ToolsHandle));
+                    previous.Target.TryUse(view => view.UnbindCall(previous.ReadyHandle));
                     lock (previous) { previous.TranslationCancellation?.Cancel(); previous.TranslationRequest = null; }
                 }
                 var entry = new AttachedView { Owner = owner, Target = target, Context = context, HudExecute = target.Execute };
                 if (!target.TryUse(view =>
                 {
+                    entry.ReadyHandle = view.BindCall("ComfortUI_BridgeReady", new Action<string>(version => { if (version == "1") entry.BridgeReady = true; }));
                     entry.SaveHandle = view.BindCall("ComfortUI_Save", new Action<string>(QueuePreferences));
                     entry.ReportHandle = view.BindCall("ComfortUI_Report", new Action<string>(ReportUI));
                     entry.ToolsHandle = view.BindCall("ComfortUI_TranslationTools", new Action<string>(value =>
@@ -286,23 +295,36 @@ namespace ComfortUI
                     if (context == "main") entry.TranslateHandle = view.BindCall("ComfortUI_Translate", new Action<string>(json => QueueTranslation(entry, json)));
                 })) return;
                 views[id] = entry;
-                var bootstrap = "window.__comfortContext=" + JsonConvert.SerializeObject(context) + ";" +
-                    "window.__comfortHost={native:true,preferences:" + PublicPreferencesJson() + "};" +
-                    "window.__comfortChatEnabled=" + (ChatTranslation.IsEnabled ? "true" : "false") + ";" +
-                    "window.__comfortLocalModelState=" + localState + ";" +
-                    "window.__comfortMicState=" + JsonConvert.SerializeObject(context == "hud" ? HudMicrophoneSync.Read() : null) + ";" +
-                    "window.__comfortExistingTranslations=" + localTranslations + ";" +
-                    "window.__comfortSettingsTranslations=" + settingsTranslations + ";" +
-                    "window.__comfortLocales=" + languagePacks + ";" +
-                    "window.__comfortStyles=" + JsonConvert.SerializeObject(stylesheet) + ";\n" + javascript;
                 // OnFinishLoad handles reloads. Never clear another mod's initial scripts.
-                if (!target.Execute(bootstrap)) { ForgetView(id); return; }
+                if (!target.Execute(javascript)) { ForgetView(id); return; }
                 LoggerInstance.Msg("Attached " + context + " (view " + id + ").");
             }
             catch (Exception ex)
             {
                 LoggerInstance.Warning("UI attach deferred: " + ex.GetType().Name);
             }
+        }
+
+        private void InitializeReadyViews()
+        {
+            var stale = new List<uint>();
+            foreach (var item in views)
+            {
+                var entry = item.Value;
+                if (entry.Bootstrapped || !entry.BridgeReady) continue;
+                var data = new JObject {
+                    ["protocol"] = 1, ["context"] = entry.Context,
+                    ["preferences"] = PublicPreferences(), ["chatEnabled"] = ChatTranslation.IsEnabled,
+                    ["localModelState"] = JArray.Parse(localState),
+                    ["microphone"] = entry.Context == "hud" ? HudMicrophoneSync.Read() : null,
+                    ["existingTranslations"] = JObject.Parse(localTranslations),
+                    ["settingsTranslations"] = JObject.Parse(settingsTranslations),
+                    ["locales"] = JObject.Parse(languagePacks), ["styles"] = stylesheet
+                };
+                if (entry.Target.Bootstrap(UiDataJson.Serialize(data))) entry.Bootstrapped = true;
+                else stale.Add(item.Key);
+            }
+            foreach (var id in stale) ForgetView(id);
         }
 
         internal static string PageContext(string page)
@@ -338,7 +360,7 @@ namespace ComfortUI
             {
                 var request = JObject.Parse(json);
                 var id = (string)request["id"];
-                if (id == null || !Regex.IsMatch(id, "^cu-[0-9]+-[0-9]+$") || id.Length > 64) return;
+                if (!UiDataJson.RequestId(id)) return;
                 if ((bool?)request["cancel"] == true)
                 {
                     lock (entry) if (entry.TranslationRequest == id) { entry.TranslationCancellation?.Cancel(); entry.TranslationRequest = null; }
@@ -364,20 +386,21 @@ namespace ComfortUI
                 var options = TranslationOptions(currentPreferences);
                 Task.Run(async () =>
                 {
-                    var result = new JObject { ["id"] = id, ["language"] = language };
+                    string[] translated = null;
+                    string error = null;
                     try
                     {
                         if (!currentPreferences.detailTranslation) throw new ContentTranslator.Failure("disabled");
-                        result["texts"] = new JArray(await contentTranslator.Translate(texts, language, cancellation.Token, options).ConfigureAwait(false));
+                        translated = await contentTranslator.Translate(texts, language, cancellation.Token, options).ConfigureAwait(false);
                     }
-                    catch (ContentTranslator.Failure ex) { result["error"] = ex.Code; }
-                    catch { result["error"] = "network"; }
+                    catch (ContentTranslator.Failure ex) { error = ex.Code; }
+                    catch { error = "network"; }
                     finally
                     {
                         lock (entry) if (ReferenceEquals(entry.TranslationCancellation, cancellation)) entry.TranslationCancellation = null;
                         cancellation.Dispose();
                     }
-                    translations.Enqueue(new TranslationDelivery { Entry = entry, Request = id, Json = result.ToString(Formatting.None) });
+                    translations.Enqueue(new TranslationDelivery { Entry = entry, Request = id, Json = UiDataJson.Translation(id, language, translated, error) });
                 });
             }
             catch { /* Invalid requests cannot select arbitrary network targets or expose game data. */ }
@@ -487,9 +510,8 @@ namespace ComfortUI
 
         private void BroadcastPreferences()
         {
-            var script = "if(window.ComfortUI)window.ComfortUI.updatePreferences(" + PublicPreferencesJson() + ",true);";
-            script += "if(window.ComfortUI&&window.ComfortUI.chatState)window.ComfortUI.chatState(" + (ChatTranslation.IsEnabled && preferences.chatTranslation ? "true" : "false") + ");";
-            Broadcast(script);
+            var json = UiDataJson.Serialize(new JObject { ["preferences"] = PublicPreferences(), ["chatEnabled"] = ChatTranslation.IsEnabled && preferences.chatTranslation });
+            BroadcastData(target => target.Preferences(json));
         }
         private bool microphoneLevelHooked;
         private void RefreshHudMicrophone()
@@ -508,6 +530,7 @@ namespace ComfortUI
                     stale.Add(item.Key);
                     continue;
                 }
+                if (!entry.Bootstrapped) continue;
                 entry.Microphone.Deliver(state, now, entry.HudExecute);
                 if (microphoneLevelHooked) entry.Microphone.DeliverLevel(state, level, now, entry.HudExecute);
             }
@@ -527,6 +550,13 @@ namespace ComfortUI
                 if (!item.Value.Target.Execute(script)) stale.Add(item.Key);
             foreach (var id in stale) ForgetView(id);
         }
+        private void BroadcastData(Func<CohtmlViewTarget, bool> send)
+        {
+            var stale = new List<uint>();
+            foreach (var item in views)
+                if (item.Value.Bootstrapped && !send(item.Value.Target)) stale.Add(item.Key);
+            foreach (var id in stale) ForgetView(id);
+        }
         internal static ContentTranslator.Options TranslationOptions(Preferences value)
         {
             return new ContentTranslator.Options {
@@ -536,11 +566,11 @@ namespace ComfortUI
                 AiKey = Instance?.translationSecrets?.Get("ai", value.aiEndpoint) ?? "",
             };
         }
-        private string PublicPreferencesJson()
+        private JObject PublicPreferences()
         {
-            var data = JObject.FromObject(preferences);
+            var data = (JObject)UiDataJson.FromObject(preferences);
             data["hasAiKey"] = !string.IsNullOrEmpty(translationSecrets?.Get("ai", preferences.aiEndpoint));
-            return data.ToString(Formatting.None);
+            return data;
         }
         private void SaveTranslationCredential(string json)
         {
@@ -564,7 +594,8 @@ namespace ComfortUI
         {
             // Diagnostic codes only: never log chat text, translations or identities.
             LoggerInstance.Msg("Translation status: " + code + " (chat mode: " + (ChatTranslation.IsEnabled ? "on" : "off") + ").");
-            Broadcast("if(window.ComfortUI)window.ComfortUI.translationNotice(" + JsonConvert.SerializeObject(code) + "," + (ChatTranslation.IsEnabled ? "true" : "false") + ");");
+            var json = UiDataJson.Serialize(new JObject { ["code"] = UiDataJson.Status(code), ["chatEnabled"] = ChatTranslation.IsEnabled });
+            BroadcastData(target => target.TranslationNotice(json));
             try
             {
                 CohtmlViewTarget hud;

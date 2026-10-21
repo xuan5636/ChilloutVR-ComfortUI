@@ -19,7 +19,9 @@ namespace cohtml.Net
     {
         private HandleRef swigCPtr;
         public uint Id;
-        public int NativeCalls, Scripts;
+        public int NativeCalls, Scripts, Events;
+        public string LastEvent;
+        public object LastArgument;
         public bool Alive = true, Ready = true, ThrowManaged;
         public View(uint id) { Id = id; swigCPtr = new HandleRef(this, new IntPtr(id + 1)); }
         private void Enter() { NativeCalls++; if (!Alive) throw new InvalidOperationException("Regression: entered native API through a stale view"); }
@@ -27,6 +29,7 @@ namespace cohtml.Net
         public uint GetId() { Enter(); return Id; }
         public bool IsReadyForBindings() { Enter(); return Ready; }
         public void ExecuteScript(string script) { Enter(); if (ThrowManaged) throw new InvalidOperationException("Managed script failure"); Scripts++; }
+        public void TriggerEvent<T>(string name, T data) { Enter(); if (ThrowManaged) throw new InvalidOperationException("Managed event failure"); Events++; LastEvent = name; LastArgument = data; }
     }
 }
 namespace cohtml { public class CohtmlView : UnityEngine.Object { public Net.View View; } }
@@ -62,14 +65,22 @@ class CohtmlLifetimeTests0210
         {
             var native = new cohtml.Net.View(1); var owner = Owner(native); CohtmlViewTarget target;
             Check(CohtmlViewTarget.TryCreate(owner, out target) && target.Id == 1 && target.Execute("pendingChat") && native.Scripts == 1, "A loaded current page receives the translation notice");
+            var payload = "{\"texts\":[\"</script><b>plain text</b> ' \\\" \\\\ \\u2028\"]}";
+            Check(target.Translation(payload) && native.Events == 1 && native.LastEvent == "ComfortUI_TranslationResult" && (string)native.LastArgument == payload && native.Scripts == 1, "Translation uses a typed string event without adding or executing script source");
+            Check(target.Bootstrap(payload) && native.LastEvent == "ComfortUI_Bootstrap" && target.Preferences(payload) && native.LastEvent == "ComfortUI_Preferences" && target.TranslationNotice("{}") && native.LastEvent == "ComfortUI_TranslationNotice" && target.LocalModelState("[]") && native.LastEvent == "ComfortUI_LocalModelState", "All runtime data uses fixed event names");
+            var events = native.Events;
+            Check(!target.Translation(new string('x',1048577)) && !target.Bootstrap(new string('x',8388609)) && !target.Preferences(new string('x',16385)) && !target.LocalModelState(new string('x',257)) && !target.TranslationNotice(null) && native.Events == events, "Null and oversized data are rejected before the native event call");
             owner.Destroyed = true; native.Alive = false; var calls = native.NativeCalls;
             Check(!target.Execute("pendingChat") && !CohtmlViewTarget.TryCreate(owner, out _) && native.NativeCalls == calls, "Destroyed login owner is rejected before any native call (reported F8 crash path)");
+            Check(!target.Translation(payload) && !target.Bootstrap("{}") && native.NativeCalls == calls, "Late typed events cannot enter a destroyed native view");
             native = new cohtml.Net.View(2); owner = Owner(native); CohtmlViewTarget.TryCreate(owner, out target); owner.View.Retire(false); native.Alive = false; calls = native.NativeCalls;
             Check(!target.Execute("pendingChat") && native.NativeCalls == calls, "Disposed wrapper is rejected even if it retains the old native reference");
             native = new cohtml.Net.View(3); owner = Owner(native); CohtmlViewTarget.TryCreate(owner, out target); native.ZeroPointer(); calls = native.NativeCalls;
             Check(!target.Execute("restored") && !CohtmlViewTarget.TryCreate(owner, out _) && native.NativeCalls == calls, "Zero SWIG handle is rejected before ExecuteScript, GetId or IsReadyForBindings");
             native = new cohtml.Net.View(4); owner = Owner(native); CohtmlViewTarget.TryCreate(owner, out target); var replacement = new cohtml.Net.View(4); owner.View = new ABI_RC.Core.UI.CohtmlControlledViewWrapper(replacement); ((cohtml.CohtmlView)owner).View = replacement; native.Alive = false; calls = native.NativeCalls;
-            Check(!target.Execute("late translation") && native.NativeCalls == calls && CohtmlViewTarget.TryCreate(owner, out var fresh) && fresh.Execute("new page"), "Reused native ID cannot redirect an old response into the replacement document");
+            CohtmlViewTarget.TryCreate(owner, out var fresh);
+            Check(!target.Execute("late translation") && native.NativeCalls == calls && fresh != null && fresh.Execute("new page"), "Reused native ID cannot redirect an old response into the replacement document");
+            Check(!target.Translation(payload) && native.NativeCalls == calls && fresh.Translation(payload) && replacement.Events == 1, "Reused IDs preserve the typed event lifetime boundary");
             native = new cohtml.Net.View(5); owner = Owner(native); CohtmlViewTarget.TryCreate(owner, out target); owner.View.ReplaceInner(new cohtml.Net.View(55)); native.Alive = false; calls = native.NativeCalls;
             Check(!target.Execute("preferenceFailed") && native.NativeCalls == calls, "Wrapper inner-view replacement invalidates its old target");
             native = new cohtml.Net.View(6); owner = Owner(native); CohtmlViewTarget.TryCreate(owner, out target); ((cohtml.CohtmlView)owner).View = null; native.Alive = false; calls = native.NativeCalls;
@@ -78,6 +89,7 @@ class CohtmlLifetimeTests0210
             Check(!target.Execute("preferences") && !CohtmlViewTarget.TryCreate(owner, out _) && native.NativeCalls == calls, "Reloading pages receive neither script delivery nor native readiness queries");
             owner.FinishedLoading = true; Check(target.Execute("preferences"), "Same live view accepts delivery after loading completes");
             native.ThrowManaged = true; Check(!target.Execute("managed failure"), "Ordinary managed script failures are contained without retry loops");
+            Check(!target.Translation(payload), "Managed event failures are contained");
             native = new cohtml.Net.View(8); owner = Owner(native); CohtmlViewTarget.TryCreate(owner, out var live); native = new cohtml.Net.View(9); owner = Owner(native); CohtmlViewTarget.TryCreate(owner, out var dead); owner.Destroyed = true; native.Alive = false; calls = native.NativeCalls;
             for (var i = 0; i < 1000; i++) { dead.Execute("pendingChat"); live.Execute("pendingChat"); }
             Check(native.NativeCalls == calls, "Repeated notices skip stale pages while current pages remain usable");

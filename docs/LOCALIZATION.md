@@ -1,6 +1,6 @@
 # Language packs and regression checks
 
-The 0.5.1 public preview supports `zh`, `en`, `ja`, `ko`, `es`, `zh-Hant`, `fr`, `ru`, `pt-BR`, `it`, `id`, `pl` and `tr`. The first five share a single-row sliding control; the other eight use an expandable row. Both write the same saved `language` field. The source-language selector additionally provides `auto`. German is intentionally not included.
+The 0.5.2 public preview retains support for `zh`, `en`, `ja`, `ko`, `es`, `zh-Hant`, `fr`, `ru`, `pt-BR`, `it`, `id`, `pl` and `tr`. The first five share a single-row sliding control; the other eight use an expandable row. Both write the same saved `language` field. The source-language selector additionally provides `auto`. German is intentionally not included. Initialization and preference updates now arrive over the typed event bridge described in [security notes](SECURITY.md).
 
 ## Sources and quality
 

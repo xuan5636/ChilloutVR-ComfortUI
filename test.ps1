@@ -2,6 +2,7 @@
 $projectRoot = $PSScriptRoot
 $cases = @(
     @{Name='CohtmlLifetimeTests0210';Arguments=@()},
+    @{Name='SecurityBridgeTests052';Arguments=@()},
     @{Name='ChatModeTests0210';Arguments=@((Join-Path $projectRoot 'assets/locales.json'))},
     @{Name='TranslationTests029';Arguments=@()},
     @{Name='CameraPolicyTests029';Arguments=@((Join-Path $projectRoot 'assets/camera-zh.json'),(Join-Path $projectRoot 'assets/locales.json'))},

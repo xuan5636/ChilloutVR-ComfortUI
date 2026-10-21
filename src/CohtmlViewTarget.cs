@@ -61,5 +61,18 @@ namespace ComfortUI
         }
 
         internal bool Execute(string script) { return TryUse(current => current.ExecuteScript(script)); }
+
+        // Event names are fixed here. JSON is passed as a typed string argument;
+        // it must never be appended to ExecuteScript, including during bootstrap.
+        private bool SendJson(string name, string json, int limit)
+        {
+            if (json == null || json.Length > limit) return false;
+            return TryUse(current => current.TriggerEvent<string>(name, json));
+        }
+        internal bool Bootstrap(string json) { return SendJson("ComfortUI_Bootstrap", json, 8388608); }
+        internal bool Preferences(string json) { return SendJson("ComfortUI_Preferences", json, 16384); }
+        internal bool Translation(string json) { return SendJson("ComfortUI_TranslationResult", json, 1048576); }
+        internal bool TranslationNotice(string json) { return SendJson("ComfortUI_TranslationNotice", json, 256); }
+        internal bool LocalModelState(string json) { return SendJson("ComfortUI_LocalModelState", json, 256); }
     }
 }

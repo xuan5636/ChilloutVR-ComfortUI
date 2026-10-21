@@ -163,19 +163,27 @@
         var request=state.request;
         try{
             var result=engine.call('ComfortUI_Translate',JSON.stringify({id:state.request,language:state.target,texts:state.fields.map(function(field){return field.text})}));
-            if(result && typeof result.catch==='function')result.catch(function(){receive({id:request,error:'network'})});
-        }catch(ignored){receive({id:state.request,error:'network'})}
+            if(result && typeof result.catch==='function')result.catch(function(){receive(JSON.stringify({id:request,language:state.target,error:'network'}))});
+        }catch(ignored){receive(JSON.stringify({id:state.request,language:state.target,error:'network'}))}
     }
-    function receive(result){
-        if(typeof result==='string')try{result=JSON.parse(result)}catch(ignored){return}
+    function receive(json){
+        // This receives a typed event argument, never executable source or HTML.
+        if(typeof json!=='string' || json.length>1048576)return;
+        var result;try{result=JSON.parse(json)}catch(ignored){return}
+        if(!result || typeof result!=='object' || Array.isArray(result) || typeof result.id!=='string' || result.id.length>64 || !/^cu-[0-9]+-[0-9]+$/.test(result.id) || /[\r\n]/.test(result.id) || typeof result.language!=='string')return;
+        if(Object.keys(result).some(function(key){return key!=='id' && key!=='language' && key!=='texts' && key!=='error'}))return;
+        var hasError=Object.prototype.hasOwnProperty.call(result,'error');
+        if(hasError){if(typeof result.error!=='string' || !/^[A-Za-z]{1,40}$/.test(result.error) || Object.prototype.hasOwnProperty.call(result,'texts'))return;}
+        else if(!Array.isArray(result.texts) || result.texts.length<1 || result.texts.length>2 || result.texts.some(function(value){return typeof value!=='string' || value.length>48000}))return;
         Object.keys(states).forEach(function(id){
             var state=states[id];
-            if(!state.pending || state.request!==result.id || !enabled() || state.target!==prefs().language)return;
+            if(!state.pending || state.request!==result.id || !enabled() || !connected(state.root) || state.target!==prefs().language || result.language!==state.target)return;
+            if(!hasError && result.texts.length!==state.fields.length)return;
             state.pending=false;
-            if(result.error || !result.texts || result.texts.length!==state.fields.length){state.failed=true;label(state);if(window.ComfortUI)window.ComfortUI.translationNotice(result.error || 'network');return}
+            if(hasError){state.failed=true;label(state);if(window.ComfortUI)window.ComfortUI.translationNotice(result.error);return}
             state.fields.forEach(function(field,i){
                 var original=document.createDocumentFragment();while(field.node.firstChild)original.appendChild(field.node.firstChild);
-                var rendered=document.createElement('span');rendered.className='cu-content-translated';rendered.textContent=field.prefix+String(result.texts[i]);
+                var rendered=document.createElement('span');rendered.className='cu-content-translated';rendered.textContent=field.prefix+result.texts[i];
                 field.original=original;field.rendered=rendered;field.node.appendChild(rendered);
             });state.translated=true;state.failed=false;label(state);
         });

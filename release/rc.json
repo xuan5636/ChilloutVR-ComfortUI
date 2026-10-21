@@ -1,12 +1,12 @@
 {
-  "_id": -1,
+  "_id": 293,
   "name": "Comfort UI",
-  "modversion": "0.5.1",
+  "modversion": "0.5.2",
   "gameversion": "2026r182-hf4 (public-nightly)",
   "loaderversion": "0.8.0-ci.2548 (Mono)",
   "modtype": "Mod",
   "author": "Local UI Workshop",
-  "description": "Comfort UI 0.5.1: 13 languages, scrollable language lists, Korean font selection, direct camera close, hover and desktop layout repairs, optional Orbit burst motion and microphone style recovery. Includes the prior 0.5.0 language update.\n\n367 managed, 78 isolated browser and 32 camera static checks pass; these are not real-client/VR certification. Some low-frequency translations need native-speaker review. User-authorized public preview.\n\nInstaller: https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.1/ComfortUI-Setup-0.5.1.exe\nRelease notes and feedback: https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.5.1\n\nUnofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
+  "description": "Comfort UI 0.5.2: a configurable interface with 13 languages, camera groups/close control, modern chat bubbles/nameplates, microphone feedback and optional Google, MyMemory, free Bing, AI or local translation. F8 toggles continuous visible-chat translation and restores originals.\n\nSecurity re-review: translation responses, initialization and settings now use fixed typed Cohtml events instead of concatenating runtime text into ExecuteScript. Explicit EscapeHtml encoding, JSON schema/length and pending-request/language checks, cancellation/unload guards and textContent output. See security notes below.\n\n986 managed, 637 event, 1505 rendering/restoration, 145 malformed-response/lifecycle and 78 interface checks pass offline. Real Cohtml/PC/VR is not certified.\n\n[Installer](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.2/ComfortUI-Setup-0.5.2.exe) | [Security review](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/v0.5.2/docs/SECURITY.md) | [Release/feedback](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.5.2)\n\nOnline translation sends selected/visible text only to the chosen service and starts off. Unofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
   "searchtags": [
     "UI",
     "menu",
@@ -35,8 +35,8 @@
     "[MelonLoader](https://github.com/LavaGang/MelonLoader/releases) — Mono, 0.8.0-ci.2548 (development target)",
     "Windows x64 and .NET Framework 4.8; local model download is optional. See repository installation and translation documentation."
   ],
-  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.1/CVRComfortUI.dll",
+  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.2/CVRComfortUI.dll",
   "sourcelink": "https://github.com/xuan5636/ChilloutVR-ComfortUI",
-  "changelog": "0.5.1: combines 13-language support with scrolling/Korean, camera close/hover/desktop layout, a fourth motion style and microphone style recovery. Source, DLL, EXE and checksums available on GitHub.",
+  "changelog": "0.5.2 security re-review: replaces translation/result and runtime-data script concatenation with fixed typed events; explicit EscapeHtml JSON encoding, strict response/request/language validation, page-ready and cancellation/unload guards. Preserves 13-language UI, camera, chat, nameplate, motion and microphone features. Review details: https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/v0.5.2/docs/SECURITY.md",
   "embedcolor": "#C1CBDC"
 }

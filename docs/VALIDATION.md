@@ -1,3 +1,17 @@
+# 0.5.2 translation bridge hardening validation
+
+2026-10-21. This build removes translation-response and other runtime-data concatenation into executable scripts, introduces a typed event bridge and page-ready handshake, and uses explicit HTML-safe JSON encoding. See [review entry points and exact boundaries](SECURITY.md). The earlier audit found the concatenation pattern but did not reproduce arbitrary code execution; this release removes the pattern.
+
+986 managed checks pass across 11 projects (18 lifetime/event, 613 serializer/schema, 39 chat mode, 39 translation/provider/language, 55 camera policy, 79 nameplate/startup, 10 local model, 37 microphone, 21 sound, 33 chat bubbles and 42 typing/pointer). The 613 security checks also pass against the installed Mono loader's Json.NET 13.0.4 library in a separate .NET Framework process. Process-wide serializer defaults are deliberately hostile in this test.
+
+637 offline Node event checks run the actual bridge with dynamic string code generation disabled. Muted headless Edge passes 1,505 rendering/restoration checks using 301 text fixtures over all five detail/profile entries, plus 145 malformed-response, duplicate/stale request, cancellation, language change, original-style mode, translation disable and unload checks. No execution marker, translated child HTML or injected page error appears.
+
+78 interface regressions run through the new ready/event bootstrap against read-only native HTML: 38 multilingual, 8 scrolling/font, 22 microphone/motion and 10 missing-resource/glyph fallback checks. The private host shim persists synthetic preferences to simulate native save/reload; it is not part of the mod. The fixture listener backlog was increased after a local connection refusal, and the fake native preference store corrected after a reload assertion; those harness failures are not reported as passing runtime tests. Native login fixtures retain their known `inputs.forEach` baseline errors; injected errors are separately checked.
+
+Real game dependencies compile without warnings/errors. All seven embedded resources, installer version/hash/payload, JSON/JavaScript/PowerShell syntax and package/source integrity are checked before delivery. No original game files, model caches or personal preferences are changed by this development/release task. No actual Cohtml session, PC/VR headset, remote players, online provider availability, real microphone audio or long-run behavior is verified. Previous native-camera/font static results remain historical evidence for unchanged functionality, not an additional live test of this build.
+
+GitHub publication and CVRMG submission are separate operations. Submission does not establish staff approval. Earlier releases remain available for rollback.
+
 # 0.5.1 public repair preview validation
 
 2026-10-20. The reported machine actually had 0.5.0 installed (DLL hash matched the saved candidate and loader log identified v0.5.0), correcting the earlier handoff's installation assumption. The 0.5.1 repair fixes the reported language-list scrolling, Korean font, camera close/hover/desktop bounds and HUD fallback issues, and adds an optional fourth motion style. It was installed locally with matching DLL/EXE payload hashes, unchanged preferences/native settings, 106 unchanged model-cache files and 1,334 unchanged protected files. The user subsequently authorized GitHub publication as v0.5.1; the published DLL/EXE reuse those verified binaries. Earlier releases, including 0.4.0, are retained.

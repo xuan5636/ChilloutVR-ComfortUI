@@ -3,15 +3,15 @@
 An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent ChilloutVR interface.
 非官方 ChilloutVR 界面模组：柔和配色、统一控件、多语言和可选翻译。
 
-**Current public release: [0.5.1 — public preview](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.5.1).** Includes 13 languages, scrollable language lists, Korean font selection, direct camera closing, camera hover/layout fixes, an optional fourth motion style and microphone style recovery. Published with the user's authorization; real-client/VR checks and native-speaker review remain separate from the automated checks. / **当前公开版0.5.1。** 合并13语言更新及语言列表、韩语、相机和麦克风修复，新增第四种可选动效；已获用户授权发布，实机与母语审校范围见[验证记录](docs/VALIDATION.md)。
+**Current public release: [0.5.2 — translation bridge hardening](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.5.2).** Translation responses and runtime settings now use typed Cohtml events, explicit JSON encoding and strict request/language checks. Retains 13 languages and the camera, motion, chat and microphone repairs. / **当前公开预览版0.5.2。** 针对审核意见加固翻译数据回传；保留原有功能，详见[安全说明](docs/SECURITY.md)。实机PC/VR验证与平台审核结论分别记录，不以自动化检查代替。
 
 | Download / 下载 | Use / 用途 |
 | --- | --- |
-| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.1/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
-| [ComfortUI-Setup-0.5.1.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.1/ComfortUI-Setup-0.5.1.exe) | Standalone installer, update and removal / 独立安装程序 |
-| [ComfortUI-Manual-0.5.1.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.1/ComfortUI-Manual-0.5.1.zip) | DLL and installation instructions / DLL 与说明 |
-| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.1/ComfortUI-Source-0.5.1.zip) | Mod, interface assets, installer and tests / 源码包 |
-| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.1/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
+| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.2/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
+| [ComfortUI-Setup-0.5.2.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.2/ComfortUI-Setup-0.5.2.exe) | Standalone installer, update and removal / 独立安装程序 |
+| [ComfortUI-Manual-0.5.2.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.2/ComfortUI-Manual-0.5.2.zip) | DLL and installation instructions / DLL 与说明 |
+| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.2/ComfortUI-Source-0.5.2.zip) | Mod, interface assets, installer and tests / 源码包 |
+| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.2/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
 
 ## Features / 功能
 
@@ -33,7 +33,7 @@ An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent Chill
 Development target: **ChilloutVR `2026r182-hf4` (`public-nightly`)**, Unity `2022.3.58f1`, **Mono MelonLoader `0.8.0-ci.2548`**, Windows, .NET Framework 4.8.
 Other game branches or loader builds have not been certified. The installer opens a checksum-verified official MelonLoader installer if a Mono loader is missing; this does not certify every runtime it offers.
 
-This 0.5.1 public preview passes 367 managed checks, 78 isolated browser checks and 32 native-camera static contract checks. These use Unity/Harmony stand-ins, muted headless Edge with synthetic content and read-only native asset metadata; they do not certify actual Cohtml/PC/VR behavior, other computers or long sessions. The release retains the locally installed DLL and verified EXE payload; see [validation](docs/VALIDATION.md).
+This 0.5.2 public preview passes 986 managed checks, 637 offline event checks, 1,505 isolated translation rendering/restoration checks, 145 malformed-response/lifecycle checks and 78 native-HTML interface regressions. These use stand-ins, muted headless Edge and synthetic content; actual Cohtml/PC/VR behavior, other computers and long sessions remain unverified. See [validation](docs/VALIDATION.md) and the [security review entry points](docs/SECURITY.md).
 
 ## Install / 安装
 

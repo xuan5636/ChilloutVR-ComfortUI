@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net48</TargetFramework><OutputType>Exe</OutputType><LangVersion>latest</LangVersion><EnableDefaultCompileItems>false</EnableDefaultCompileItems><AssemblyName>SecurityBridgeTests052</AssemblyName></PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" Condition="'$(JsonNetPath)' == ''" />
+    <Reference Include="Newtonsoft.Json" Condition="'$(JsonNetPath)' != ''"><HintPath>$(JsonNetPath)</HintPath><Private>true</Private></Reference>
+    <Compile Include="SecurityBridgeTests052.cs" /><Compile Include="../src/UiDataJson.cs" /><Compile Include="../src/LanguageSupport.cs" />
+  </ItemGroup>
+</Project>
