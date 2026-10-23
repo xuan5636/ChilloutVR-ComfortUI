@@ -1,12 +1,12 @@
 {
   "_id": 293,
   "name": "Comfort UI",
-  "modversion": "0.6.1",
+  "modversion": "0.6.2",
   "gameversion": "2026r182-hf4 (public-nightly)",
   "loaderversion": "0.8.0-ci.2548 (Mono)",
   "modtype": "Mod",
   "author": "Local UI Workshop",
-  "description": "Comfort UI 0.6.1 stable release: a configurable 13-language interface and in-game keyboard with local word suggestions, Chinese pinyin, Japanese romaji/common kanji, Korean Hangul composition, language switching and enabled/default keyboard settings. Desktop Windows IME/Win+H uses an embedded child of the game window, with no external input dialog. System IMEs/speech require appropriate Windows components; actual Cohtml/Win+H/VR compatibility still needs client testing.\n\nIncludes cumulative menu, scrolling/font, camera, microphone state/feedback, chat bubble, nameplate, animation and translation bridge fixes. Typed JSON events, explicit escaping, strict response/session checks and plain-text rendering are retained. Stable is the release channel, not a guarantee of bug-free operation.\n\n[Installer](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.1/ComfortUI-Setup-0.6.1.exe) | [Keyboard guide](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/v0.6.1/docs/KEYBOARD.md) | [Release/feedback](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.6.1)\n\nOnline translation remains opt-in and sends selected/visible text to the chosen service. Suggestions stay local. Word data has separate CC BY-SA/MIT/Apache notices. Unofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
+  "description": "Keyboard display hotfix: prevents native/enhanced duplicates, fixes label fonts and fits a centered, proportionate layout inside the actual 1520x420 keyboard texture.\n\nComfort UI 0.6.2 stable release: a configurable 13-language interface and in-game keyboard with local word suggestions, Chinese pinyin, Japanese romaji/common kanji, Korean Hangul composition, language switching and enabled/default keyboard settings. Desktop Windows IME/Win+H uses an embedded child of the game window, with no external input dialog. System IMEs/speech require appropriate Windows components; actual Cohtml/Win+H/VR compatibility still needs client testing.\n\nIncludes cumulative menu, scrolling/font, camera, microphone state/feedback, chat bubble, nameplate, animation and translation bridge fixes. Typed JSON events, explicit escaping, strict response/session checks and plain-text rendering are retained. Stable is the release channel, not a guarantee of bug-free operation.\n\n[Installer](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.2/ComfortUI-Setup-0.6.2.exe) | [Keyboard guide](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/v0.6.2/docs/KEYBOARD.md) | [Release/feedback](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.6.2)\n\nOnline translation remains opt-in and sends selected/visible text to the chosen service. Suggestions stay local. Word data has separate CC BY-SA/MIT/Apache notices. Unofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
   "searchtags": [
     "UI",
     "menu",
@@ -40,8 +40,8 @@
     "[MelonLoader](https://github.com/LavaGang/MelonLoader/releases) — Mono, 0.8.0-ci.2548 (development target)",
     "Windows x64 and .NET Framework 4.8; local model download is optional. See repository installation and translation documentation."
   ],
-  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.1/CVRComfortUI.dll",
+  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.2/CVRComfortUI.dll",
   "sourcelink": "https://github.com/xuan5636/ChilloutVR-ComfortUI",
-  "changelog": "0.6.1 hotfix: fixes startup failure that left all menus in the original UI when the game loaded its older Json.NET API. Both game/loader JSON binaries share identity but differ in overloads. Uses common writer calls, compiles against the game API and checks all JSON member references against both. Retains 0.6.0 native-layout multilingual keyboard. Actual game restart/IME/Win+H/VR remain to be tested.",
+  "changelog": "0.6.2 hotfix: fixes duplicate keyboard rows, control-label fonts and cropped controls at the actual 1520x420 game texture; narrows and centers the panel with balanced key proportions. Restores original row display on original mode/disable/unload. Retains 0.6.1 JSON startup repair and personal settings. 54 isolated UI checks pass; actual Cohtml/IME/Win+H/VR still require client testing.",
   "embedcolor": "#C1CBDC"
 }

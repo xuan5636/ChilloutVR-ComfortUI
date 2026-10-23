@@ -3,7 +3,7 @@
     'use strict';
     var core=window.ComfortKeyboardCore;if(!core||window.ComfortKeyboard)return;
     var model=new core.Model('en',new core.Lexicon(window.__comfortKeyboardData||{}));
-    var root,field,password,keys,candidates,languages,status,prefs={},session='',revision=0,desktop=false,closed=false,composing=false,shift=false,symbols=false,lastLayout='',repeatTimer,repeatDelay,renderTimer,selectionTimer,nativeRows=[],capsLock=false,collapsed=false,titleText='';
+    var root,field,password,keys,candidates,languages,status,prefs={},session='',revision=0,desktop=false,closed=false,composing=false,shift=false,symbols=false,lastLayout='',repeatTimer,repeatDelay,renderTimer,selectionTimer,nativeRows=[],nativePanels=[],nativeHidden=false,visibilityObserver,capsLock=false,collapsed=false,titleText='';
     var words={
         en:{title:'Keyboard',system:'System input · Win+H',next:'Next keyboard',settings:'Languages',done:'Done',suggest:'Word suggestions',systemHelp:'Click the text to use your installed IME or press Win+H. Shift+Enter: new line.',unavailable:'System input is unavailable here. Use the on-screen keyboard or paste.',focused:'System input active · Win+H for voice',submit:'Submit',close:'Close',space:'Space',back:'Backspace',clear:'Clear',paste:'Paste',choose:'Choose keyboards',defaultLabel:'Default keyboard',enabled:'Comfort keyboard',normal:'Game keyboard',syson:'System IME and voice',settingsHelp:'Enable languages, then switch with the bottom language button. Suggestions stay on this device.',compose:'Composing',voice:'Voice typing follows your Windows language and speech settings.'},
         zh:{title:'键盘',system:'系统输入 · Win+H',next:'切换键盘',settings:'语言设置',done:'完成',suggest:'文字联想',systemHelp:'点击输入区使用系统输入法，按 Win+H 语音输入；Shift+Enter 换行。',unavailable:'此处暂时无法接入系统输入，请使用屏幕键盘或粘贴。',focused:'系统输入已接入 · Win+H 语音输入',submit:'确认',close:'关闭',space:'空格',back:'退格',clear:'清空',paste:'粘贴',choose:'启用的键盘',defaultLabel:'默认键盘',enabled:'舒适键盘',normal:'原版键盘',syson:'系统输入法与语音',settingsHelp:'勾选需要的语言，再用底部按钮切换。联想在本机完成。',compose:'正在组词',voice:'语音语言和可用性由 Windows 语音设置决定。'},
@@ -44,12 +44,12 @@
         // Submission remains an explicit user action; IME Enter commits only.
         if(!model.multiline&&!model.hidden&&typeof keyboardHistory!=='undefined')keyboardHistory.push(model.text);if(window.engine)engine.call('CVRUIKeyboardSubmit',model.text.replace(/\n$/,''));close(false);
     }
-    function close(nativeClose){closed=true;composing=false;cancelRepeat();call({action:'closed'});session='';model.open('',0,true,true);updateNativeModel();if(root){field.value=password.value='';candidates.textContent='';root.querySelector('.cu-kb-compose').textContent='';root.setAttribute('data-open','false');}if(nativeClose&&window.engine)engine.call('CVRUIKeyboardClose');}
+    function close(nativeClose){closed=true;composing=false;cancelRepeat();call({action:'closed'});session='';model.open('',0,true,true);updateNativeModel();if(root){field.value=password.value='';candidates.textContent='';root.querySelector('.cu-kb-compose').textContent='';root.setAttribute('data-open','false');syncVisibility();}if(nativeClose&&window.engine)engine.call('CVRUIKeyboardClose');}
     function nextLanguage(){if(composing)return;var enabled=core.configuration(prefs.keyboardLanguages,prefs.keyboardDefault,prefs.language).languages;var index=enabled.indexOf(model.language);model.changeLanguage(enabled[(index+1)%enabled.length]);shift=false;renderKeys();renderLanguages();renderText();syncNative('edit');}
     function chooseLanguage(code){if(composing)return;model.changeLanguage(code);shift=false;renderKeys();renderLanguages();renderText();syncNative('edit');}
     function renderLanguages(){
         if(!languages)return;languages.textContent='';var enabled=core.configuration(prefs.keyboardLanguages,prefs.keyboardDefault,prefs.language).languages;
-        var index=enabled.indexOf(model.language),next=button('🌐 '+core.names[model.language]+' ›',nextLanguage,'cu-kb-language-next');next.title=t('next');languages.appendChild(next);
+        var index=enabled.indexOf(model.language),next=button(core.names[model.language]+' ›',nextLanguage,'cu-kb-language-next');next.title=t('next');languages.appendChild(next);
         var add=button('+',function(){var panel=root.querySelector('.cu-kb-preferences'),expanded=!panel.classList.contains('cu-kb-expanded');panel.classList.toggle('cu-kb-expanded',expanded);root.setAttribute('data-settings-open',String(expanded));renderSettings(panel);},'cu-kb-add');add.setAttribute('aria-label',t('choose'));languages.appendChild(add);
         enabled.forEach(function(code){var b=button(core.names[code],function(){chooseLanguage(code);},'cu-kb-language');b.setAttribute('aria-pressed',String(model.language===code));languages.appendChild(b);});
     }
@@ -139,11 +139,24 @@
             event.preventDefault();model.start=getField().selectionStart;model.end=getField().selectionEnd;press(event.key);
         }
     }
+    function syncVisibility(restore){
+        if(!root)return;
+        var active=!restore&&prefs.keyboardEnabled!==false&&document.documentElement.getAttribute('data-comfort-enabled')==='true';
+        if(active&&!nativeHidden){
+            nativePanels.forEach(function(saved){saved.display=saved.node.style.getPropertyValue('display');saved.priority=saved.node.style.getPropertyPriority('display');saved.node.style.setProperty('display','none','important');});
+            nativeHidden=true;
+        }else if(!active&&nativeHidden){
+            nativePanels.forEach(function(saved){if(saved.display)saved.node.style.setProperty('display',saved.display,saved.priority);else saved.node.style.removeProperty('display');});
+            nativeHidden=false;
+        }
+        root.style.display=active&&!closed?'flex':'none';
+    }
     function mount(){
         if(root||!document.querySelector('.keyboard'))return;
         var parent=document.querySelector('.keyboard');
         nativeRows=Array.prototype.slice.call(parent.children).filter(function(el){return el.classList.contains('keyboard-row');}).slice(1).map(function(row){return Array.prototype.map.call(row.children,function(el){return {key:el.hasAttribute('data-key')?el.getAttribute('data-key'):null,shift:el.getAttribute('data-key-shift')||el.getAttribute('data-key'),func:el.getAttribute('data-key-func'),mod:el.getAttribute('data-key-mod')||el.getAttribute('data-key-mod-lock'),lock:el.hasAttribute('data-key-mod-lock'),spacer:el.classList.contains('spacer'),weight:el.classList.contains('space')?10:el.classList.contains('widest')?2.5:el.classList.contains('wider')?2:el.classList.contains('wide')?1.5:1};});});
         if(nativeRows.length!==5)return; // Preserve native UI if a future game changes its structure.
+        nativePanels=Array.prototype.slice.call(parent.children).filter(function(el){return el.classList.contains('keyboard-row');}).map(function(el){return {node:el,display:'',priority:''};});
         root=node('section','cu-multilingual-keyboard cu-only');root.id='comfort-keyboard';root.setAttribute('data-open','false');
         var heading=node('div','cu-kb-heading'),clear=button(t('clear'),function(){if(composing)return;model.open('',model.max,model.multiline,model.hidden);renderText();syncNative('edit');},'cu-kb-clear');heading.appendChild(clear);
         var inputBlock=node('div','cu-kb-input-block'),meta=node('div','cu-kb-meta');meta.appendChild(node('span','cu-kb-title',t('title')));meta.appendChild(node('span','cu-kb-count'));inputBlock.appendChild(meta);heading.appendChild(inputBlock);
@@ -176,6 +189,7 @@
             engine.on('showKeyboard',function(value,title,placeholder,submitText,max,hidden,multiline,collapse){titleText=typeof title==='string'?title:'';open({text:value,maximum:max,hidden:hidden,multiline:multiline,collapse:collapse},false);});
             engine.on('pasteFromClipboard',function(text){if(!closed&&typeof text==='string'){model.insert(text);renderText();syncNative('edit');}});
         }
+        visibilityObserver=new MutationObserver(function(){syncVisibility();});visibilityObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-comfort-enabled']});
         selectionTimer=setInterval(function(){if(!closed&&session&&desktop&&prefs.keyboardEnabled!==false&&prefs.keyboardSystemInput!==false&&document.documentElement.getAttribute('data-comfort-enabled')==='true')call({action:'layout',rectangle:rectangle()});},250);
     }
     function open(data,native){
@@ -184,11 +198,13 @@
         model.changeLanguage(config.initial);model.open(data.text,data.maximum,data.multiline,data.hidden);model.suggestions=prefs.keyboardSuggestions!==false;
         root.querySelector('.cu-kb-title').textContent=titleText||t('title');
         root.setAttribute('data-open','true');notice('systemHelp');renderKeys();renderLanguages();renderText();
+        syncVisibility();
         getField().focus();
     }
     function configure(value){
         prefs=value||{};mount();if(!root)return;
         root.closest('.keyboard').setAttribute('data-cu-keyboard',String(prefs.keyboardEnabled!==false));
+        syncVisibility();
         model.suggestions=prefs.keyboardSuggestions!==false;
         var enabled=core.configuration(prefs.keyboardLanguages,prefs.keyboardDefault,prefs.language);
         if(enabled.languages.indexOf(model.language)<0)model.changeLanguage(enabled.initial);
@@ -212,5 +228,5 @@
         if(data.action==='submit'&&!composing)submit();else if(data.action==='close'&&!composing)close(true);
     }
     window.ComfortKeyboard={configure:configure,receive:receive,settings:renderSettings};
-    window.addEventListener('beforeunload',function(){close(false);clearInterval(selectionTimer);clearTimeout(renderTimer);});
+    window.addEventListener('beforeunload',function(){close(false);if(visibilityObserver)visibilityObserver.disconnect();syncVisibility(true);clearInterval(selectionTimer);clearTimeout(renderTimer);});
 }());

@@ -13,10 +13,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.6.1", "Local UI Workshop")]
+[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.6.2", "Local UI Workshop")]
 [assembly: MelonGame(null, "ChilloutVR")]
-[assembly: AssemblyVersion("0.6.1.0")]
-[assembly: AssemblyFileVersion("0.6.1.0")]
+[assembly: AssemblyVersion("0.6.2.0")]
+[assembly: AssemblyFileVersion("0.6.2.0")]
 
 namespace ComfortUI
 {
@@ -159,7 +159,7 @@ namespace ComfortUI
             try { localTranslations = ReadLocalTranslations(); }
             catch (Exception ex) { LoggerInstance.Warning("Optional translations skipped: " + ex.GetType().Name); }
             initialized = true;
-            LoggerInstance.Msg("Comfort UI 0.6.1 stable ready. Unified menus, multilingual keyboard, login and HUD; preferences in game Settings.");
+            LoggerInstance.Msg("Comfort UI 0.6.2 stable ready. Unified menus, multilingual keyboard, login and HUD; preferences in game Settings.");
         }
 
         private static string ReadResource(string name)
