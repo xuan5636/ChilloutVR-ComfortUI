@@ -1,3 +1,9 @@
+# 0.6.0 keyboard security additions
+
+The keyboard retains the 0.5.2 data/code separation described below. A sixth fixed typed event, `ComfortUI_KeyboardState`, carries bounded text/session/revision/schema data to plain-text inputs and candidates. Only trusted embedded keyboard source/dictionaries reach ExecuteScript. The incoming `ComfortUI_Keyboard` call is bound only to the allowlisted keyboard view, queued with a 32-message bound and processed on the game update thread. Stale view/session/revision, malformed coordinates and unsupported language codes are rejected.
+
+Windows input creates only an EDIT child of this process's own Unity window on its owner thread, within validated client bounds; there is no external editor, global key hook, foreign-process observation, clipboard polling or network completion. Native text and preedit mirror over typed data. Passwords disable suggestions; input is not logged/persisted. Close/reload/unload dispose the child and restore its subclass procedure/font/thread layout. This is an implementation review and offline/native-fixture test, not a security certification or proof of live IME/Win+H compatibility. See [keyboard guide](KEYBOARD.md) and [current validation](VALIDATION.md).
+
 # Translation bridge hardening · 0.5.2
 
 ## Change for CVRMG re-review

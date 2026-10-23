@@ -74,5 +74,6 @@ namespace ComfortUI
         internal bool Translation(string json) { return SendJson("ComfortUI_TranslationResult", json, 1048576); }
         internal bool TranslationNotice(string json) { return SendJson("ComfortUI_TranslationNotice", json, 256); }
         internal bool LocalModelState(string json) { return SendJson("ComfortUI_LocalModelState", json, 256); }
+        internal bool Keyboard(string json) { return SendJson("ComfortUI_KeyboardState", json, 200000); }
     }
 }

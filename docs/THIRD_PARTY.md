@@ -6,3 +6,7 @@ Downloaded on demand, not embedded in the mod or installer:
 - llama.cpp b11718, MIT. [Release](https://github.com/ggml-org/llama.cpp/releases/tag/b11718), [license](https://github.com/ggml-org/llama.cpp/blob/b11718/LICENSE). CPU ZIP SHA256 `92cc529b29a43f9a30e21d490cb2e95062acd0b59af6fee8b3b52b28074f838c`; Vulkan ZIP SHA256 `237e5736031a9cdcf9eff54e1f4e9bd871945de1d56ec542ecb9ebaf8d45bdb6`.
 
 The pinned runtime ZIPs retain bundled third-party notices such as LLVM OpenMP licenses. No game shader, sprite or implementation is redistributed. Other upstream software/models are neither bundled nor installed globally.
+
+## Bundled keyboard data
+
+The 0.6.0 local keyboard word lists include adapted FrequencyWords content under CC BY-SA 4.0, MIT pinyin data and OpenCC-derived traditional variants under Apache 2.0. Complete attribution, changes, license links and notices are in [KEYBOARD-DATA.md](KEYBOARD-DATA.md). These licenses apply to those datasets independently of the mod code.

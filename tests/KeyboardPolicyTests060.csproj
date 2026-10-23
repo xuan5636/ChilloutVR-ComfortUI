@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><TargetFramework>net48</TargetFramework><OutputType>Exe</OutputType><LangVersion>latest</LangVersion><EnableDefaultCompileItems>false</EnableDefaultCompileItems><AssemblyName>KeyboardPolicyTests060</AssemblyName></PropertyGroup>
+ <ItemGroup><Compile Include="KeyboardPolicyTests060.cs"/><Compile Include="../src/KeyboardPolicy.cs"/><Compile Include="../src/LanguageSupport.cs"/></ItemGroup>
+</Project>

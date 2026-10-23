@@ -1156,7 +1156,7 @@ html[data-comfort-enabled="true"][data-comfort-context="login"] .root-container 
 
 html[data-comfort-enabled="true"][data-comfort-context="login"] .root-container .login-container .notifier-root .success { background-color:var(--cu-positive);color:var(--cu-positive-text); }
 
-/* Keyboard: preserve the physical key map, submit/cancel semantics and hold repeat. */
+/* Keyboard: native fallback remains available; enhanced keyboard uses local text-only UI. */
 
 html[data-comfort-enabled="true"][data-comfort-context="keyboard"] .wrapper { color:var(--cu-text);text-shadow:none; }
 
@@ -1825,3 +1825,54 @@ html[data-comfort-enabled="true"][data-comfort-language="tr"] #comfort-translati
 html[data-comfort-enabled="true"][data-comfort-language="tr"] #comfort-keybinding,
 html[data-comfort-enabled="true"][data-comfort-language="tr"] #comfort-translation *,
 html[data-comfort-enabled="true"][data-comfort-language="tr"] #comfort-keybinding *{ font-family:"Noto Sans","Segoe UI","Noto Sans SC",sans-serif !important; }
+/* 0.6: preserve the native five-row keyboard arrangement and header controls. */
+html[data-comfort-enabled="true"][data-comfort-context="keyboard"] .keyboard[data-cu-keyboard="true"] > :not(#comfort-keyboard):not(.settings) { display:none !important; }
+html[data-comfort-enabled="true"][data-comfort-context="keyboard"] .keyboard[data-cu-keyboard="true"] { max-height:98vh;padding:6px; }
+#comfort-keyboard { display:none;box-sizing:border-box;width:100%;min-height:0;max-height:94vh;flex-direction:column;text-align:left;color:var(--cu-text);font-family:inherit; }
+html[data-comfort-enabled="true"] .keyboard[data-cu-keyboard="true"] #comfort-keyboard[data-open="true"] { display:flex; }
+#comfort-keyboard button,.cu-keyboard-settings button { box-sizing:border-box;min-width:0;min-height:40px;padding:5px 10px;border:2px solid var(--cu-line);border-radius:7px;background-color:var(--cu-panel);color:var(--cu-panel-text);font-family:inherit;font-size:22px;font-weight:500;cursor:pointer; }
+#comfort-keyboard button:hover,.cu-keyboard-settings button:hover { background-color:var(--cu-hover); }
+#comfort-keyboard button:focus,.cu-keyboard-settings button:focus { border-color:var(--cu-accent); }
+.cu-kb-heading { display:flex;align-items:stretch;flex-shrink:0;min-height:102px; }
+#comfort-keyboard .cu-kb-clear { flex:1;margin:2px;font-size:22px; }
+.cu-kb-input-block { display:flex;flex-direction:column;flex:10;min-width:0;padding:2px 7px; }
+.cu-kb-meta { display:flex;justify-content:space-between;align-items:center;font-size:17px;line-height:1.35;color:var(--cu-muted); }
+.cu-kb-title { overflow:hidden;white-space:nowrap;text-overflow:ellipsis; }
+.cu-kb-count { flex-shrink:0;margin-left:12px; }
+#comfort-keyboard .cu-kb-header-button { flex:.5;margin:2px;padding:4px;border-color:transparent;background-color:transparent; }
+.cu-kb-header-button img { width:28px;height:28px;filter:invert(1);pointer-events:none; }
+#comfort-keyboard .cu-kb-text { box-sizing:border-box;flex:1;resize:none;width:100%;height:74px;min-height:50px;margin:3px 0;padding:7px 12px;outline:none;border:2px solid var(--cu-line);border-radius:8px;background-color:var(--cu-panel);color:var(--cu-panel-text);font-family:inherit;font-size:28px;font-weight:500;line-height:1.25;white-space:pre-wrap;caret-color:var(--cu-accent); }
+#comfort-keyboard .cu-kb-text:focus { border-color:var(--cu-accent); }
+.cu-kb-hint { display:flex;align-items:center;flex-shrink:0;min-height:26px;padding:2px 5px; }
+.cu-kb-hint .cu-kb-compose { flex:1;min-width:0;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+#comfort-keyboard .cu-kb-system { min-height:28px;font-size:17px;padding:2px 8px; }
+.cu-kb-status { display:none; }
+.cu-kb-candidates { display:flex;align-items:center;flex-shrink:0;overflow-x:auto;min-height:0;margin:1px 0 3px; }
+.cu-kb-candidates:empty { display:none; }
+#comfort-keyboard .cu-kb-candidate,#comfort-keyboard .cu-kb-accent { flex-shrink:0;min-height:36px;margin-right:6px;font-size:22px; }
+.cu-kb-keys { display:flex;flex-direction:column;flex-shrink:0;min-height:0; }
+.cu-kb-row { display:flex;flex:none;min-height:0;margin:0; }
+#comfort-keyboard .cu-kb-key { flex:1;min-width:0;min-height:40px;height:56px;margin:2px;padding:3px;font-size:26px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis; }
+#comfort-keyboard .cu-kb-key[data-native-function]:not([data-native-function="key"]) { font-size:19px; }
+#comfort-keyboard .cu-kb-submit { background-color:var(--cu-accent);color:var(--cu-ink); }
+.cu-kb-languages { display:flex;flex-shrink:0;align-items:center;min-height:42px;overflow-x:auto;padding:5px 0 1px; }
+#comfort-keyboard .cu-kb-languages button { flex-shrink:0;min-height:34px;margin-right:5px;font-size:17px; }
+#comfort-keyboard button[aria-pressed="true"],.cu-keyboard-settings button[aria-pressed="true"] { background-color:var(--cu-accent);color:var(--cu-ink);border-color:var(--cu-accent); }
+.cu-kb-preferences { display:none;overflow-y:auto;min-height:0;max-height:250px;border-top:2px solid var(--cu-line);padding:10px; }
+.cu-kb-preferences.cu-kb-expanded { display:block; }
+#comfort-keyboard[data-settings-open="true"] .cu-kb-keys,#comfort-keyboard[data-settings-open="true"] .cu-kb-candidates { display:none; }
+#comfort-keyboard[data-collapsed="true"] .cu-kb-keys,#comfort-keyboard[data-collapsed="true"] .cu-kb-candidates { display:none; }
+.cu-kb-checklist,.cu-kb-defaults { display:flex;flex-wrap:wrap; }
+.cu-kb-check { display:flex;align-items:center;min-height:40px;padding:7px 12px;margin:3px 7px 3px 0;cursor:pointer;font-size:22px; }
+.cu-kb-check input { width:24px;height:24px;margin-right:10px; }
+.cu-keyboard-settings { padding:20px 0;border-top:2px solid var(--cu-line); }
+.cu-keyboard-settings h3,.cu-kb-preferences h3 { margin:0 0 6px;font-size:27px;font-weight:500; }
+.cu-keyboard-settings p,.cu-kb-preferences p { font-size:22px;line-height:1.4;margin:6px 0 12px; }
+.cu-kb-defaults button { margin:3px 7px 3px 0; }
+.cu-keyboard-settings .cu-kb-note,.cu-kb-preferences .cu-kb-note { color:var(--cu-muted);font-size:20px; }
+@media (max-height:760px) { #comfort-keyboard .cu-kb-key { height:44px;min-height:36px;font-size:24px; } #comfort-keyboard .cu-kb-text { height:62px;font-size:25px; } .cu-kb-heading { min-height:90px; } .cu-kb-preferences { max-height:220px; } }
+@media (max-height:620px) { #comfort-keyboard .cu-kb-key { height:37px;min-height:32px;font-size:23px; } #comfort-keyboard .cu-kb-key[data-native-function]:not([data-native-function="key"]) { font-size:16px; } #comfort-keyboard .cu-kb-text { height:54px;font-size:23px; } .cu-kb-heading { min-height:82px; } .cu-kb-preferences { max-height:180px; } }
+#comfort-keyboard[data-keyboard-language="ko"] .cu-kb-text,#comfort-keyboard[data-keyboard-language="ko"] .cu-kb-key,#comfort-keyboard[data-keyboard-language="ko"] .cu-kb-candidate,.cu-kb-checklist input[aria-label="한국어"] + span { font-family:"Noto Sans KR","Malgun Gothic","Noto Sans",sans-serif !important; }
+#comfort-keyboard[data-keyboard-language="ja"] .cu-kb-text,#comfort-keyboard[data-keyboard-language="ja"] .cu-kb-key,#comfort-keyboard[data-keyboard-language="ja"] .cu-kb-candidate,.cu-kb-checklist input[aria-label="日本語"] + span { font-family:"Noto Sans JP","Yu Gothic","Meiryo","Noto Sans",sans-serif !important; }
+#comfort-keyboard[data-keyboard-language="zh"] .cu-kb-text,#comfort-keyboard[data-keyboard-language="zh"] .cu-kb-key,#comfort-keyboard[data-keyboard-language="zh"] .cu-kb-candidate { font-family:"Noto Sans SC","Microsoft YaHei","Noto Sans",sans-serif !important; }
+#comfort-keyboard[data-keyboard-language="zh-Hant"] .cu-kb-text,#comfort-keyboard[data-keyboard-language="zh-Hant"] .cu-kb-key,#comfort-keyboard[data-keyboard-language="zh-Hant"] .cu-kb-candidate { font-family:"Noto Sans TC","Microsoft JhengHei","Noto Sans SC",sans-serif !important; }

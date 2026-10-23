@@ -13,10 +13,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.5.2", "Local UI Workshop")]
+[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.6.0", "Local UI Workshop")]
 [assembly: MelonGame(null, "ChilloutVR")]
-[assembly: AssemblyVersion("0.5.2.0")]
-[assembly: AssemblyFileVersion("0.5.2.0")]
+[assembly: AssemblyVersion("0.6.0.0")]
+[assembly: AssemblyFileVersion("0.6.0.0")]
 
 namespace ComfortUI
 {
@@ -27,7 +27,7 @@ namespace ComfortUI
         internal static ComfortMod Instance;
         private readonly Dictionary<uint, AttachedView> views = new Dictionary<uint, AttachedView>();
         private static readonly FieldInfo HudViewField = typeof(CohtmlHud).GetField("hudView", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-        private string javascript, stylesheet, settingsPath, pending, localTranslations = "{}", settingsTranslations, languagePacks;
+        private string javascript, keyboardJavascript, stylesheet, settingsPath, pending, localTranslations = "{}", settingsTranslations, languagePacks;
         private Preferences preferences = new Preferences();
         private float nextScan;
         private bool initialized;
@@ -56,6 +56,9 @@ namespace ComfortUI
             public bool nameplateTheme = true;
             public bool chatBubbleTheme = true;
             public bool chatTranslation = true, detailTranslation = true;
+            public bool keyboardEnabled = true, keyboardSuggestions = true, keyboardSystemInput = true;
+            public string[] keyboardLanguages;
+            public string keyboardDefault = "";
             public string translationProvider = "google", proxyMode = "system", proxyAddress = "http://127.0.0.1:7890", translationKey = "F8";
             public string sourceLanguage = "auto", aiEndpoint = "https://api.openai.com/v1", aiModel = "", microsoftRegion = "", libreEndpoint = "http://127.0.0.1:5000";
             public string localAcceleration = "cpu";
@@ -78,6 +81,7 @@ namespace ComfortUI
             public cohtml.Net.BoundEventHandle TranslateHandle;
             public cohtml.Net.BoundEventHandle ToolsHandle;
             public cohtml.Net.BoundEventHandle ReadyHandle;
+            public cohtml.Net.BoundEventHandle KeyboardHandle;
             public volatile bool BridgeReady;
             public bool Bootstrapped;
             public CancellationTokenSource TranslationCancellation;
@@ -94,8 +98,11 @@ namespace ComfortUI
             Instance = this;
             // Only embedded, trusted code reaches ExecuteScript. Runtime data is
             // delivered later through fixed typed events after the ready handshake.
-            javascript = ReadResource("ComfortUI.native-bridge.js") + "\nwindow.ComfortNativeBridge.install(function(){\n" +
+            var trustedCode = ReadResource("ComfortUI.keyboard-core.js") + "\n" + ReadResource("ComfortUI.keyboard.js") + "\n" +
                 ReadResource("ComfortUI.content-tools.js") + "\n" + ReadResource("ComfortUI.comfort.js") + "\n});";
+            var trustedStart = ReadResource("ComfortUI.native-bridge.js") + "\nwindow.ComfortNativeBridge.install(function(){\n";
+            javascript = trustedStart + trustedCode;
+            keyboardJavascript = trustedStart + ReadResource("ComfortUI.keyboard-data.js") + "\n" + trustedCode;
             stylesheet = ReadResource("ComfortUI.comfort.css");
             settingsTranslations = JObject.Parse(ReadResource("ComfortUI.settings-zh.json")).ToString(Formatting.None);
             languagePacks = JObject.Parse(ReadResource("ComfortUI.locales.json")).ToString(Formatting.None);
@@ -107,6 +114,8 @@ namespace ComfortUI
                 catch (Exception ex) { LoggerInstance.Warning("Preferences could not be read; using defaults: " + ex.GetType().Name); }
             }
             preferences.language = StartupLanguage.Choose(hasSavedPreferences, preferences.language, StartupLanguage.SystemLocale);
+            preferences.keyboardLanguages = KeyboardPolicy.Languages(preferences.keyboardLanguages, preferences.language);
+            preferences.keyboardDefault = KeyboardPolicy.Initial(preferences.keyboardDefault, preferences.keyboardLanguages);
             if (!hasSavedPreferences)
             {
                 try
@@ -137,6 +146,8 @@ namespace ComfortUI
             catch (Exception ex) { LoggerInstance.Warning("Chat bubble styling unavailable: " + ex.GetType().Name); }
             try { MicrophoneSound.Install(HarmonyInstance); }
             catch (Exception ex) { LoggerInstance.Warning("Microphone sound output unavailable: " + ex.GetType().Name + ". Native audio retained."); }
+            try { KeyboardInput.Install(HarmonyInstance); }
+            catch (Exception ex) { LoggerInstance.Warning("Keyboard input hooks unavailable: " + ex.GetType().Name + ". Native keyboard retained."); }
             try
             {
                 var micMeter = AccessTools.Method(typeof(CohtmlHud), "SetMicValue", new[] { typeof(float) });
@@ -148,7 +159,7 @@ namespace ComfortUI
             try { localTranslations = ReadLocalTranslations(); }
             catch (Exception ex) { LoggerInstance.Warning("Optional translations skipped: " + ex.GetType().Name); }
             initialized = true;
-            LoggerInstance.Msg("Comfort UI 0.5.2 ready. Unified menus, login, keyboard and HUD; preferences in game Settings.");
+            LoggerInstance.Msg("Comfort UI 0.6.0 stable ready. Unified menus, multilingual keyboard, login and HUD; preferences in game Settings.");
         }
 
         private static string ReadResource(string name)
@@ -169,6 +180,8 @@ namespace ComfortUI
         {
             if (!initialized) return;
             InitializeReadyViews();
+            foreach (var item in views)
+                if (item.Value.Bootstrapped && item.Value.Context == "keyboard") KeyboardInput.Tick(item.Value.Owner, item.Value.Target, preferences);
             TranslationDelivery delivery;
             while (translations.TryDequeue(out delivery))
             {
@@ -252,7 +265,7 @@ namespace ComfortUI
         }
 
         public override void OnSceneWasLoaded(int index, string name) { nextScan = 0; }
-        public override void OnDeinitializeMelon() { initialized = false; localPreparation?.Cancel(); localModels?.Dispose(); NameplateUI.Reset(); ChatBubbleUI.Reset(); MicrophoneSound.Reset(); }
+        public override void OnDeinitializeMelon() { initialized = false; KeyboardInput.Reset(); localPreparation?.Cancel(); localModels?.Dispose(); NameplateUI.Reset(); ChatBubbleUI.Reset(); MicrophoneSound.Reset(); }
 
         private void Attach(CohtmlControlledView owner, bool reloaded)
         {
@@ -274,6 +287,7 @@ namespace ComfortUI
                     previous.Target.TryUse(view => view.UnbindCall(previous.TranslateHandle));
                     previous.Target.TryUse(view => view.UnbindCall(previous.ToolsHandle));
                     previous.Target.TryUse(view => view.UnbindCall(previous.ReadyHandle));
+                    if (previous.Context == "keyboard") { previous.Target.TryUse(view => view.UnbindCall(previous.KeyboardHandle)); KeyboardInput.Reset(); }
                     lock (previous) { previous.TranslationCancellation?.Cancel(); previous.TranslationRequest = null; }
                 }
                 var entry = new AttachedView { Owner = owner, Target = target, Context = context, HudExecute = target.Execute };
@@ -293,10 +307,11 @@ namespace ComfortUI
                         }
                     }));
                     if (context == "main") entry.TranslateHandle = view.BindCall("ComfortUI_Translate", new Action<string>(json => QueueTranslation(entry, json)));
+                    if (context == "keyboard") entry.KeyboardHandle = view.BindCall("ComfortUI_Keyboard", new Action<string>(json => KeyboardInput.Queue(entry.Target, json)));
                 })) return;
                 views[id] = entry;
                 // OnFinishLoad handles reloads. Never clear another mod's initial scripts.
-                if (!target.Execute(javascript)) { ForgetView(id); return; }
+                if (!target.Execute(context == "keyboard" ? keyboardJavascript : javascript)) { ForgetView(id); return; }
                 LoggerInstance.Msg("Attached " + context + " (view " + id + ").");
             }
             catch (Exception ex)
@@ -460,6 +475,19 @@ namespace ComfortUI
             p.chatBubbleTheme = ReadBool(obj, "chatBubbleTheme", true);
             p.chatTranslation = ReadBool(obj, "chatTranslation", true);
             p.detailTranslation = ReadBool(obj, "detailTranslation", true);
+            p.keyboardEnabled = ReadBool(obj, "keyboardEnabled", true);
+            p.keyboardSuggestions = ReadBool(obj, "keyboardSuggestions", true);
+            p.keyboardSystemInput = ReadBool(obj, "keyboardSystemInput", true);
+            if (obj["keyboardLanguages"] != null)
+            {
+                var enabled = obj["keyboardLanguages"] as JArray;
+                if (enabled == null || enabled.Count == 0 || enabled.Count > 13) throw new FormatException("Invalid keyboard languages");
+                var selected = new List<string>();
+                foreach (var item in enabled) { if (item.Type != JTokenType.String || !LanguageSupport.Supported((string)item)) throw new FormatException("Unsupported keyboard language"); selected.Add((string)item); }
+                p.keyboardLanguages = selected.ToArray();
+            }
+            p.keyboardLanguages = KeyboardPolicy.Languages(p.keyboardLanguages, p.language);
+            p.keyboardDefault = KeyboardPolicy.Initial((string)obj["keyboardDefault"], p.keyboardLanguages);
             var provider = (string)obj["translationProvider"];
             if (provider == "libre") provider = "local";
             if (provider != null && !TranslationProviders.ValidProvider(provider)) throw new FormatException("Unknown translation service");
@@ -540,6 +568,7 @@ namespace ComfortUI
         {
             AttachedView entry;
             if (!views.TryGetValue(id, out entry)) return;
+            if (entry.Context == "keyboard") KeyboardInput.Reset();
             lock (entry) { entry.TranslationCancellation?.Cancel(); entry.TranslationRequest = null; }
             views.Remove(id);
         }

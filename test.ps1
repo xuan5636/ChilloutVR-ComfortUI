@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'
 $projectRoot = $PSScriptRoot
 $cases = @(
     @{Name='CohtmlLifetimeTests0210';Arguments=@()},
@@ -11,7 +11,9 @@ $cases = @(
     @{Name='HudMicrophoneTests033';Arguments=@()},
     @{Name='MicrophoneSoundTests034';Arguments=@()},
     @{Name='ChatBubbleTests038';Arguments=@()},
-    @{Name='ChatTypingTests040';Arguments=@()}
+    @{Name='ChatTypingTests040';Arguments=@()},
+    @{Name='KeyboardPolicyTests060';Arguments=@()},
+    @{Name='WindowsKeyboardTests060';Arguments=@()}
 )
 New-Item -ItemType Directory -Path (Join-Path $projectRoot 'artifacts/tests') -Force | Out-Null
 Push-Location $projectRoot

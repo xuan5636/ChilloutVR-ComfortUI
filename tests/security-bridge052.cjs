@@ -16,7 +16,7 @@ let initialized=0,passed=0;
 const check=(ok,name)=>{assert(ok,name);passed++;};
 context.ComfortNativeBridge.install(()=>{initialized++;context.ComfortUI={updatePreferences:(...args)=>received.push(['preferences',...args]),chatState:v=>received.push(['chat',v]),translationNotice:(...v)=>received.push(['notice',...v]),localModelState:(...v)=>received.push(['local',...v])};context.ComfortContent={receive:json=>received.push(['translation',JSON.parse(json)])};});
 check(calls.length===1 && calls[0][0]==='ComfortUI_BridgeReady' && calls[0][1]==='1','The ready handshake follows handler registration');
-check(Object.keys(handlers).length===5,'Exactly five fixed event names');
+check(Object.keys(handlers).sort().join(',')===['ComfortUI_Bootstrap','ComfortUI_Preferences','ComfortUI_TranslationResult','ComfortUI_KeyboardState','ComfortUI_TranslationNotice','ComfortUI_LocalModelState'].sort().join(','),'Exactly six fixed event names, including keyboard data');
 const payload={protocol:1,context:'main',preferences:{language:'en'},chatEnabled:false,localModelState:['localIdle',-1],microphone:null,existingTranslations:{},settingsTranslations:{},locales:{},styles:'body{}'};
 for(const invalid of [null,[],true,42,'bad',{}, {...payload,protocol:2},{...payload,context:{toString:0}},{...payload,context:'main\n'},{...payload,preferences:null},{...payload,preferences:[]},{...payload,chatEnabled:1},{...payload,localModelState:['idle',NaN]},{...payload,localModelState:['idle',101]},{...payload,localModelState:['idle',1,'true']},{...payload,microphone:{toString:0}},{...payload,microphone:'muted\n'},{...payload,styles:[]},{...payload,styles:'x'.repeat(400001)}]){
  handlers.ComfortUI_Bootstrap(JSON.stringify(invalid));check(initialized===0,'Malformed bootstrap is ignored');

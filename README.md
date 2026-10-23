@@ -3,18 +3,19 @@
 An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent ChilloutVR interface.
 非官方 ChilloutVR 界面模组：柔和配色、统一控件、多语言和可选翻译。
 
-**Current public release: [0.5.2 — translation bridge hardening](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.5.2).** Translation responses and runtime settings now use typed Cohtml events, explicit JSON encoding and strict request/language checks. Retains 13 languages and the camera, motion, chat and microphone repairs. / **当前公开预览版0.5.2。** 针对审核意见加固翻译数据回传；保留原有功能，详见[安全说明](docs/SECURITY.md)。实机PC/VR验证与平台审核结论分别记录，不以自动化检查代替。
+**Current release: [0.6.0 — Stable · multilingual keyboard](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.6.0).** A configurable in-game keyboard adds local suggestions, Chinese/Japanese/Korean composition and an embedded Windows IME/Win+H input path. This stable-channel release includes the previous menu, camera, chat, microphone and security fixes. **0.6.0 稳定版**：新增游戏内多语言键盘与联想，累计修复多项界面问题；系统输入直接接入游戏内输入区。真实客户端 IME/Win+H/VR 验证仍待完成，详见[验证记录](docs/VALIDATION.md)。
 
 | Download / 下载 | Use / 用途 |
 | --- | --- |
-| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.2/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
-| [ComfortUI-Setup-0.5.2.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.2/ComfortUI-Setup-0.5.2.exe) | Standalone installer, update and removal / 独立安装程序 |
-| [ComfortUI-Manual-0.5.2.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.2/ComfortUI-Manual-0.5.2.zip) | DLL and installation instructions / DLL 与说明 |
-| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.2/ComfortUI-Source-0.5.2.zip) | Mod, interface assets, installer and tests / 源码包 |
-| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.5.2/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
+| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.0/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
+| [ComfortUI-Setup-0.6.0.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.0/ComfortUI-Setup-0.6.0.exe) | Standalone installer, update and removal / 独立安装程序 |
+| [ComfortUI-Manual-0.6.0.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.0/ComfortUI-Manual-0.6.0.zip) | DLL and installation instructions / DLL 与说明 |
+| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.0/ComfortUI-Source-0.6.0.zip) | Mod, interface assets, installer and tests / 源码包 |
+| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.0/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
 
 ## Features / 功能
 
+- Keeps the original five-row keyboard arrangement and function-key proportions, plus its settings/collapse controls. Configurable 13-language in-game keyboard, bottom language switching, enabled/default language controls, local word suggestions and Chinese/Japanese/Korean composition. Desktop system IME/Win+H input uses a child of the game window, with no separate editor dialog. See [keyboard guide and limitations](docs/KEYBOARD.md).
 - Main/quick menus, settings, details, instance creation, login, virtual keyboard and HUD share a soft, configurable theme. A separate microphone control keeps navigation focused.
 - First startup without a saved preference file follows the Windows display language when it maps to one of 13 supported languages; unsupported languages fall back to English. Upgrades retain the saved choice.
 - 13 languages: Simplified/Traditional Chinese, English, Japanese, Korean, Spanish, French, Russian, Brazilian Portuguese, Italian, Indonesian, Polish and Turkish. The five frequent choices stay on a single-row slider; the other eight open from a secondary selector with wheel/drag scrolling and paging buttons. Some low-frequency translations are machine-drafted and need native-speaker review. Built-in labels and camera controls use local dictionaries; world/avatar/prop names remain original until translated on request.
@@ -33,7 +34,7 @@ An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent Chill
 Development target: **ChilloutVR `2026r182-hf4` (`public-nightly`)**, Unity `2022.3.58f1`, **Mono MelonLoader `0.8.0-ci.2548`**, Windows, .NET Framework 4.8.
 Other game branches or loader builds have not been certified. The installer opens a checksum-verified official MelonLoader installer if a Mono loader is missing; this does not certify every runtime it offers.
 
-This 0.5.2 public preview passes 986 managed checks, 637 offline event checks, 1,505 isolated translation rendering/restoration checks, 145 malformed-response/lifecycle checks and 78 native-HTML interface regressions. These use stand-ins, muted headless Edge and synthetic content; actual Cohtml/PC/VR behavior, other computers and long sessions remain unverified. See [validation](docs/VALIDATION.md) and the [security review entry points](docs/SECURITY.md).
+This is a stable-channel release, not a claim of bug-free operation. Automated managed, native Windows child-control and muted offline browser checks are documented in [validation](docs/VALIDATION.md). Actual Cohtml/PC/VR keyboard/Win+H compatibility, other computers and long sessions remain unverified. The [fixed typed data bridge](docs/SECURITY.md) is retained.
 
 ## Install / 安装
 
@@ -54,6 +55,8 @@ Updates preserve `UserData/ComfortUI/preferences.json`. The installer backs up p
 - `installer/`: standalone Windows installer source.
 - `tests/`, `test.ps1`: managed regression tests using mock Unity/Cohtml/HTTP implementations.
 - `release/rc.json`: current publication metadata matching the CVRMG Bot format.
+
+Keyboard data has separate [CC BY-SA/MIT/Apache attribution](docs/KEYBOARD-DATA.md).
 
 Language-pack maintenance and regression guidance: [Localization](docs/LOCALIZATION.md).
 

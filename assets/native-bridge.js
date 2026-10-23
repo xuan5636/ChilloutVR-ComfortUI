@@ -40,6 +40,9 @@
         engine.on('ComfortUI_TranslationResult',function(json){
             if(!closed && started && window.ComfortContent)ComfortContent.receive(json);
         });
+        engine.on('ComfortUI_KeyboardState',function(json){
+            if(!closed && started && window.__comfortContext==='keyboard' && window.ComfortKeyboard)ComfortKeyboard.receive(json);
+        });
         engine.on('ComfortUI_TranslationNotice',function(json){
             if(closed || !started || !window.ComfortUI)return;
             var data=parse(json,256);
