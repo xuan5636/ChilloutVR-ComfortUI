@@ -1,12 +1,12 @@
-# Comfort UI 0.6.0 公开预览版安装说明
+# Comfort UI 0.6.1 稳定版安装说明
 
-当前源码与下载包为[0.6.0公开预览版](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.6.0)，按用户授权发布，重新构建并校验DLL和EXE载荷，包含翻译桥接安全加固。本轮构建/发布不会自动替换本机已加载的模组。实机PC/VR检查与母语审校仍需分别完成，范围见[验证记录](VALIDATION.md)。
+当前源码与下载包为[0.6.1稳定版](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.6.1)，按用户授权发布，重新构建并校验DLL和EXE载荷，包含翻译桥接安全加固。本轮构建/发布不会自动替换本机已加载的模组。实机PC/VR检查与母语审校仍需分别完成，范围见[验证记录](VALIDATION.md)。
 
 适用开发目标：Windows、ChilloutVR 2026r182-hf4 public-nightly、Mono MelonLoader 0.8.0-ci.2548、.NET Framework 4.8。其他分支和加载器版本需要自行验证。
 
 ## EXE 安装
 
-从上述发布页下载 `ComfortUI-Setup-0.6.0.exe`。正常退出游戏后运行，自动查找或手动选择包含 `ChilloutVR.exe` 的文件夹，再选择「安装 / 更新模组」。
+从上述发布页下载 `ComfortUI-Setup-0.6.1.exe`。正常退出游戏后运行，自动查找或手动选择包含 `ChilloutVR.exe` 的文件夹，再选择「安装 / 更新模组」。
 
 缺少加载器时可选择加载器引导：程序下载并校验官方 MelonLoader 安装器，用户在官方界面选择 `ChilloutVR.exe` 并安装适合该游戏的 Mono 加载器，完成后返回本程序安装模组。程序不会替你结束或启动游戏，也不自动替换已存在的加载器。
 

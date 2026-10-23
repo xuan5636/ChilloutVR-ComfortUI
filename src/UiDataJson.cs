@@ -17,7 +17,9 @@ namespace ComfortUI
             using (var buffer = new StringWriter(CultureInfo.InvariantCulture))
             using (var writer = new JsonTextWriter(buffer) { Formatting = Formatting.None, StringEscapeHandling = StringEscapeHandling.EscapeHtml })
             {
-                value.WriteTo(writer);
+                // The game may load an older Json.NET with only the params-array
+                // overload. Passing it explicitly also supports the loader build.
+                value.WriteTo(writer, new JsonConverter[0]);
                 writer.Flush();
                 return buffer.ToString();
             }

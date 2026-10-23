@@ -15,7 +15,9 @@
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="MelonLoader"><HintPath>$(GameDir)\MelonLoader\net35\MelonLoader.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="0Harmony"><HintPath>$(GameDir)\MelonLoader\net35\0Harmony.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="Newtonsoft.Json"><HintPath>$(GameDir)\MelonLoader\net35\Newtonsoft.Json.dll</HintPath><Private>false</Private></Reference>
+    <!-- Compile against the game's older shared API. Mono may unify its
+         assembly identity with the loader's newer Json.NET at runtime. -->
+    <Reference Include="Newtonsoft.Json"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\Newtonsoft.Json.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.AudioModule"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\UnityEngine.AudioModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.UI"><HintPath>$(GameDir)\ChilloutVR_Data\Managed\UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>

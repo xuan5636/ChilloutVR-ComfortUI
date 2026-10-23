@@ -1,6 +1,6 @@
 # Language packs and regression checks
 
-The 0.6.0 public preview retains support for `zh`, `en`, `ja`, `ko`, `es`, `zh-Hant`, `fr`, `ru`, `pt-BR`, `it`, `id`, `pl` and `tr`. The first five share a single-row sliding control; the other eight use an expandable row. Both write the same saved `language` field. The source-language selector additionally provides `auto`. German is intentionally not included. Initialization and preference updates now arrive over the typed event bridge described in [security notes](SECURITY.md).
+The 0.6.1 public preview retains support for `zh`, `en`, `ja`, `ko`, `es`, `zh-Hant`, `fr`, `ru`, `pt-BR`, `it`, `id`, `pl` and `tr`. The first five share a single-row sliding control; the other eight use an expandable row. Both write the same saved `language` field. The source-language selector additionally provides `auto`. German is intentionally not included. Initialization and preference updates now arrive over the typed event bridge described in [security notes](SECURITY.md).
 
 ## Sources and quality
 
@@ -25,6 +25,6 @@ Before public release, have players test the real menus/HUD in PC and VR and ask
 - Probe the complete HUD replacement invisibly while retaining the native microphone. Allow only bounded layout retries; do not impose fixed pixel minimums that reject small render textures or saved HUD scales. Recheck when native HUD visibility or scale changes. Missing styling or parts must leave the original graphic intact.
 - Camera controls use a native Unity Canvas. Keep persistent tooltip/click handlers; suppress only the themed background's sprite/colour callbacks and restore them when the layout is disabled. Close via the game's PortableCameraController.Disable, not GameObject deactivation. Keep PC controls within preview bounds and preserve VR hit areas.
 
-## Keyboard labels and layouts (0.6.0)
+## Keyboard labels and layouts (0.6.1)
 
 `assets/keyboard.js` supplies localized controls for the same 13 languages; `keyboard-core.js` contains bounded composition rules and layouts. `keyboard-data.js` is loaded only by the keyboard view; settings do not parse the large dictionary. Enabled/default keyboard language is independent of interface language. New language support needs a layout, local data/attribution, translated controls and composition/caret/password tests. See KEYBOARD.md and KEYBOARD-DATA.md.

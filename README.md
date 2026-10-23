@@ -3,15 +3,15 @@
 An unofficial Windows / Mono MelonLoader mod for a calmer, more consistent ChilloutVR interface.
 非官方 ChilloutVR 界面模组：柔和配色、统一控件、多语言和可选翻译。
 
-**Current release: [0.6.0 — Stable · multilingual keyboard](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.6.0).** A configurable in-game keyboard adds local suggestions, Chinese/Japanese/Korean composition and an embedded Windows IME/Win+H input path. This stable-channel release includes the previous menu, camera, chat, microphone and security fixes. **0.6.0 稳定版**：新增游戏内多语言键盘与联想，累计修复多项界面问题；系统输入直接接入游戏内输入区。真实客户端 IME/Win+H/VR 验证仍待完成，详见[验证记录](docs/VALIDATION.md)。
+**Current release: [0.6.1 — Stable · startup compatibility hotfix](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.6.1).** Fixes the 0.6.0 initialization error that left the entire interface in the original game style when its older JSON library was loaded. Retains the original-layout multilingual keyboard, local suggestions and embedded system-input path. **0.6.1 启动热修复**：修复新界面未启动、仍显示原版的问题，保留 0.6.0 键盘功能和个人设置。真实客户端重启恢复、IME/Win+H/VR 验证仍待完成，详见[验证记录](docs/VALIDATION.md)。
 
 | Download / 下载 | Use / 用途 |
 | --- | --- |
-| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.0/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
-| [ComfortUI-Setup-0.6.0.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.0/ComfortUI-Setup-0.6.0.exe) | Standalone installer, update and removal / 独立安装程序 |
-| [ComfortUI-Manual-0.6.0.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.0/ComfortUI-Manual-0.6.0.zip) | DLL and installation instructions / DLL 与说明 |
-| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.0/ComfortUI-Source-0.6.0.zip) | Mod, interface assets, installer and tests / 源码包 |
-| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.0/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
+| [CVRComfortUI.dll](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.1/CVRComfortUI.dll) | Manual installation into the game's `Mods` folder / 手动安装 |
+| [ComfortUI-Setup-0.6.1.exe](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.1/ComfortUI-Setup-0.6.1.exe) | Standalone installer, update and removal / 独立安装程序 |
+| [ComfortUI-Manual-0.6.1.zip](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.1/ComfortUI-Manual-0.6.1.zip) | DLL and installation instructions / DLL 与说明 |
+| [Source archive](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.1/ComfortUI-Source-0.6.1.zip) | Mod, interface assets, installer and tests / 源码包 |
+| [SHA256SUMS.txt](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.1/SHA256SUMS.txt) | Download integrity / 下载完整性校验 |
 
 ## Features / 功能
 

@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net48</TargetFramework><OutputType>Exe</OutputType><LangVersion>latest</LangVersion><EnableDefaultCompileItems>false</EnableDefaultCompileItems><AssemblyName>SecurityBridgeTests052</AssemblyName></PropertyGroup>
+  <PropertyGroup><TestFramework Condition="'$(TestFramework)' == ''">net48</TestFramework><TargetFramework>$(TestFramework)</TargetFramework><OutputType>Exe</OutputType><LangVersion>latest</LangVersion><EnableDefaultCompileItems>false</EnableDefaultCompileItems><AssemblyName>SecurityBridgeTests052</AssemblyName></PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" Condition="'$(JsonNetPath)' == ''" />
     <Reference Include="Newtonsoft.Json" Condition="'$(JsonNetPath)' != ''"><HintPath>$(JsonNetPath)</HintPath><Private>true</Private></Reference>

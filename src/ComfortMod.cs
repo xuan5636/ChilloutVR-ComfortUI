@@ -13,10 +13,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.6.0", "Local UI Workshop")]
+[assembly: MelonInfo(typeof(ComfortUI.ComfortMod), "Comfort UI", "0.6.1", "Local UI Workshop")]
 [assembly: MelonGame(null, "ChilloutVR")]
-[assembly: AssemblyVersion("0.6.0.0")]
-[assembly: AssemblyFileVersion("0.6.0.0")]
+[assembly: AssemblyVersion("0.6.1.0")]
+[assembly: AssemblyFileVersion("0.6.1.0")]
 
 namespace ComfortUI
 {
@@ -104,8 +104,8 @@ namespace ComfortUI
             javascript = trustedStart + trustedCode;
             keyboardJavascript = trustedStart + ReadResource("ComfortUI.keyboard-data.js") + "\n" + trustedCode;
             stylesheet = ReadResource("ComfortUI.comfort.css");
-            settingsTranslations = JObject.Parse(ReadResource("ComfortUI.settings-zh.json")).ToString(Formatting.None);
-            languagePacks = JObject.Parse(ReadResource("ComfortUI.locales.json")).ToString(Formatting.None);
+            settingsTranslations = UiDataJson.Serialize(JObject.Parse(ReadResource("ComfortUI.settings-zh.json")));
+            languagePacks = UiDataJson.Serialize(JObject.Parse(ReadResource("ComfortUI.locales.json")));
             settingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UserData", "ComfortUI", "preferences.json");
             var hasSavedPreferences = File.Exists(settingsPath);
             if (hasSavedPreferences)
@@ -159,7 +159,7 @@ namespace ComfortUI
             try { localTranslations = ReadLocalTranslations(); }
             catch (Exception ex) { LoggerInstance.Warning("Optional translations skipped: " + ex.GetType().Name); }
             initialized = true;
-            LoggerInstance.Msg("Comfort UI 0.6.0 stable ready. Unified menus, multilingual keyboard, login and HUD; preferences in game Settings.");
+            LoggerInstance.Msg("Comfort UI 0.6.1 stable ready. Unified menus, multilingual keyboard, login and HUD; preferences in game Settings.");
         }
 
         private static string ReadResource(string name)
