@@ -18,13 +18,14 @@ namespace ComfortUI
         private static readonly ConcurrentQueue<Command> commands = new ConcurrentQueue<Command>();
         private static readonly FieldInfo RendererField = AccessTools.Field(typeof(CVRUIManagerBase), "_uiRenderer");
         private static readonly FieldInfo ViewField = AccessTools.Field(typeof(CVRUIManagerBase), "cohtmlView");
+        private static readonly MethodInfo CloseMethod = AccessTools.Method(typeof(KeyboardManager), "OnKeyboardClose");
         private static readonly WindowsKeyboardInput desktop = new WindowsKeyboardInput();
         private static KeyboardManager manager;
         private static CohtmlControlledView owner;
         private static CohtmlViewTarget target;
         private static string session, initialText, sentSession, desktopLanguage;
         private static int maximum, pendingCount, revision, lastRevision;
-        private static bool multiline, hidden;
+        private static bool multiline, hidden, enhancedActive;
         private static IntPtr window;
         private static double rectX, rectY, rectWidth, rectHeight;
         private static bool hasRectangle;
@@ -32,10 +33,23 @@ namespace ComfortUI
 
         internal static void Install(HarmonyLib.Harmony harmony)
         {
-            if (ViewField == null || RendererField == null) throw new MissingFieldException("Keyboard view fields changed");
+            if (ViewField == null || RendererField == null || CloseMethod == null) throw new MissingMemberException("Keyboard view/close API changed");
             harmony.Patch(AccessTools.Method(typeof(KeyboardManager), "ShowKeyboard"), postfix: new HarmonyMethod(typeof(KeyboardInput), nameof(Shown)));
             foreach (var name in new[] { "OnKeyboardClose", "OnKeyboardSubmit" })
                 harmony.Patch(AccessTools.Method(typeof(KeyboardManager), name), prefix: new HarmonyMethod(typeof(KeyboardInput), nameof(Closed)));
+            harmony.Patch(AccessTools.Method(typeof(CVRUIManagerBaseInput), "ToggleView"), postfix: new HarmonyMethod(typeof(KeyboardInput), nameof(MenuToggled)));
+        }
+        private static void MenuToggled(CVRUIManagerBaseInput __instance, bool __0)
+        {
+            // The chat keyboard otherwise outlives its own menu. On PC an explicit
+            // menu open is also an escape route when its text field has lost focus.
+            if (!__0 || !enhancedActive || manager == null || session == null || target == null || InVr() || ReferenceEquals(__instance, manager)) return;
+            if (__instance is ABI_RC.Core.InteractionSystem.ViewManager || __instance is ABI_RC.Core.InteractionSystem.CVR_MenuManager)
+            {
+                var closing = manager;
+                desktop.Dispose();
+                CloseMethod.Invoke(closing, null);
+            }
         }
         private static void Shown(KeyboardManager __instance, object[] __args)
         {
@@ -46,7 +60,17 @@ namespace ComfortUI
             initialText = KeyboardPolicy.Clean(__args[0] as string, maximum, multiline);
             session = Guid.NewGuid().ToString("N"); revision = 1;
         }
-        private static void Closed() { Reset(); }
+        private static void Closed()
+        {
+            // Native menu closure/submission must also clear the enhanced DOM.
+            try
+            {
+                if (session != null && target != null && target.IsCurrent)
+                    target.Keyboard(UiDataJson.Serialize(new JObject { ["kind"] = "closed", ["session"] = session }));
+            }
+            catch { /* A stale view must never interrupt the native close/unlock. */ }
+            finally { Reset(); }
+        }
         internal static void Queue(CohtmlViewTarget current, string json)
         {
             if (current == null || json == null || json.Length > 100000) return;
@@ -57,7 +81,8 @@ namespace ComfortUI
         {
             if (manager == null || session == null || owner == null || !manager.IsViewShown || !current.IsCurrent || !ReferenceEquals(view, owner))
             { if (ReferenceEquals(view, owner) && session != null) Reset(); return; }
-            if (!preferences.keyboardEnabled) { desktop.Dispose(); return; }
+            enhancedActive = preferences.keyboardEnabled;
+            if (!enhancedActive) { desktop.Dispose(); target = null; return; }
             target = current;
             if (sentSession != session || lastRevision != revision)
             {
@@ -95,6 +120,15 @@ namespace ComfortUI
         {
             if ((string)data["session"] != session || !KeyboardPolicy.ValidSession(session) || data["action"]?.Type != JTokenType.String) return;
             var action = (string)data["action"];
+            if (action == "cancel")
+            {
+                // Run the game's complete close path on the Unity thread, releasing
+                // only KeyboardManager's locks rather than unrelated menu locks.
+                var closing = manager;
+                desktop.Dispose();
+                if (closing != null) CloseMethod.Invoke(closing, null);
+                return;
+            }
             if (action == "copy")
             {
                 if (!hidden && data["text"]?.Type == JTokenType.String && ((string)data["text"]).Length <= KeyboardPolicy.MaxText)
@@ -166,7 +200,7 @@ namespace ComfortUI
         internal static void Reset()
         {
             desktop.Dispose(); manager = null; owner = null; target = null; window = IntPtr.Zero;
-            session = initialText = sentSession = desktopLanguage = null; hasRectangle = false; revision = lastRevision = browserRevision = 0;
+            session = initialText = sentSession = desktopLanguage = null; enhancedActive = false; hasRectangle = false; revision = lastRevision = browserRevision = 0;
             Command ignored; while (commands.TryDequeue(out ignored)) System.Threading.Interlocked.Decrement(ref pendingCount);
         }
     }

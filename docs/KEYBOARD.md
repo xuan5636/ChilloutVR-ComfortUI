@@ -1,8 +1,10 @@
-# Multilingual keyboard · 0.6.2
+> 0.6.3 fixes the reported keyboard close, centering and CJK control-label problems. The reporting user confirmed these fixes on their PC on 2026-10-30. Other devices, full IME/Win+H and VR remain outside that confirmation. The same tested DLL/EXE are published; their earlier test labels remain.
+
+# Multilingual keyboard · 0.6.3
 
 The enhanced keyboard adapts the live original keyboard layout in place: five rows, number keys, Tab/Caps/Shift, Backspace, right-side confirm, and Copy/Paste/Space/arrows. The clear/input/settings/collapse/close header keeps the original positions and function-key proportions. The original keyboard settings and desktop-collapsed option remain usable; candidates and language switching are compact additions. No native game HTML is distributed or replaced. It does not open a separate editor dialog. Enable it in **Settings → Interface & display → Choose keyboards**. The `+` button on the keyboard opens the same language selection. Enable any of the 13 supported languages and choose a default independently of the interface language. First use defaults to the interface language plus English. The bottom current-language button cycles through enabled languages; labelled chips select them directly.
 
-The 0.6.2 panel is centered and width-limited to avoid long, flat keys. At the game's 1520×420 texture the input, candidates and language bar use a compact layout. Enabling the enhanced keyboard hides only native rows; disabling it or choosing the original UI restores their original display styles.
+The 0.6.3 panel uses explicit PC horizontal and vertical alignment and width limits to avoid long, flat keys. Compact-height browser fixtures cover 1520×420 among other sizes; a DOM size log alone does not establish the actual Cohtml view texture size. Closing completes the native close path and removes the outer panel; opening the PC main/quick menu also cancels an active enhanced keyboard. Enabling the enhanced keyboard hides only native rows; disabling it or choosing the original UI restores their original display styles.
 
 ## Typing and suggestions
 

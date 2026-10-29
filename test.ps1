@@ -13,7 +13,8 @@ $cases = @(
     @{Name='ChatBubbleTests038';Arguments=@()},
     @{Name='ChatTypingTests040';Arguments=@()},
     @{Name='KeyboardPolicyTests060';Arguments=@()},
-    @{Name='WindowsKeyboardTests060';Arguments=@()}
+    @{Name='WindowsKeyboardTests060';Arguments=@()},
+    @{Name='KeyboardLifecycleTests063';Arguments=@()}
 )
 New-Item -ItemType Directory -Path (Join-Path $projectRoot 'artifacts/tests') -Force | Out-Null
 Push-Location $projectRoot

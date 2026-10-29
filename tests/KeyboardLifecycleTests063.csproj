@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><TargetFramework>net48</TargetFramework><OutputType>Exe</OutputType><LangVersion>latest</LangVersion><EnableDefaultCompileItems>false</EnableDefaultCompileItems><AssemblyName>KeyboardLifecycleTests063</AssemblyName></PropertyGroup>
+ <ItemGroup><PackageReference Include="Newtonsoft.Json" Version="13.0.3"/><Compile Include="KeyboardLifecycleTests063.cs"/><Compile Include="../src/KeyboardInput.cs"/><Compile Include="../src/KeyboardPolicy.cs"/><Compile Include="../src/LanguageSupport.cs"/><Compile Include="../src/UiDataJson.cs"/></ItemGroup>
+</Project>

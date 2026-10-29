@@ -1,12 +1,12 @@
 {
   "_id": 293,
   "name": "Comfort UI",
-  "modversion": "0.6.2",
+  "modversion": "0.6.3",
   "gameversion": "2026r182-hf4 (public-nightly)",
   "loaderversion": "0.8.0-ci.2548 (Mono)",
   "modtype": "Mod",
   "author": "Local UI Workshop",
-  "description": "Keyboard display hotfix: prevents native/enhanced duplicates, fixes label fonts and fits a centered, proportionate layout inside the actual 1520x420 keyboard texture.\n\nComfort UI 0.6.2 stable release: a configurable 13-language interface and in-game keyboard with local word suggestions, Chinese pinyin, Japanese romaji/common kanji, Korean Hangul composition, language switching and enabled/default keyboard settings. Desktop Windows IME/Win+H uses an embedded child of the game window, with no external input dialog. System IMEs/speech require appropriate Windows components; actual Cohtml/Win+H/VR compatibility still needs client testing.\n\nIncludes cumulative menu, scrolling/font, camera, microphone state/feedback, chat bubble, nameplate, animation and translation bridge fixes. Typed JSON events, explicit escaping, strict response/session checks and plain-text rendering are retained. Stable is the release channel, not a guarantee of bug-free operation.\n\n[Installer](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.2/ComfortUI-Setup-0.6.2.exe) | [Keyboard guide](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/v0.6.2/docs/KEYBOARD.md) | [Release/feedback](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.6.2)\n\nOnline translation remains opt-in and sends selected/visible text to the chosen service. Suggestions stay local. Word data has separate CC BY-SA/MIT/Apache notices. Unofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
+  "description": "Comfort UI 0.6.3: fixes the reported keyboard closing/stranded bottom strip, blocked gameplay, PC centering and Chinese/Japanese/Korean control-label problems. The reporting user confirmed the repair on their PC. Upgrade from affected 0.6.0–0.6.2 releases. The same tested DLL/EXE are published; their earlier test labels remain.\n\nConfigurable 13-language interface and original-layout in-game keyboard, local word suggestions, Chinese pinyin, Japanese romaji/common kanji and Korean Hangul composition. Desktop Windows IME/Win+H uses a child of the game window without a separate input dialog. Appropriate Windows components are required. Other devices, broader Cohtml/IME/Win+H/VR and long sessions remain unverified.\n\nIncludes cumulative menu, camera, microphone, chat bubble, nameplate, animation and translation bridge fixes. Typed JSON events, explicit escaping, strict session checks and plain-text rendering are retained. Preferences and local model caches are preserved.\n\n[Installer](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.3/ComfortUI-Setup-0.6.3.exe) | [Keyboard guide](https://github.com/xuan5636/ChilloutVR-ComfortUI/blob/v0.6.3/docs/KEYBOARD.md) | [Release/feedback](https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/tag/v0.6.3)\n\nOnline translation is opt-in and sends selected/visible text to the chosen provider. Suggestions stay local. Word data retains separate CC BY-SA/MIT/Apache notices. Unofficial mod, not affiliated with, approved, verified or supported by ChilloutVR or Alpha Blend Interactive. Modifications may affect performance, security or stability.",
   "searchtags": [
     "UI",
     "menu",
@@ -40,8 +40,8 @@
     "[MelonLoader](https://github.com/LavaGang/MelonLoader/releases) — Mono, 0.8.0-ci.2548 (development target)",
     "Windows x64 and .NET Framework 4.8; local model download is optional. See repository installation and translation documentation."
   ],
-  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.2/CVRComfortUI.dll",
+  "downloadlink": "https://github.com/xuan5636/ChilloutVR-ComfortUI/releases/download/v0.6.3/CVRComfortUI.dll",
   "sourcelink": "https://github.com/xuan5636/ChilloutVR-ComfortUI",
-  "changelog": "0.6.2 hotfix: fixes duplicate keyboard rows, control-label fonts and cropped controls at the actual 1520x420 game texture; narrows and centers the panel with balanced key proportions. Restores original row display on original mode/disable/unload. Retains 0.6.1 JSON startup repair and personal settings. 54 isolated UI checks pass; actual Cohtml/IME/Win+H/VR still require client testing.",
+  "changelog": "0.6.3 keyboard fixes: completes native close and input/cursor unlock; removes the leftover bottom strip; synchronizes close/submit/hide and PC menu cancellation; fixes PC centering and CJK control-label fonts. The reporting user confirmed the fix on their PC. 1052 managed, 75 keyboard-engine, 637 typed-event and 64 offline UI checks passed. Preferences/model caches retained; broader IME/Win+H/VR remains unverified.",
   "embedcolor": "#C1CBDC"
 }

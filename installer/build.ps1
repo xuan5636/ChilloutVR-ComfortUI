@@ -2,7 +2,7 @@ param([string]$PayloadPath, [string]$OutFile)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 if (-not $PayloadPath) { $PayloadPath = Join-Path $projectRoot 'artifacts/mod/CVRComfortUI.dll' }
-if (-not $OutFile) { $OutFile = Join-Path $projectRoot 'artifacts/ComfortUI-Setup-0.6.2.exe' }
+if (-not $OutFile) { $OutFile = Join-Path $projectRoot 'artifacts/ComfortUI-Setup-0.6.3.exe' }
 $resolvedPayload = (Resolve-Path -LiteralPath $PayloadPath).Path
 $resolvedOutput = [IO.Path]::GetFullPath($OutFile)
 $compiler = Join-Path $env:WINDIR 'Microsoft.NET/Framework/v4.0.30319/csc.exe'

@@ -3,7 +3,7 @@
     'use strict';
     var core=window.ComfortKeyboardCore;if(!core||window.ComfortKeyboard)return;
     var model=new core.Model('en',new core.Lexicon(window.__comfortKeyboardData||{}));
-    var root,field,password,keys,candidates,languages,status,prefs={},session='',revision=0,desktop=false,closed=false,composing=false,shift=false,symbols=false,lastLayout='',repeatTimer,repeatDelay,renderTimer,selectionTimer,nativeRows=[],nativePanels=[],nativeHidden=false,visibilityObserver,capsLock=false,collapsed=false,titleText='';
+    var root,field,password,keys,candidates,languages,status,prefs={},session='',revision=0,desktop=false,closed=true,composing=false,shift=false,symbols=false,lastLayout='',repeatTimer,repeatDelay,renderTimer,selectionTimer,nativeRows=[],nativePanels=[],nativeHidden=false,visibilityObserver,capsLock=false,collapsed=false,titleText='';
     var words={
         en:{title:'Keyboard',system:'System input · Win+H',next:'Next keyboard',settings:'Languages',done:'Done',suggest:'Word suggestions',systemHelp:'Click the text to use your installed IME or press Win+H. Shift+Enter: new line.',unavailable:'System input is unavailable here. Use the on-screen keyboard or paste.',focused:'System input active · Win+H for voice',submit:'Submit',close:'Close',space:'Space',back:'Backspace',clear:'Clear',paste:'Paste',choose:'Choose keyboards',defaultLabel:'Default keyboard',enabled:'Comfort keyboard',normal:'Game keyboard',syson:'System IME and voice',settingsHelp:'Enable languages, then switch with the bottom language button. Suggestions stay on this device.',compose:'Composing',voice:'Voice typing follows your Windows language and speech settings.'},
         zh:{title:'键盘',system:'系统输入 · Win+H',next:'切换键盘',settings:'语言设置',done:'完成',suggest:'文字联想',systemHelp:'点击输入区使用系统输入法，按 Win+H 语音输入；Shift+Enter 换行。',unavailable:'此处暂时无法接入系统输入，请使用屏幕键盘或粘贴。',focused:'系统输入已接入 · Win+H 语音输入',submit:'确认',close:'关闭',space:'空格',back:'退格',clear:'清空',paste:'粘贴',choose:'启用的键盘',defaultLabel:'默认键盘',enabled:'舒适键盘',normal:'原版键盘',syson:'系统输入法与语音',settingsHelp:'勾选需要的语言，再用底部按钮切换。联想在本机完成。',compose:'正在组词',voice:'语音语言和可用性由 Windows 语音设置决定。'},
@@ -14,7 +14,14 @@
     Object.assign(words,{"es":{"title":"Teclado","system":"Entrada del sistema · Win+H","next":"Siguiente teclado","settings":"Idiomas","done":"Listo","suggest":"Sugerencias","systemHelp":"Pulsa el texto para usar el IME o Win+H para dictar. Mayús+Intro: nueva línea.","unavailable":"Entrada del sistema no disponible. Usa el teclado en pantalla o pega el texto.","focused":"Entrada del sistema activa · Win+H para dictar","submit":"Confirmar","close":"Cerrar","space":"Espacio","back":"Borrar","clear":"Vaciar","paste":"Pegar","choose":"Teclados habilitados","defaultLabel":"Teclado predeterminado","enabled":"Teclado Comfort","normal":"Teclado del juego","syson":"IME y dictado del sistema","settingsHelp":"Elige idiomas y cambia con el botón inferior. Las sugerencias se procesan en tu dispositivo.","compose":"Composición","voice":"El dictado utiliza el idioma y los ajustes de voz de Windows."},"fr":{"title":"Clavier","system":"Saisie système · Win+H","next":"Clavier suivant","settings":"Langues","done":"Terminé","suggest":"Suggestions","systemHelp":"Cliquez sur le texte pour utiliser l’IME ou Win+H pour dicter. Maj+Entrée : nouvelle ligne.","unavailable":"Saisie système indisponible. Utilisez le clavier à l’écran ou collez le texte.","focused":"Saisie système active · Win+H pour dicter","submit":"Valider","close":"Fermer","space":"Espace","back":"Effacer","clear":"Tout effacer","paste":"Coller","choose":"Claviers activés","defaultLabel":"Clavier par défaut","enabled":"Clavier Comfort","normal":"Clavier du jeu","syson":"IME et dictée système","settingsHelp":"Choisissez les langues, puis utilisez le bouton du bas. Les suggestions restent sur cet appareil.","compose":"Composition","voice":"La dictée utilise la langue et les paramètres vocaux de Windows."},"ru":{"title":"Клавиатура","system":"Системный ввод · Win+H","next":"Следующая раскладка","settings":"Языки","done":"Готово","suggest":"Подсказки слов","systemHelp":"Нажмите на текст для IME или Win+H для диктовки. Shift+Enter: новая строка.","unavailable":"Системный ввод недоступен. Используйте экранную клавиатуру или вставку.","focused":"Системный ввод включён · Win+H для диктовки","submit":"Подтвердить","close":"Закрыть","space":"Пробел","back":"Удалить","clear":"Очистить","paste":"Вставить","choose":"Включённые клавиатуры","defaultLabel":"Клавиатура по умолчанию","enabled":"Клавиатура Comfort","normal":"Клавиатура игры","syson":"Системный IME и диктовка","settingsHelp":"Выберите языки и переключайте их кнопкой внизу. Подсказки обрабатываются на устройстве.","compose":"Набор","voice":"Язык и доступность диктовки зависят от настроек Windows."},"pt-BR":{"title":"Teclado","system":"Entrada do sistema · Win+H","next":"Próximo teclado","settings":"Idiomas","done":"Concluído","suggest":"Sugestões de palavras","systemHelp":"Clique no texto para usar o IME ou Win+H para ditar. Shift+Enter: nova linha.","unavailable":"Entrada do sistema indisponível. Use o teclado na tela ou cole o texto.","focused":"Entrada do sistema ativa · Win+H para ditar","submit":"Confirmar","close":"Fechar","space":"Espaço","back":"Apagar","clear":"Limpar","paste":"Colar","choose":"Teclados habilitados","defaultLabel":"Teclado padrão","enabled":"Teclado Comfort","normal":"Teclado do jogo","syson":"IME e ditado do sistema","settingsHelp":"Escolha idiomas e alterne pelo botão inferior. As sugestões ficam neste dispositivo.","compose":"Composição","voice":"O ditado segue o idioma e as configurações de voz do Windows."},"it":{"title":"Tastiera","system":"Input di sistema · Win+H","next":"Tastiera successiva","settings":"Lingue","done":"Fine","suggest":"Suggerimenti","systemHelp":"Tocca il testo per usare l’IME o Win+H per dettare. Maiusc+Invio: nuova riga.","unavailable":"Input di sistema non disponibile. Usa la tastiera su schermo o incolla.","focused":"Input di sistema attivo · Win+H per dettare","submit":"Conferma","close":"Chiudi","space":"Spazio","back":"Cancella","clear":"Svuota","paste":"Incolla","choose":"Tastiere abilitate","defaultLabel":"Tastiera predefinita","enabled":"Tastiera Comfort","normal":"Tastiera del gioco","syson":"IME e dettatura di sistema","settingsHelp":"Scegli le lingue e passa da una all’altra con il pulsante in basso. I suggerimenti restano sul dispositivo.","compose":"Composizione","voice":"La dettatura segue la lingua e le impostazioni vocali di Windows."},"id":{"title":"Papan ketik","system":"Input sistem · Win+H","next":"Papan ketik berikutnya","settings":"Bahasa","done":"Selesai","suggest":"Saran kata","systemHelp":"Klik teks untuk memakai IME atau Win+H untuk dikte. Shift+Enter: baris baru.","unavailable":"Input sistem tidak tersedia. Gunakan papan ketik layar atau tempel.","focused":"Input sistem aktif · Win+H untuk dikte","submit":"Konfirmasi","close":"Tutup","space":"Spasi","back":"Hapus","clear":"Bersihkan","paste":"Tempel","choose":"Papan ketik aktif","defaultLabel":"Papan ketik bawaan","enabled":"Papan ketik Comfort","normal":"Papan ketik game","syson":"IME dan dikte sistem","settingsHelp":"Pilih bahasa, lalu ganti dengan tombol di bawah. Saran diproses di perangkat ini.","compose":"Menyusun","voice":"Bahasa dan ketersediaan dikte mengikuti pengaturan suara Windows."},"pl":{"title":"Klawiatura","system":"Wprowadzanie systemowe · Win+H","next":"Następna klawiatura","settings":"Języki","done":"Gotowe","suggest":"Podpowiedzi słów","systemHelp":"Kliknij tekst, aby użyć IME, lub Win+H, aby dyktować. Shift+Enter: nowy wiersz.","unavailable":"Wprowadzanie systemowe niedostępne. Użyj klawiatury ekranowej lub wklej tekst.","focused":"Wprowadzanie systemowe aktywne · Win+H do dyktowania","submit":"Zatwierdź","close":"Zamknij","space":"Spacja","back":"Usuń","clear":"Wyczyść","paste":"Wklej","choose":"Włączone klawiatury","defaultLabel":"Domyślna klawiatura","enabled":"Klawiatura Comfort","normal":"Klawiatura gry","syson":"Systemowy IME i dyktowanie","settingsHelp":"Wybierz języki i przełączaj je przyciskiem na dole. Podpowiedzi pozostają na urządzeniu.","compose":"Wpisywanie","voice":"Dyktowanie korzysta z języka i ustawień mowy Windows."},"tr":{"title":"Klavye","system":"Sistem girişi · Win+H","next":"Sonraki klavye","settings":"Diller","done":"Bitti","suggest":"Sözcük önerileri","systemHelp":"IME için metne tıklayın veya dikte için Win+H kullanın. Shift+Enter: yeni satır.","unavailable":"Sistem girişi kullanılamıyor. Ekran klavyesini veya yapıştırmayı kullanın.","focused":"Sistem girişi etkin · Dikte için Win+H","submit":"Onayla","close":"Kapat","space":"Boşluk","back":"Sil","clear":"Temizle","paste":"Yapıştır","choose":"Etkin klavyeler","defaultLabel":"Varsayılan klavye","enabled":"Comfort klavyesi","normal":"Oyun klavyesi","syson":"Sistem IME ve dikte","settingsHelp":"Dilleri seçin ve alttaki düğmeyle değiştirin. Öneriler bu cihazda işlenir.","compose":"Birleştirme","voice":"Dikte dili ve kullanılabilirliği Windows konuşma ayarlarına bağlıdır."}});
     function t(key){var dictionary=words[prefs.language]||{};return dictionary[key]||words.en[key]||key;}
     function node(tag,className,text){var el=document.createElement(tag);if(className)el.className=className;if(text!=null)el.textContent=text;return el;}
-    function button(text,action,className){var b=node('button',className||'',text);b.type='button';b.addEventListener('mousedown',function(e){e.preventDefault();});b.addEventListener('click',function(e){e.stopPropagation();action();});return b;}
+    function font(element,code){
+        var faces={zh:'"Noto Sans SC","Microsoft YaHei","Noto Sans",sans-serif','zh-Hant':'"Noto Sans TC","Microsoft JhengHei","Noto Sans SC",sans-serif',ja:'"Noto Sans JP","Yu Gothic","Noto Sans SC",sans-serif',ko:'"Noto Sans KR","Malgun Gothic","Noto Sans SC",sans-serif'};
+        code=code||prefs.language||'en';element.setAttribute('data-cu-font',code);
+        // Cohtml can lose inherited font stacks on dynamically created controls.
+        // Give each text control a literal face; do not depend on CSS variables.
+        element.style.setProperty('font-family',faces[code]||'"Noto Sans","Noto Sans Symbols","Noto Sans SC","Noto Sans JP","Noto Sans KR",sans-serif','important');return element;
+    }
+    function button(text,action,className){var b=font(node('button',className||'',text));b.type='button';b.addEventListener('mousedown',function(e){e.preventDefault();});b.addEventListener('click',function(e){e.stopPropagation();action();});return b;}
     function getField(){return model.hidden?password:field;}
     function call(value){if(!session||!window.engine||typeof engine.call!=='function')return;value.session=session;try{var promise=engine.call('ComfortUI_Keyboard',JSON.stringify(value));if(promise&&promise.catch)promise.catch(function(){notice('unavailable');});}catch(ignored){notice('unavailable');}}
     function rectangle(){var r=getField().getBoundingClientRect();return [r.left,r.top,r.width,r.height];}
@@ -35,7 +42,8 @@
         root.querySelector('.cu-kb-count').textContent=value.length+' / '+model.max;
         root.querySelector('.cu-kb-compose').textContent=!model.hidden&&model.raw?t('compose')+' · '+model.previewRaw():'';
         candidates.textContent='';
-        (composing?[]:model.candidates()).forEach(function(word,index){var choice=button((index+1)+'  '+word,function(){if(!composing&&model.choose(word)){renderText();syncNative('edit');}},'cu-kb-candidate');choice.setAttribute('aria-label',word);candidates.appendChild(choice);});
+        font(input,model.language);
+        (composing?[]:model.candidates()).forEach(function(word,index){var choice=font(button((index+1)+'  '+word,function(){if(!composing&&model.choose(word)){renderText();syncNative('edit');}},'cu-kb-candidate'),model.language);choice.setAttribute('aria-label',word);candidates.appendChild(choice);});
         if(!composing&&!model.hidden){var extra=core.layout(model.language,false,false)[3]||[];extra.forEach(function(char){candidates.appendChild(button(char,function(){press(char);},'cu-kb-accent'));});}
         candidates.style.display=model.hidden?'none':'';updateNativeModel();
     }
@@ -44,14 +52,22 @@
         // Submission remains an explicit user action; IME Enter commits only.
         if(!model.multiline&&!model.hidden&&typeof keyboardHistory!=='undefined')keyboardHistory.push(model.text);if(window.engine)engine.call('CVRUIKeyboardSubmit',model.text.replace(/\n$/,''));close(false);
     }
-    function close(nativeClose){closed=true;composing=false;cancelRepeat();call({action:'closed'});session='';model.open('',0,true,true);updateNativeModel();if(root){field.value=password.value='';candidates.textContent='';root.querySelector('.cu-kb-compose').textContent='';root.setAttribute('data-open','false');syncVisibility();}if(nativeClose&&window.engine)engine.call('CVRUIKeyboardClose');}
+    function close(nativeClose){
+        // Hiding the contents alone leaves the game's input/cursor locks active.
+        // Queue native cancellation before dropping the validated session.
+        if(nativeClose&&!closed){if(session)call({action:'cancel'});else if(window.engine)engine.call('CVRUIKeyboardClose');}
+        closed=true;composing=false;cancelRepeat();call({action:'closed'});session='';
+        [field,password].forEach(function(input){if(input)input.blur();});
+        model.open('',0,true,true);updateNativeModel();
+        if(root){field.value=password.value='';candidates.textContent='';root.querySelector('.cu-kb-compose').textContent='';root.setAttribute('data-open','false');syncVisibility();}
+    }
     function nextLanguage(){if(composing)return;var enabled=core.configuration(prefs.keyboardLanguages,prefs.keyboardDefault,prefs.language).languages;var index=enabled.indexOf(model.language);model.changeLanguage(enabled[(index+1)%enabled.length]);shift=false;renderKeys();renderLanguages();renderText();syncNative('edit');}
     function chooseLanguage(code){if(composing)return;model.changeLanguage(code);shift=false;renderKeys();renderLanguages();renderText();syncNative('edit');}
     function renderLanguages(){
         if(!languages)return;languages.textContent='';var enabled=core.configuration(prefs.keyboardLanguages,prefs.keyboardDefault,prefs.language).languages;
-        var index=enabled.indexOf(model.language),next=button(core.names[model.language]+' ›',nextLanguage,'cu-kb-language-next');next.title=t('next');languages.appendChild(next);
+        var index=enabled.indexOf(model.language),next=font(button(core.names[model.language]+' ›',nextLanguage,'cu-kb-language-next'),model.language);next.title=t('next');languages.appendChild(next);
         var add=button('+',function(){var panel=root.querySelector('.cu-kb-preferences'),expanded=!panel.classList.contains('cu-kb-expanded');panel.classList.toggle('cu-kb-expanded',expanded);root.setAttribute('data-settings-open',String(expanded));renderSettings(panel);},'cu-kb-add');add.setAttribute('aria-label',t('choose'));languages.appendChild(add);
-        enabled.forEach(function(code){var b=button(core.names[code],function(){chooseLanguage(code);},'cu-kb-language');b.setAttribute('aria-pressed',String(model.language===code));languages.appendChild(b);});
+        enabled.forEach(function(code){var b=font(button(core.names[code],function(){chooseLanguage(code);},'cu-kb-language'),code);b.setAttribute('aria-pressed',String(model.language===code));languages.appendChild(b);});
     }
     function nativeText(value){return window.ComfortUI?ComfortUI.systemText(value):value;}
     function moveCaret(direction){
@@ -100,6 +116,12 @@
                     action=function(){nativeFunction(item.func);};
                 }
                 var b=button(label,action,'cu-kb-key'+(item.func==='SUBMIT'?' cu-kb-submit':''));b.style.flex=String(item.weight);b.setAttribute('data-native-function',item.func||item.mod||'key');if(item.key!==null)b.setAttribute('data-native-key',item.key);
+                if(item.key!==null&&item.key!==' ')font(b,model.language);
+                if(['LEFT','RIGHT','UP','DOWN'].indexOf(item.func)>=0){
+                    // Reuse the game's arrow images instead of font-dependent glyphs.
+                    var original=document.querySelector('.keyboard-row [data-key-func="'+item.func+'"] img');
+                    if(original){b.textContent='';var arrow=original.cloneNode(true);arrow.alt=label;b.appendChild(arrow);}
+                }
                 if(item.mod)b.setAttribute('aria-pressed',String(item.lock?capsLock:shift));
                 if(item.func==='COPY')b.disabled=model.hidden;
                 if(item.func==='BACKSPACE'){b.addEventListener('mousedown',function(){cancelRepeat();repeatDelay=setTimeout(function(){repeatTimer=setInterval(back,70);},450);});['mouseup','mouseleave'].forEach(function(event){b.addEventListener(event,cancelRepeat);});}
@@ -111,8 +133,8 @@
     function settingsBlock(container){
         container.textContent='';container.appendChild(node('h3','',t('choose')));container.appendChild(node('p','',t('settingsHelp')));
         var enabled=core.configuration(prefs.keyboardLanguages,prefs.keyboardDefault,prefs.language),list=node('div','cu-kb-checklist');
-        core.languages.forEach(function(code){var label=node('label','cu-kb-check'),box=node('input');box.type='checkbox';box.checked=enabled.languages.indexOf(code)>=0;box.setAttribute('aria-label',core.names[code]);box.addEventListener('change',function(){var next=Object.assign({},prefs),values=enabled.languages.slice(),i=values.indexOf(code);if(box.checked&&i<0)values.push(code);if(!box.checked&&i>=0)values.splice(i,1);if(!values.length){box.checked=true;return;}next.keyboardLanguages=values;next.keyboardDefault=values.indexOf(prefs.keyboardDefault)>=0?prefs.keyboardDefault:values[0];save(next);});label.appendChild(box);label.appendChild(node('span','',core.names[code]));list.appendChild(label);});container.appendChild(list);
-        container.appendChild(node('p','cu-kb-settings-label',t('defaultLabel')));var defaults=node('div','cu-kb-defaults');enabled.languages.forEach(function(code){var b=button(core.names[code],function(){var next=Object.assign({},prefs);next.keyboardDefault=code;save(next);});b.setAttribute('aria-pressed',String(enabled.initial===code));defaults.appendChild(b);});container.appendChild(defaults);
+        core.languages.forEach(function(code){var label=node('label','cu-kb-check'),box=node('input');box.type='checkbox';box.checked=enabled.languages.indexOf(code)>=0;box.setAttribute('aria-label',core.names[code]);box.addEventListener('change',function(){var next=Object.assign({},prefs),values=enabled.languages.slice(),i=values.indexOf(code);if(box.checked&&i<0)values.push(code);if(!box.checked&&i>=0)values.splice(i,1);if(!values.length){box.checked=true;return;}next.keyboardLanguages=values;next.keyboardDefault=values.indexOf(prefs.keyboardDefault)>=0?prefs.keyboardDefault:values[0];save(next);});label.appendChild(box);label.appendChild(font(node('span','',core.names[code]),code));list.appendChild(label);});container.appendChild(list);
+        container.appendChild(node('p','cu-kb-settings-label',t('defaultLabel')));var defaults=node('div','cu-kb-defaults');enabled.languages.forEach(function(code){var b=font(button(core.names[code],function(){var next=Object.assign({},prefs);next.keyboardDefault=code;save(next);}),code);b.setAttribute('aria-pressed',String(enabled.initial===code));defaults.appendChild(b);});container.appendChild(defaults);
         [['keyboardEnabled','enabled'],['keyboardSuggestions','suggest'],['keyboardSystemInput','syson']].forEach(function(item){var label=node('label','cu-kb-check'),box=node('input');box.type='checkbox';box.checked=prefs[item[0]]!==false;box.addEventListener('change',function(){var next=Object.assign({},prefs);next[item[0]]=box.checked;save(next);});label.appendChild(box);label.appendChild(node('span','',t(item[1])));container.appendChild(label);});
         container.appendChild(node('p','cu-kb-note',t('voice')));
     }
@@ -150,6 +172,10 @@
             nativeHidden=false;
         }
         root.style.display=active&&!closed?'flex':'none';
+        // Remove the outer padding/background too, so no empty strip remains.
+        root.closest('.keyboard').setAttribute('data-cu-keyboard-open',String(!closed));
+        document.documentElement.setAttribute('data-comfort-keyboard-desktop',String(desktop));
+        if(restore)root.closest('.keyboard').removeAttribute('data-cu-keyboard');
     }
     function mount(){
         if(root||!document.querySelector('.keyboard'))return;
@@ -186,6 +212,7 @@
         }
         document.addEventListener('mouseup',cancelRepeat);window.addEventListener('blur',cancelRepeat);
         if(window.engine){
+            engine.on('ToggleView',function(shown){if(shown===false)close(false);});
             engine.on('showKeyboard',function(value,title,placeholder,submitText,max,hidden,multiline,collapse){titleText=typeof title==='string'?title:'';open({text:value,maximum:max,hidden:hidden,multiline:multiline,collapse:collapse},false);});
             engine.on('pasteFromClipboard',function(text){if(!closed&&typeof text==='string'){model.insert(text);renderText();syncNative('edit');}});
         }
@@ -203,6 +230,7 @@
     }
     function configure(value){
         prefs=value||{};mount();if(!root)return;
+        Array.prototype.forEach.call(root.querySelectorAll('button,span,p,h3,label'),function(el){font(el);});
         root.closest('.keyboard').setAttribute('data-cu-keyboard',String(prefs.keyboardEnabled!==false));
         syncVisibility();
         model.suggestions=prefs.keyboardSuggestions!==false;
@@ -222,6 +250,7 @@
             if(session===data.session)return;session=data.session;revision=0;desktop=data.desktop;open(data,true);return;
         }
         if(data.session!==session||closed)return;
+        if(data.kind==='closed'){close(false);return;}
         if(data.kind==='status'){if(data.code==='focused'||data.code==='unavailable')notice(data.code);return;}
         if(data.kind!=='text'||typeof data.text!=='string'||data.text.length>16000||!Number.isInteger(data.start)||!Number.isInteger(data.end)||data.start<0||data.end<data.start||data.end>data.text.length||typeof data.composing!=='boolean'||typeof data.focused!=='boolean'||['','submit','close'].indexOf(data.action)<0||!Number.isInteger(data.revision)||data.revision<revision)return;
         composing=data.composing;model.setText(data.text,data.start,data.end);renderText();if(window.engine)engine.trigger('CVRUIKeyboardOnInput');
